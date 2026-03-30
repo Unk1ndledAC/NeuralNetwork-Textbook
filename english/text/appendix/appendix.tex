@@ -1,0 +1,105 @@
+%
+% Appendix
+
+\clearpage
+\cleardoublepage
+
+\appendix
+
+\chapter{Mathematical Reference}
+
+\section{Linear Algebra}
+
+\subsection{Matrix Operations}
+
+\begin{itemize}
+    \item $\mathbf{AB} \neq \mathbf{BA}$ (non-commutative)
+    \item $(\mathbf{AB})^\top = \mathbf{B}^\top\mathbf{A}^\top$
+    \item $(\mathbf{AB})^{-1} = \mathbf{B}^{-1}\mathbf{A}^{-1}$
+    \item $\det(\mathbf{AB}) = \det(\mathbf{A})\det(\mathbf{B})$
+\end{itemize}
+
+\section{Calculus}
+
+\subsection{Common Derivatives}
+
+\begin{align}
+\frac{d}{dx}x^n &= nx^{n-1} \\
+\frac{d}{dx}e^x &= e^x \\
+\frac{d}{dx}\log(x) &= \frac{1}{x} \\
+\frac{d}{dx}\sin(x) &= \cos(x) \\
+\frac{d}{dx}\cos(x) &= -\sin(x)
+\end{align}
+
+\subsection{Chain Rule}
+
+For $y = f(g(x))$:
+\begin{equation}
+\frac{dy}{dx} = f'(g(x)) \cdot g'(x)
+\end{equation}
+
+\section{Probability}
+
+\begin{align}
+P(A|B) &= \frac{P(B|A)P(A)}{P(B)} \\
+E[X] &= \sum_x x \cdot P(X=x) \\
+\text{Var}(X) &= E[X^2] - (E[X])^2
+\end{align}
+
+\chapter{PyTorch Quick Reference}
+
+\section{Common Operations}
+
+\begin{minted}{python}
+import torch
+
+# Creation
+x = torch.randn(3, 4)  # Random
+x = torch.zeros(3, 4)  # Zeros
+x = torch.ones(3, 4)   # Ones
+x = torch.tensor([1, 2, 3])  # From data
+
+# Operations
+y = x.view(1, 12)  # Reshape
+y = x.sum(dim=0)   # Sum
+y = x.mean(dim=1)  # Mean
+
+# GPU
+x = x.cuda()
+x = x.cpu()
+x = x.to('cuda:0')
+\end{minted}
+
+\section{Model Creation}
+
+\begin{minted}{python}
+class MyModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(784, 128)
+        self.fc2 = nn.Linear(128, 10)
+        self.dropout = nn.Dropout(0.2)
+    
+    def forward(self, x):
+        x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        x = self.dropout(x)
+        return self.fc2(x)
+\end{minted}
+
+\chapter{Glossary}
+
+\begin{itemize}
+    \item \textbf{ANN:} Artificial Neural Network
+    \item \textbf{CNN:} Convolutional Neural Network
+    \item \textbf{RNN:} Recurrent Neural Network
+    \item \textbf{LSTM:} Long Short-Term Memory
+    \item \textbf{GAN:} Generative Adversarial Network
+    \item \textbf{VAE:} Variational Autoencoder
+    \item \textbf{GN:} Graph Neural Network
+    \item \textbf{FLOPs:} Floating Point Operations
+    \item \textbf{GFLOPs:} Giga FLOPs ($10^9$ FLOPs)
+    \item \textbf{BatchNorm:} Batch Normalization
+    \item \textbf{Dropout:} Regularization technique
+    \item \textbf{LR:} Learning Rate
+\end{itemize}

@@ -1,0 +1,132 @@
+%
+% 第7章：优化器与学习率调度器
+
+\clearpage
+\cleardoublepage
+
+\chapter{优化器与学习率调度器}
+
+\section{梯度下降优化}
+
+训练神经网络通过沿减少损失的方向更新参数来最小化损失函数。
+
+\subsection{随机梯度下降（SGD）}
+
+使用单个样本的梯度更新参数：
+\begin{equation}
+\theta_{t+1} = \theta_t - \alpha \nabla_\theta \mathcal{L}(\theta_t; \mathbf{x}^{(i_t)}, \mathbf{y}^{(i_t)})
+\end{equation}
+
+属性：
+\begin{itemize}
+    \item \textbf{优点：} 快速，能逃脱局部最小值
+    \item \textbf{缺点：} 梯度有噪声，需要较小的学习率
+\end{itemize}
+
+使用动量加速收敛：
+\begin{align}
+\mathbf{v}_{t+1} &= \beta \mathbf{v}_t + (1-\beta)\nabla_\theta \mathcal{L}(\theta_t) \\
+\theta_{t+1} &= \theta_t - \alpha \mathbf{v}_{t+1}
+\end{align}
+
+\section{自适应学习率方法}
+
+这些方法根据梯度历史调整每个参数的学习率。
+
+\subsection{Adam（自适应矩估计）}
+
+结合动量和RMSProp：
+\begin{align}
+\mathbf{m}_t &= \beta_1 \mathbf{m}_{t-1} + (1-\beta_1)\mathbf{g}_t \\
+\mathbf{v}_t &= \beta_2 \mathbf{v}_{t-1} + (1-\beta_2)\mathbf{g}_t^2 \\
+\hat{\mathbf{m}}_t &= \frac{\mathbf{m}_t}{1-\beta_1^t} \\
+\hat{\mathbf{v}}_t &= \frac{\mathbf{v}_t}{1-\beta_2^t} \\
+\theta_{t+1} &= \theta_t - \frac{\alpha \hat{\mathbf{m}}_t}{\sqrt{\hat{\mathbf{v}}_t} + \epsilon}
+\end{align}
+
+\begin{properties}[Adam属性]
+\begin{itemize}
+    \item \textbf{大多数深度学习任务的默认优化器}
+    \item \textbf{对超参数具有鲁棒性}
+    \item \textbf{默认参数：} $\alpha = 0.001, \beta_1 = 0.9, \beta_2 = 0.999$
+    \item \textbf{早期时间步的偏差校正}
+\end{itemize}
+\end{properties}
+
+\begin{code}
+    \captionof{listing}{PyTorch中的优化器}
+    \label{code:optimizer_chinese}
+\begin{minted}{python}
+import torch.optim as optim
+
+# 带动量的SGD
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+
+# Adam
+optimizer = optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999))
+
+# AdamW（解耦权重衰减）
+optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+\end{minted}
+\end{code}
+
+\section{AdamW（带权重衰减的Adam）}
+
+解耦的权重衰减：
+\begin{equation}
+\theta_{t+1} = \theta_t - \alpha \frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t} + \epsilon} - \alpha \lambda \theta_t
+\end{equation}
+
+属性：
+\begin{itemize}
+    \item \textbf{正确的L2正则化}
+    \item \textbf{在许多任务中泛化更好}
+    \item \textbf{Transformer的标准选择}
+\end{itemize}
+
+\section{学习率调度}
+
+学习率调度在训练期间调整学习率。
+
+常用调度：
+\begin{itemize}
+    \item \textbf{步衰减：} $\alpha_t = \alpha_0 \cdot \gamma^{\lfloor t/T \rfloor}$
+    \item \textbf{余弦退火：} $\alpha_t = \alpha_{min} + \frac{1}{2}(\alpha_{max} - \alpha_{min})(1 + \cos(\pi t/T))$
+    \item \textbf{预热：} 逐渐增加学习率
+\end{itemize}
+
+\begin{properties}[预热]
+\begin{itemize}
+    \item \textbf{防止开始时的大梯度}
+    \item \textbf{对Transformer很重要}
+    \item \textbf{常见：} 500-10000个预热步
+\end{itemize}
+\end{properties}
+
+\section{优化器选择}
+
+\begin{table}[h]
+    \centering
+    \caption{优化器选择指南}
+    \begin{tabular}{L{2.5cm} L{3cm} L{3.5cm}}
+        \toprule
+        \textbf{优化器} & \textbf{适合场景} & \textbf{备注} \\
+        \midrule
+        SGD + 动量 & 图像分类 & 最佳泛化 \\
+        Adam & 通用 & 默认选择 \\
+        AdamW & Transformers, NLP & 微调最佳 \\
+        RMSProp & RNNs & 循环模型良好 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{本章小结}
+
+\begin{enumerate}
+    \item 梯度下降是神经网络优化的基础
+    \item 动量通过累积速度加速收敛
+    \item Adam结合动量和自适应学习率
+    \item AdamW提供正确的权重衰减正则化
+    \item 学习率调度改善收敛
+    \item 预热对Transformer训练很重要
+\end{enumerate}

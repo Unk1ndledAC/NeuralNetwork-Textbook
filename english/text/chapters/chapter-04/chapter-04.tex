@@ -1,0 +1,303 @@
+%
+% Chapter 4: Neural Network Architectures
+
+\clearpage
+\cleardoublepage
+
+\chapter{Neural Network Architectures}
+
+\section{Introduction}
+
+Neural network architectures define how neurons are organized and connected to process information. Different architectures are suited for different types of data and tasks. This chapter covers the three fundamental neural network architectures: Deep Neural Networks (DNN), Convolutional Neural Networks (CNN), and Recurrent Neural Networks (RNN).
+
+\section{Deep Neural Networks (DNN)}
+
+A Deep Neural Network consists of multiple layers of neurons, where information flows from input to output without loops.
+
+\subsection{Architecture}
+
+A fully-connected DNN performs:
+\begin{equation}
+\mathbf{h}^{(l)} = f^{(l)}(\mathbf{W}^{(l)}\mathbf{h}^{(l-1)} + \mathbf{b}^{(l)})
+\end{equation}
+where $l = 1, \ldots, L$ indexes the layers.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[scale=0.8]
+        % Input layer
+        \foreach \y in {1,...,4} {
+            \node[circle, draw=layer-input, fill=layer-input!30] (i\y) at (0, 5-\y) {};
+        }
+        \node[below] at (0, 0.5) {Input};
+        
+        % Hidden layer 1
+        \foreach \y in {1,...,5} {
+            \node[circle, draw=layer-hidden, fill=layer-hidden!30] (h1\y) at (3, 5.5-\y) {};
+        }
+        
+        % Hidden layer 2
+        \foreach \y in {1,...,4} {
+            \node[circle, draw=layer-hidden, fill=layer-hidden!30] (h2\y) at (6, 5-\y) {};
+        }
+        
+        % Output layer
+        \foreach \y in {1,...,2} {
+            \node[circle, draw=layer-output, fill=layer-output!30] (o\y) at (9, 4.5-\y) {};
+        }
+        \node[below] at (9, 2) {Output};
+        
+        % Connections (sample)
+        \foreach \i in {1,...,4} {
+            \foreach \j in {1,...,5} {
+                \draw[gray, opacity=0.2] (i\i) -- (h1\j);
+            }
+        }
+        \foreach \i in {1,...,5} {
+            \foreach \j in {1,...,4} {
+                \draw[gray, opacity=0.2] (h1\i) -- (h2\j);
+            }
+        }
+        \foreach \i in {1,...,4} {
+            \foreach \j in {1,...,2} {
+                \draw[gray, opacity=0.2] (h2\i) -- (o\j);
+            }
+        }
+    \end{tikzpicture}
+    \caption{Deep Neural Network architecture}
+    \label{fig:dnn}
+\end{figure}
+
+\begin{properties}[DNN Characteristics]
+\begin{itemize}
+    \item \textbf{Parameter count:} $\sum_{l=1}^{L} (n^{(l-1)} \cdot n^{(l)} + n^{(l)})$
+    \item \textbf{Universal approximation:} Can approximate any continuous function with sufficient width/depth
+    \item \textbf{Suitable for:} Tabular data, feature-based classification
+\end{itemize}
+\end{properties}
+
+\section{Convolutional Neural Networks (CNN)}
+
+CNNs exploit spatial structure in data through local connections and parameter sharing.
+
+\subsection{Convolutional Layer}
+
+The convolution operation:
+\begin{equation}
+y[i,j] = \sum_{m}\sum_{n} w[m,n] \cdot x[i+m, j+n]
+\end{equation}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[scale=0.7]
+        % Input feature map
+        \foreach \x in {0,...,3} {
+            \foreach \y in {0,...,3} {
+                \fill[blue!30] (\x, \y) +(-0.4, -0.4) rectangle ++(0.4, 0.4);
+            }
+        }
+        \node at (1.5, -1) {Input Feature Map};
+        
+        % Kernel
+        \foreach \x in {0,...,2} {
+            \foreach \y in {0,...,2} {
+                \fill[red!30] (5+\x, 1+\y) +(-0.4, -0.4) rectangle ++(0.4, 0.4);
+            }
+        }
+        \node at (6.5, -1) {Kernel $3 \times 3$};
+        
+        % Output
+        \foreach \x in {0,...,1} {
+            \foreach \y in {0,...,1} {
+                \fill[green!30] (10+\x, 0.5+\y) +(-0.4, -0.4) rectangle ++(0.4, 0.4);
+            }
+        }
+        \node at (10.5, -1) {Output $2 \times 2$};
+        
+        % Arrows
+        \draw[->, thick] (4, 1.5) -- (4.5, 1.5);
+        \draw[->, thick] (8.5, 1.5) -- (9.5, 1.5);
+    \end{tikzpicture}
+    \caption{Convolution operation}
+    \label{fig:convolution}
+\end{figure}
+
+Key parameters:
+\begin{itemize}
+    \item \textbf{Kernel size:} $K \times K$ (typically $3 \times 3$, $5 \times 5$, $7 \times 7$)
+    \item \textbf{Stride:} $s$ (step size, typically 1 or 2)
+    \item \textbf{Padding:} $p$ (zero-padding to control output size)
+\end{itemize}
+
+Output size:
+\begin{equation}
+H_{out} = \left\lfloor \frac{H_{in} + 2p - K}{s} + 1 \right\rfloor
+\end{equation}
+
+\begin{properties}[CNN Advantages]
+\begin{itemize}
+    \item \textbf{Local receptive field:} Each neuron sees only a local patch
+    \item \textbf{Parameter sharing:} Same weights across spatial locations
+    \item \textbf{Translation equivariance:} Shift in input $\rightarrow$ Shift in output
+    \item \textbf{Suitable for:} Images, video, spatial data
+\end{itemize}
+\end{properties}
+
+\section{Recurrent Neural Networks (RNN)}
+
+RNNs process sequential data by maintaining hidden state.
+
+\subsection{Architecture}
+
+For input sequence $\mathbf{x}^{(1)}, \mathbf{x}^{(2)}, \ldots, \mathbf{x}^{(T)}$:
+\begin{align}
+\mathbf{h}^{(t)} &= f(\mathbf{W}_{xh}\mathbf{x}^{(t)} + \mathbf{W}_{hh}\mathbf{h}^{(t-1)} + \mathbf{b}_h) \\
+\mathbf{y}^{(t)} &= g(\mathbf{W}_{hy}\mathbf{h}^{(t)} + \mathbf{b}_y)
+\end{align}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[scale=0.8]
+        % RNN cell
+        \node[draw, minimum width=2cm, minimum height=1.5cm, rounded corners] (rnn) at (0,0) {RNN Cell};
+        
+        % Inputs
+        \node (x) at (-2, 0) {$\mathbf{x}^{(t)}$};
+        \node (h_prev) at (0, 2) {$\mathbf{h}^{(t-1)}$};
+        
+        % Outputs
+        \node (h) at (0, -2) {$\mathbf{h}^{(t)}$};
+        \node (y) at (2, 0) {$\mathbf{y}^{(t)}$};
+        
+        % Arrows
+        \draw[->] (x) -- (rnn);
+        \draw[->] (h_prev) -- (rnn);
+        \draw[->] (rnn) -- (h);
+        \draw[->] (rnn) -- (y);
+        
+        % Loop arrow
+        \draw[->, bend left] (h) to (h_prev);
+        \node[right] at (-0.3, 1.2) {Loop};
+    \end{tikzpicture}
+    \caption{RNN architecture}
+    \label{fig:rnn}
+\end{figure}
+
+\begin{properties}[RNN Characteristics]
+\begin{itemize}
+    \item \textbf{Sequential processing:} Can handle variable-length sequences
+    \item \textbf{Shared parameters:} Same weights across time steps
+    \item \textbf{Memory:} Hidden state captures past information
+    \item \textbf{Suitable for:} Text, time series, audio, video
+\end{itemize}
+\end{properties}
+
+\begin{note}[Vanishing Gradient Problem]
+Standard RNNs suffer from vanishing gradients during backpropagation through time (BPTT), making it difficult to learn long-range dependencies. This led to the development of LSTM and GRU architectures.
+\end{note}
+
+\section{Long Short-Term Memory (LSTM)}
+
+LSTM addresses the vanishing gradient problem with gating mechanisms.
+
+\subsection{LSTM Gates}
+
+\begin{align}
+\mathbf{f}^{(t)} &= \sigma(\mathbf{W}_f[\mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}] + \mathbf{b}_f) \quad \text{(forget gate)} \\
+\mathbf{i}^{(t)} &= \sigma(\mathbf{W}_i[\mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}] + \mathbf{b}_i) \quad \text{(input gate)} \\
+\mathbf{o}^{(t)} &= \sigma(\mathbf{W}_o[\mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}] + \mathbf{b}_o) \quad \text{(output gate)} \\
+\tilde{\mathbf{c}}^{(t)} &= \tanh(\mathbf{W}_c[\mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}] + \mathbf{b}_c) \quad \text{(cell candidate)} \\
+\mathbf{c}^{(t)} &= \mathbf{f}^{(t)} \odot \mathbf{c}^{(t-1)} + \mathbf{i}^{(t)} \odot \tilde{\mathbf{c}}^{(t)} \quad \text{(cell state)} \\
+\mathbf{h}^{(t)} &= \mathbf{o}^{(t)} \odot \tanh(\mathbf{c}^{(t)}) \quad \text{(hidden state)}
+\end{align}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[scale=0.8]
+        % LSTM cell representation
+        \node[draw, rectangle, minimum width=4cm, minimum height=3cm] (lstm) at (0,0) {};
+        
+        % Internal structure
+        \node at (-1, 0.8) {$\sigma$};
+        \node at (0, 0.8) {$\sigma$};
+        \node at (1, 0.8) {$\sigma$};
+        \node at (-1, -0.3) {$\tanh$};
+        \node at (1, -0.3) {$\tanh$};
+        
+        % Labels
+        \node at (0, -1.3) {$\odot$};
+        
+        % Inputs/Outputs
+        \node (h_prev) at (-3, 0) {$\mathbf{h}^{(t-1)}$};
+        \node (x) at (0, 2) {$\mathbf{x}^{(t)}$};
+        \node (h) at (3, 0) {$\mathbf{h}^{(t)}$};
+        \node (c_prev) at (-3, -1.5) {$\mathbf{c}^{(t-1)}$};
+        \node (c) at (3, -1.5) {$\mathbf{c}^{(t)}$};
+        
+        % Arrows
+        \draw[->] (h_prev) -- (-2, 0);
+        \draw[->] (x) -- (0, 1.3);
+        \draw[->] (-2, 0) -- (-1, 0);
+        \draw[->] (-1, 0) -- (1, 0);
+        \draw[->] (1, 0) -- (2, 0);
+        \draw[->] (2, 0) -- (h);
+        \draw[->] (c_prev) -- (-1, -1.5) -- (-1, -0.5);
+        \draw[->] (1, -0.5) -- (1, -1.5) -- (2, -1.5) -- (c);
+    \end{tikzpicture}
+    \caption{LSTM cell structure}
+    \label{fig:lstm}
+\end{figure}
+
+\begin{properties}[LSTM Advantages]
+\begin{itemize}
+    \item \textbf{Selective memory:} Gates control what to remember/forget
+    \item \textbf{Long-range dependencies:} Cell state enables gradient flow
+    \item \textbf{Widely used:} NLP, speech, time series
+\end{itemize}
+\end{properties}
+
+\section{Gated Recurrent Unit (GRU)}
+
+GRU simplifies LSTM with fewer gates while maintaining performance.
+
+\subsection{GRU Equations}
+\begin{align}
+\mathbf{z}^{(t)} &= \sigma(\mathbf{W}_z[\mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}]) \quad \text{(update gate)} \\
+\mathbf{r}^{(t)} &= \sigma(\mathbf{W}_r[\mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}]) \quad \text{(reset gate)} \\
+\tilde{\mathbf{h}}^{(t)} &= \tanh(\mathbf{W}[\mathbf{r}^{(t)} \odot \mathbf{h}^{(t-1)}, \mathbf{x}^{(t)}]) \\
+\mathbf{h}^{(t)} &= (1 - \mathbf{z}^{(t)}) \odot \mathbf{h}^{(t-1)} + \mathbf{z}^{(t)} \odot \tilde{\mathbf{h}}^{(t)}
+\end{align}
+
+Comparison with LSTM:
+\begin{itemize}
+    \item Fewer parameters (2 gates vs 3)
+    \item No separate cell state
+    \item Often performs comparably to LSTM
+\end{itemize}
+
+\section{Choosing Architecture}
+
+\begin{table}[h]
+    \centering
+    \caption{Architecture Selection Guide}
+    \begin{tabular}{L{2.5cm} L{3.5cm} L{4cm}}
+        \toprule
+        \textbf{Architecture} & \textbf{Best For} & \textbf{Examples} \\
+        \midrule
+        DNN & Tabular data & Classification, regression \\
+        CNN & Images, spatial data & Object detection, segmentation \\
+        RNN/LSTM & Sequences & NLP, time series \\
+        Transformer & Long sequences & Translation, generation \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Chapter Summary}
+
+\begin{enumerate}
+    \item DNNs are fully-connected networks for general-purpose learning
+    \item CNNs exploit spatial structure through local connections
+    \item RNNs process sequential data with recurrent connections
+    \item LSTM and GRU address vanishing gradients with gating
+    \item Architecture choice depends on data type and task
+\end{enumerate}

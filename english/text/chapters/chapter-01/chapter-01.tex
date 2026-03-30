@@ -1,0 +1,556 @@
+%
+%            ,,,                                        
+%          `7MM            _.o9                                
+%            MM                                             
+%  ,6"Yb.    MM  ,p6"bo   ,6"Yb.  M"""MMV  ,6"Yb.  `7Mb,od8 
+% 8)   MM    MM 6M'  OO  8)   MM  '  AMV  8)   MM    MM' "' 
+%  ,pm9MM    MM 8M        ,pm9MM    AMV    ,pm9MM    MM     
+% 8M   MM    MM YM.    , 8M   MM   AMV  , 8M   MM    MM     
+% `Moo9^Yo..JMML.YMbmd'  `Moo9^Yo.AMMmmmM `Moo9^Yo..JMML.   
+%
+%
+% Chapter 1: Mathematical Foundations
+
+\clearpage
+\cleardoublepage
+
+\chapter{Mathematical Foundations}
+
+\section{Introduction}
+
+Neural networks are built upon a solid mathematical foundation that combines linear algebra, calculus, probability theory, and optimization. This chapter provides the essential mathematical prerequisites for understanding how neural networks learn and make predictions. We will cover these topics in the context of their applications in deep learning, providing both theoretical insights and practical intuitions.
+
+The mathematics of neural networks can be viewed as the composition of linear transformations with nonlinear activation functions, optimized through gradient-based methods. Understanding this framework requires fluency in vector and matrix operations, differentiation of multivariate functions, and stochastic optimization.
+
+\section{Linear Algebra}
+
+Linear algebra provides the language for representing and manipulating data in neural networks. Neural networks fundamentally operate through linear transformations (matrix multiplications) combined with nonlinear activation functions.
+
+\subsection{Vectors and Matrices}
+
+A vector is an ordered collection of numbers that can represent a point in $n$-dimensional space. In neural networks, input data, hidden representations, and parameters are all represented as vectors or higher-dimensional tensors.
+
+\begin{definition}[Vector]
+A vector $\mathbf{x} \in \mathbb{R}^n$ is an ordered tuple of $n$ real numbers:
+\begin{equation}
+\mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix} = (x_1, x_2, \ldots, x_n)^\top
+\end{equation}
+where $x_i$ denotes the $i$-th component of the vector.
+\end{definition}
+
+\begin{definition}[Matrix]
+A matrix $\mathbf{A} \in \mathbb{R}^{m \times n}$ is a two-dimensional array of $m$ rows and $n$ columns:
+\begin{equation}
+\mathbf{A} = \begin{bmatrix}
+a_{11} & a_{12} & \cdots & a_{1n} \\
+a_{21} & a_{22} & \cdots & a_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{m1} & a_{m2} & \cdots & a_{mn}
+\end{bmatrix}
+\end{equation}
+where $a_{ij}$ denotes the element in the $i$-th row and $j$-th column.
+\end{definition}
+
+\begin{example}[Neural Network Layer as Matrix Operation]
+A single fully-connected layer in a neural network performs the operation:
+\begin{equation}
+\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}
+\end{equation}
+where:
+\begin{itemize}
+    \item $\mathbf{x} \in \mathbb{R}^{d_{in}}$ is the input vector
+    \item $\mathbf{W} \in \mathbb{R}^{d_{out} \times d_{in}}$ is the weight matrix
+    \item $\mathbf{b} \in \mathbb{R}^{d_{out}}$ is the bias vector
+    \item $\mathbf{y} \in \mathbb{R}^{d_{out}}$ is the output vector
+\end{itemize}
+If $d_{in} = 784$ (MNIST image) and $d_{out} = 128$, then $\mathbf{W}$ contains $784 \times 128 = 100,352$ parameters.
+\end{example}
+
+\subsection{Matrix Operations}
+
+\begin{itemize}
+    \item \textbf{Matrix Addition:} $\mathbf{C} = \mathbf{A} + \mathbf{B}$, where $c_{ij} = a_{ij} + b_{ij}$
+    \item \textbf{Scalar Multiplication:} $c\mathbf{A}$, where every element is multiplied by $c$
+    \item \textbf{Matrix Multiplication:} $\mathbf{C} = \mathbf{AB}$, where $c_{ij} = \sum_{k} a_{ik}b_{kj}$
+    \item \textbf{Transpose:} $(\mathbf{A}^\top)_{ij} = a_{ji}$
+    \item \textbf{Element-wise (Hadamard) Product:} $(\mathbf{A} \odot \mathbf{B})_{ij} = a_{ij} \cdot b_{ij}$
+\end{itemize}
+
+\begin{property}[Matrix Multiplication Properties]
+For matrices $\mathbf{A}$, $\mathbf{B}$, and $\mathbf{C}$ of appropriate dimensions:
+\begin{align}
+\mathbf{A}(\mathbf{BC}) &= (\mathbf{AB})\mathbf{C} \quad \text{(associativity)} \\
+\mathbf{A}(\mathbf{B} + \mathbf{C}) &= \mathbf{AB} + \mathbf{AC} \quad \text{(distributivity)} \\
+(\mathbf{AB})^\top &= \mathbf{B}^\top \mathbf{A}^\top \quad \text{(transpose of product)}
+\end{align}
+Note: $\mathbf{AB} \neq \mathbf{BA}$ in general (non-commutativity).
+\end{property}
+
+\subsection{Norms}
+
+Norms measure the ``size'' or ``length'' of vectors and matrices.
+
+\begin{definition}[Vector Norms]
+For a vector $\mathbf{x} \in \mathbb{R}^n$:
+\begin{itemize}
+    \item $L_1$ norm (Manhattan norm): $\|\mathbf{x}\|_1 = \sum_{i=1}^{n} |x_i|$
+    \item $L_2$ norm (Euclidean norm): $\|\mathbf{x}\|_2 = \sqrt{\sum_{i=1}^{n} x_i^2}$
+    \item $L_p$ norm: $\|\mathbf{x}\|_p = \left(\sum_{i=1}^{n} |x_i|^p\right)^{1/p}$
+    \item $L_\infty$ norm (max norm): $\|\mathbf{x}\|_\infty = \max_i |x_i|$
+\end{itemize}
+\end{definition}
+
+In neural networks, the $L_2$ norm is commonly used in regularization (weight decay), while the $L_1$ norm promotes sparsity.
+
+\begin{example}[Weight Decay Regularization]
+Weight decay adds a penalty term to the loss function:
+\begin{equation}
+\mathcal{L}_{reg}(\mathbf{W}) = \mathcal{L}(\mathbf{W}) + \lambda \|\mathbf{W}\|_F^2
+\end{equation}
+where $\|\mathbf{W}\|_F = \sqrt{\sum_{i,j} w_{ij}^2}$ is the Frobenius norm (the $L_2$ norm of the flattened matrix).
+\end{example}
+
+\subsection{Eigenvalues and Singular Values}
+
+Eigenvalues and singular values are fundamental for understanding linear transformations, dimensionality reduction, and network analysis.
+
+\begin{definition}[Eigenvalue and Eigenvector]
+For a square matrix $\mathbf{A} \in \mathbb{R}^{n \times n}$, if there exists a scalar $\lambda$ and nonzero vector $\mathbf{v}$ such that:
+\begin{equation}
+\mathbf{A}\mathbf{v} = \lambda \mathbf{v}
+\end{equation}
+then $\lambda$ is called an eigenvalue and $\mathbf{v}$ is the corresponding eigenvector.
+\end{definition}
+
+\begin{definition}[Singular Value Decomposition]
+For any matrix $\mathbf{A} \in \mathbb{R}^{m \times n}$, the Singular Value Decomposition (SVD) is:
+\begin{equation}
+\mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^\top
+\end{equation}
+where:
+\begin{itemize}
+    \item $\mathbf{U} \in \mathbb{R}^{m \times m}$ and $\mathbf{V} \in \mathbb{R}^{n \times n}$ are orthogonal matrices
+    \item $\mathbf{\Sigma} \in \mathbb{R}^{m \times n}$ is a diagonal matrix containing singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq 0$
+\end{itemize}
+The singular values are related to eigenvalues by $\sigma_i = \sqrt{\lambda_i(\mathbf{A}^\top\mathbf{A})}$.
+\end{definition}
+
+SVD is crucial for Principal Component Analysis (PCA), which is used in understanding the dimensionality of neural network representations.
+
+\subsection{Tensors}
+
+Neural networks, especially convolutional neural networks, operate on higher-dimensional arrays called tensors.
+
+\begin{definition}[Tensor]
+A tensor is a generalization of vectors and matrices to higher dimensions:
+\begin{itemize}
+    \item 0D tensor: scalar
+    \item 1D tensor: vector
+    \item 2D tensor: matrix
+    \item 3D tensor: e.g., RGB images of shape $(H, W, C)$
+    \item 4D tensor: batches of images of shape $(N, H, W, C)$
+    \item 5D tensor: volumes of shape $(D, H, W, C)$
+\end{itemize}
+\end{definition}
+
+\begin{example}[Tensor Shapes in CNNs]
+For a batch of $N$ color images of size $H \times W$ with 3 channels (RGB):
+\begin{itemize}
+    \item Input tensor: $\mathbf{X} \in \mathbb{R}^{N \times H \times W \times 3}$
+    \item After convolution with $C$ filters: $\mathbf{Y} \in \mathbb{R}^{N \times H' \times W' \times C}$
+\end{itemize}
+PyTorch convention: $(N, C, H, W)$
+TensorFlow convention: $(N, H, W, C)$
+\end{example}
+
+\section{Calculus}
+
+Calculus, particularly differential calculus, is essential for understanding how neural networks learn through gradient-based optimization.
+
+\subsection{Derivatives and Gradients}
+
+\begin{definition}[Derivative]
+The derivative of a function $f: \mathbb{R} \to \mathbb{R}$ at point $x$ is defined as:
+\begin{equation}
+f'(x) = \frac{df}{dx} = \lim_{h \to 0} \frac{f(x + h) - f(x)}{h}
+\end{equation}
+\end{definition}
+
+\begin{definition}[Gradient]
+For a scalar function $f: \mathbb{R}^n \to \mathbb{R}$, the gradient is a vector of partial derivatives:
+\begin{equation}
+\nabla f(\mathbf{x}) = \begin{bmatrix}
+\frac{\partial f}{\partial x_1} \\
+\frac{\partial f}{\partial x_2} \\
+\vdots \\
+\frac{\partial f}{\partial x_n}
+\end{bmatrix}
+\end{equation}
+The gradient points in the direction of steepest ascent.
+\end{definition}
+
+\begin{property}[Rules of Differentiation]
+\begin{itemize}
+    \item Sum rule: $\frac{d}{dx}(f + g) = f' + g'$
+    \item Product rule: $\frac{d}{dx}(fg) = f'g + fg'$
+    \item Chain rule: $\frac{d}{dx}f(g(x)) = f'(g(x)) \cdot g'(x)$
+    \item Quotient rule: $\frac{d}{dx}\left(\frac{f}{g}\right) = \frac{f'g - fg'}{g^2}$
+\end{itemize}
+\end{property}
+
+\begin{example}[Chain Rule in Neural Networks]
+For a two-layer network $f(\mathbf{x}) = \mathbf{W}_2(\mathbf{W}_1\mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2$, the gradient computation uses the chain rule extensively. If we want $\frac{\partial \mathcal{L}}{\partial \mathbf{W}_1}$ for loss $\mathcal{L}$, we have:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{W}_1} = \frac{\partial \mathcal{L}}{\partial \mathbf{z}_2} \cdot \frac{\partial \mathbf{z}_2}{\partial \mathbf{z}_1} \cdot \frac{\partial \mathbf{z}_1}{\partial \mathbf{W}_1}
+\end{equation}
+where $\mathbf{z}_1 = \mathbf{W}_1\mathbf{x} + \mathbf{b}_1$ and $\mathbf{z}_2 = \mathbf{W}_2\mathbf{z}_1 + \mathbf{b}_2$.
+\end{example}
+
+\subsection{Higher-Order Derivatives}
+
+\begin{definition}[Hessian Matrix]
+For a function $f: \mathbb{R}^n \to \mathbb{R}$, the Hessian matrix contains all second-order partial derivatives:
+\begin{equation}
+\mathbf{H} = \nabla^2 f(\mathbf{x}) = \begin{bmatrix}
+\frac{\partial^2 f}{\partial x_1^2} & \frac{\partial^2 f}{\partial x_1 \partial x_2} & \cdots \\
+\frac{\partial^2 f}{\partial x_2 \partial x_1} & \frac{\partial^2 f}{\partial x_2^2} & \cdots \\
+\vdots & \vdots & \ddots
+\end{bmatrix}
+\end{equation}
+The Hessian is symmetric if all second derivatives are continuous.
+\end{definition}
+
+The Hessian is used in Newton's method and for understanding curvature of the loss landscape.
+
+\begin{example}[Gradient Descent vs. Newton's Method]
+\begin{itemize}
+    \item Gradient descent: $\mathbf{w}_{t+1} = \mathbf{w}_t - \alpha \nabla \mathcal{L}(\mathbf{w}_t)$
+    \item Newton's method: $\mathbf{w}_{t+1} = \mathbf{w}_t - \alpha \mathbf{H}^{-1} \nabla \mathcal{L}(\mathbf{w}_t)$
+\end{itemize}
+Newton's method uses second-order information (curvature) for potentially faster convergence, but computing the Hessian is expensive for large networks.
+\end{example}
+
+\subsection{Jacobian Matrix}
+
+\begin{definition}[Jacobian]
+For a vector-valued function $\mathbf{f}: \mathbb{R}^n \to \mathbb{R}^m$, the Jacobian is an $m \times n$ matrix of partial derivatives:
+\begin{equation}
+\mathbf{J} = \frac{\partial \mathbf{f}}{\partial \mathbf{x}} = \begin{bmatrix}
+\frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} & \cdots \\
+\frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} & \cdots \\
+\vdots & \vdots & \ddots
+\end{bmatrix}
+\end{equation}
+Each row $i$ is the gradient of $f_i$.
+\end{definition}
+
+The Jacobian generalizes the gradient to vector-valued functions, which is essential for backpropagation through complex computational graphs.
+
+\begin{example}[Jacobian in Backpropagation]
+In backpropagation, we compute gradients of scalar outputs (like loss) with respect to vector inputs. If $\mathbf{y} = f(\mathbf{x})$ and $L$ is a scalar loss, then:
+\begin{equation}
+\frac{\partial L}{\partial \mathbf{x}} = \left(\frac{\partial \mathbf{y}}{\partial \mathbf{x}}\right)^\top \frac{\partial L}{\partial \mathbf{y}} = \mathbf{J}^\top \nabla_\mathbf{y} L
+\end{equation}
+The backward pass efficiently computes this product without explicitly forming the full Jacobian.
+\end{example}
+
+\section{Probability Theory}
+
+Probability theory provides the framework for understanding uncertainty, making predictions, and designing loss functions.
+
+\subsection{Basic Probability}
+
+\begin{definition}[Probability]
+For a random experiment with sample space $\Omega$, a probability function $P$ assigns to each event $A \subseteq \Omega$ a number $P(A)$ such that:
+\begin{itemize}
+    \item $0 \leq P(A) \leq 1$ for all events $A$
+    \item $P(\Omega) = 1$
+    \item If $A_1, A_2, \ldots$ are mutually exclusive, then $P(\bigcup_i A_i) = \sum_i P(A_i)$
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Random Variable]
+A random variable $X$ is a function that maps outcomes of a random experiment to numerical values:
+\begin{itemize}
+    \item Discrete: $P(X = x)$ for countable values
+    \item Continuous: described by probability density function $p(x)$
+\end{itemize}
+\end{definition}
+
+\begin{itemize}
+    \item \textbf{Expected Value:} $E[X] = \sum_x x \cdot P(X=x)$ or $\int x \cdot p(x) dx$
+    \item \textbf{Variance:} $\text{Var}(X) = E[(X - E[X])^2] = E[X^2] - (E[X])^2$
+    \item \textbf{Standard Deviation:} $\sigma_X = \sqrt{\text{Var}(X)}$
+\end{itemize}
+
+\subsection{Common Distributions}
+
+\begin{table}[h]
+    \centering
+    \caption{Common Probability Distributions in Deep Learning}
+    \begin{tabular}{L{3cm} L{4cm} L{5cm}}
+        \toprule
+        \textbf{Distribution} & \textbf{Formula} & \textbf{Applications} \\
+        \midrule
+        Bernoulli & $P(X=1) = p, P(X=0) = 1-p$ & Binary classification \\
+        Categorical & $P(X=k) = p_k$ & Multi-class classification \\
+        Gaussian (Normal) & $p(x) = \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$ & Regression, weight initialization \\
+        Multinomial & Generalization of Bernoulli & Language modeling \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{example}[Softmax Distribution]
+The softmax function converts a vector of logits $\mathbf{z} \in \mathbb{R}^K$ into a probability distribution:
+\begin{equation}
+\text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{K} e^{z_j}}
+\end{equation}
+Properties:
+\begin{itemize}
+    \item $\sum_{i=1}^{K} \text{softmax}(z_i) = 1$
+    \item $\text{softmax}(z_i) \in (0, 1)$ for all $i$
+    \item $\arg\max_i \text{softmax}(z_i) = \arg\max_i z_i$
+\end{itemize}
+Used for multi-class classification output.
+\end{example}
+
+\subsection{Bayesian Probability}
+
+\begin{definition}[Bayes' Rule]
+\begin{equation}
+P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B)}
+\end{equation}
+In the context of machine learning:
+\begin{equation}
+P(\text{hypothesis}|\text{data}) = \frac{P(\text{data}|\text{hypothesis}) \cdot P(\text{hypothesis})}{P(\text{data})}
+\end{equation}
+\begin{itemize}
+    \item $P(\text{hypothesis})$: Prior probability
+    \item $P(\text{data}|\text{hypothesis})$: Likelihood
+    \item $P(\text{hypothesis}|\text{data})$: Posterior probability
+\end{itemize}
+\end{definition}
+
+Bayesian methods are used in Bayesian neural networks for uncertainty estimation and in Bayesian optimization for hyperparameter tuning.
+
+\section{Optimization}
+
+Neural network training is fundamentally an optimization problem: finding parameters that minimize a loss function.
+
+\subsection{Optimization Problem}
+
+\begin{problem}[Neural Network Training]
+Given:
+\begin{itemize}
+    \item A neural network $f(\mathbf{x}; \mathbf{\theta})$ with parameters $\mathbf{\theta}$
+    \item A dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$
+    \item A loss function $\mathcal{L}(\mathbf{\theta})$
+\end{itemize}
+Find:
+\begin{equation}
+\mathbf{\theta}^* = \arg\min_{\mathbf{\theta}} \mathcal{L}(\mathbf{\theta})
+\end{equation}
+where typically:
+\begin{equation}
+\mathcal{L}(\mathbf{\theta}) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \mathbf{\theta}), \mathbf{y}_i)
+\end{equation}
+\end{problem}
+
+\subsection{Gradient Descent}
+
+\begin{algorithm}[Batch Gradient Descent]
+\begin{enumerate}
+    \item Initialize parameters $\mathbf{\theta}^{(0)}$
+    \item For $t = 0, 1, 2, \ldots$:
+    \begin{enumerate}
+        \item Compute gradient: $\mathbf{g}_t = \nabla \mathcal{L}(\mathbf{\theta}^{(t)})$
+        \item Update parameters: $\mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \alpha \mathbf{g}_t$
+    \end{enumerate}
+    \item Stop when convergence criteria are met
+\end{enumerate}
+\end{algorithm}
+
+The learning rate $\alpha > 0$ controls the step size. Choosing an appropriate learning rate is crucial for successful training.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[scale=0.8]
+        \begin{axis}[
+            view={-30}{30},
+            xlabel=$w_1$,
+            ylabel=$w_2$,
+            zlabel=$\mathcal{L}$,
+            width=10cm,
+            height=8cm
+        ]
+            % Loss surface approximation
+            \addplot3[
+                surf,
+                colormap/coolwarm,
+                samples=30,
+                domain=-2:2,
+                opacity=0.8
+            ] {x^2 + 0.5*y^2 + 0.3*x*y};
+            
+            % Gradient descent path
+            \addplot3[
+                thick,
+                black,
+                mark=*,
+                mark options={red, scale=1.5}
+            ] coordinates {
+                (-1.5, -1.5, 0)
+                (-1.0, -1.1, 0)
+                (-0.6, -0.7, 0)
+                (-0.3, -0.4, 0)
+                (0, 0, 0)
+            };
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Gradient descent on a quadratic loss surface}
+    \label{fig:gd_quadratic}
+\end{figure}
+
+\subsection{Challenges in Optimization}
+
+\begin{itemize}
+    \item \textbf{Local Minima:} The loss landscape is non-convex, containing many local minima. However, for large neural networks, local minima are often not a significant problem; saddle points are more common.
+    
+    \item \textbf{Vanishing/Exploding Gradients:} In deep networks, gradients can become very small (vanish) or very large (explode), making training difficult.
+    
+    \item \textbf{Plateaus:} Flat regions where gradients are near zero, leading to slow progress.
+    
+    \item \textbf{Loss Landscapes:} Neural network loss landscapes are complex, with many local minima, saddle points, and flat regions.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[scale=0.8]
+        % Drawing a schematic loss landscape
+        \draw[->] (-3, 0) -- (3, 0) node[right] {Parameters};
+        \draw[->] (0, -0.5) -- (0, 3) node[above] {Loss};
+        
+        % Loss curve
+        \draw[thick, blue] (-2.5, 2.5) to[out=-10, in=170] (-1.5, 1.2) 
+            to[out=-20, in=150] (-0.8, 0.3) 
+            to[out=-30, in=160] (-0.2, 0.8)  % Local minimum
+            to[out=20, in=180] (0.5, 0.2)
+            to[out=0, in=200] (1.5, 0.1)  % Global minimum
+            to[out=20, in=150] (2.5, 0.8);
+            
+        % Mark global minimum
+        \fill (1.5, 0.1) circle (2pt) node[below] {Global Min};
+        
+        % Mark local minimum
+        \fill (-0.2, 0.8) circle (2pt) node[above left] {Local Min};
+        
+        % Mark saddle point
+        \fill (-1.2, 0.5) circle (2pt) node[above] {Saddle};
+    \end{tikzpicture}
+    \caption{Schematic of loss landscape with local and global minima}
+    \label{fig:loss_landscape}
+\end{figure}
+
+\section{Information Theory}
+
+Information theory provides a framework for understanding loss functions, particularly cross-entropy.
+
+\subsection{Entropy}
+
+\begin{definition}[Shannon Entropy]
+For a discrete random variable $X$ with probability distribution $p(x)$:
+\begin{equation}
+H(X) = -\sum_{x} p(x) \log p(x) = E[-\log p(X)]
+\end{equation}
+Entropy measures the ``uncertainty'' or ``information content'' of a distribution.
+\end{definition}
+
+\begin{property}[Properties of Entropy]
+\begin{itemize}
+    \item $H(X) \geq 0$ for all distributions
+    \item $H(X) = 0$ if and only if $p(x) = 1$ for some $x$ (deterministic)
+    \item $H(X)$ is maximized for the uniform distribution
+    \item Binary entropy: $H_b(p) = -p\log p - (1-p)\log(1-p)$
+\end{itemize}
+\end{property}
+
+\subsection{Cross-Entropy and KL Divergence}
+
+\begin{definition}[Cross-Entropy]
+For two probability distributions $p$ (true) and $q$ (predicted):
+\begin{equation}
+H(p, q) = -\sum_{x} p(x) \log q(x) = H(p) + D_{KL}(p \| q)
+\end{equation}
+\end{definition}
+
+\begin{definition}[KL Divergence]
+\begin{equation}
+D_{KL}(p \| q) = \sum_{x} p(x) \log \frac{p(x)}{q(x)}
+\end{equation}
+KL divergence measures the ``distance'' from $q$ to $p$ (not a true metric, as it's asymmetric).
+\end{definition}
+
+\begin{property}[KL Divergence Properties]
+\begin{itemize}
+    \item $D_{KL}(p \| q) \geq 0$ (non-negativity)
+    \item $D_{KL}(p \| q) = 0$ if and only if $p = q$
+    \item $D_{KL}(p \| q) \neq D_{KL}(q \| p)$ (asymmetric)
+\end{itemize}
+\end{property}
+
+\begin{example}[Cross-Entropy Loss]
+For classification with $N$ samples and $K$ classes:
+\begin{equation}
+\mathcal{L}_{CE} = -\frac{1}{N}\sum_{i=1}^{N}\sum_{k=1}^{K} y_{ik} \log \hat{y}_{ik}
+\end{equation}
+where $y_{ik}$ is the ground truth (one-hot) and $\hat{y}_{ik} = \text{softmax}(z_{ik})$ is the prediction.
+
+Minimizing cross-entropy is equivalent to minimizing the KL divergence between the true and predicted distributions, since $H(p)$ is constant for one-hot labels.
+\end{example}
+
+\section{Chapter Summary}
+
+This chapter covered the essential mathematical foundations for neural networks:
+
+\begin{enumerate}
+    \item \textbf{Linear Algebra:} Vectors, matrices, tensor operations, and norms are the building blocks for representing and manipulating data and parameters in neural networks.
+    
+    \item \textbf{Calculus:} Derivatives, gradients, and the chain rule are fundamental for computing gradients during backpropagation.
+    
+    \item \textbf{Probability Theory:} Distributions, expected values, and Bayes' rule provide the framework for understanding predictions and designing loss functions.
+    
+    \item \textbf{Optimization:} Gradient descent and its variants are the workhorses of neural network training.
+    
+    \item \textbf{Information Theory:} Entropy and KL divergence justify the use of cross-entropy loss.
+\end{enumerate}
+
+These mathematical tools will be applied throughout the textbook as we explore activation functions, loss functions, network architectures, and training algorithms.
+
+\section{Further Reading}
+
+For deeper coverage of these topics:
+
+\begin{itemize}
+    \item \cite{goodfellow2016deep} - Chapter 2 covers mathematical foundations for deep learning
+    \item \cite{bishop2006pattern} - Comprehensive treatment of linear algebra and probability
+    \item \cite{strang2009introduction} - Excellent introduction to linear algebra
+    \item \cite{cover2012elements} - Classic text on information theory
+\end{itemize}
+
+% ==============================================================================
+% EXERCISES
+% ==============================================================================
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{Linear Algebra:} Given a weight matrix $\mathbf{W} \in \mathbb{R}^{256 \times 512}$, how many parameters does this layer have if we include a bias term? Write the computational cost in FLOPs for a single forward pass.
+    
+    \item \textbf{Calculus:} Compute the gradient $\frac{\partial \mathcal{L}}{\partial \mathbf{W}}$ for a single-layer network with output $\mathbf{y} = \mathbf{W}\mathbf{x}$, where $\mathcal{L} = \|\mathbf{y} - \mathbf{t}\|^2$.
+    
+    \item \textbf{Probability:} Show that the softmax function is invariant to additive constants: $\text{softmax}(\mathbf{z} + c) = \text{softmax}(\mathbf{z})$ for any constant $c$.
+    
+    \item \textbf{Optimization:} Implement gradient descent for a simple quadratic function $f(x) = x^2$ and analyze the effect of different learning rates.
+    
+    \item \textbf{Information Theory:} Prove that $D_{KL}(p \| q) \geq 0$ using Jensen's inequality.
+\end{enumerate}

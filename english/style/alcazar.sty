@@ -1,0 +1,317 @@
+% 
+%            ,,,                                        
+%          `7MM            _.o9                                
+%            MM                                             
+%  ,6"Yb.    MM  ,p6"bo   ,6"Yb.  M"""MMV  ,6"Yb.  `7Mb,od8 
+% 8)   MM    MM 6M'  OO  8)   MM  '  AMV  8)   MM    MM' "' 
+%  ,pm9MM    MM 8M        ,pm9MM    AMV    ,pm9MM    MM     
+% 8M   MM    MM YM.    , 8M   MM   AMV  , 8M   MM    MM     
+% `Moo9^Yo..JMML.YMbmd'  `Moo9^Yo.AMMmmmM `Moo9^Yo..JMML.   
+%
+%
+% Neural Network Textbook Style File
+
+% ------------------------------------------------------------------------------
+% Import the packages and definitions 
+
+\usepackage{style/pkgs}
+\usepackage{style/colors}
+
+
+% ------------------------------------------------------------------------------
+% PDF PARAMETERS
+
+\pdfminorversion=7
+\pdfinclusioncopyfonts=1
+\pdfgentounicode=1
+
+% ------------------------------------------------------------------------------
+% TEXT STYLE
+
+\setlength{\parindent}{5mm}  % Indentation
+\setlength{\parskip}{1mm}  % Paragraph skip
+
+% Default spacing between lines
+\renewcommand*\baselinestretch{1.06}\selectfont  % 1.06 for Libertinus Serif
+
+% Commands to have small monospace text
+\NewCommandCopy{\svtt}{\texttt}
+\renewcommand\texttt[1]{\svtt{\small#1}}
+
+% No skip between items in a list to save space 
+\setenumerate{itemsep=0mm}
+\setitemize{itemsep=0mm}
+\setdescription{itemsep=0mm}
+
+
+% ------------------------------------------------------------------------------
+% STYLE OF TITLES
+
+% Chapter
+
+\titleformat{\chapter}[display]
+{}
+{\large\scshape\chaptername\enspace\thechapter}
+{0mm}
+{\LARGE\bfseries}
+[]
+
+\titlespacing{\chapter}{0mm}{-5mm}{5mm}
+\titlespacing{\section}{0mm}{3mm}{1mm}
+\titlespacing{\subsection}{0mm}{3mm}{1mm}
+\titlespacing{\subsubsection}{0mm}{3mm}{1mm}
+
+
+% ------------------------------------------------------------------------------
+% TABLE OF CONTENTS 
+
+\settocdepth{4}
+\secnumdepth{4}
+
+% Column separation - multicol
+\setlength{\columnsep}{8mm}
+
+
+% ------------------------------------------------------------------------------
+% HYPERREF SETUP
+
+\hypersetup{%
+    pdfborder = {0 0 0},
+    unicode = true,  % allows to use characters of non-Latin based languages
+    bookmarksnumbered = true,
+    pdfstartview = {FitH},
+    pdfpagemode = UseOutlines,
+    pdftitle = {\thesisTitle},  % title
+    pdfauthor = {\thesisAuthor, \thesisTutor},  % authors
+    pdfsubject = {\thesisType - \thesisTitle},  % subject of the document
+    pdfkeywords = {\thesisKeywords},  % list of keywords
+    pdfinfo={%
+        Title={\thesisTitle},
+        Author={\thesisAuthor}
+    },
+    colorlinks = true,  % false: boxed links; true: colored, boxed links
+    linkcolor = url-color,  % color of internal links (blue)
+    citecolor = cite-color,  % color of links to bibliography (green)
+    filecolor = file-color,  % color of file links (black)
+    urlcolor = url-color,  % color of external links (green)
+}
+
+% The color of glossary cites is black for easier reading
+\renewrobustcmd*{\glstextformat}[1]{\textcolor{black}{#1}}
+
+
+% ------------------------------------------------------------------------------
+% CODE LISTINGS - MINTED
+
+\usemintedstyle{colorful}
+
+\setminted{bgcolor=listing-background,
+           fontsize=\footnotesize,
+           escapeinside=¢¢,
+           tabsize=4,
+           linenos,
+           breaklines}
+           
+\newenvironment{code}{\captionsetup{type=listing}}{}
+\SetupFloatingEnvironment{listing}{name=Listing}
+
+% Style line numbers
+\renewcommand{\theFancyVerbLine}{
+\ttfamily
+\textcolor[rgb]{0.4,0.4,0.4}{
+\footnotesize{
+\arabic{FancyVerbLine}}}}
+
+
+% ------------------------------------------------------------------------------
+% FIGURES AND CAPTIONS
+
+% fix autoref for subfloats
+renewcommand{\subfigureautorefname}{\figureautorefname}
+
+% Spacing
+
+\setlength{\abovedisplayskip}{2mm}  % space above captions
+\setlength{\belowdisplayskip}{2mm}  % space below captions
+\setlength{\abovedisplayshortskip}{0mm}  % space above captions
+\setlength{\belowdisplayshortskip}{0mm}  % space below captions
+\setlength{\intextsep}{5mm}  % top/bottom space between in-text floats
+\setlength{\floatsep}{5mm}  % top/bottom space between adjacent floats
+\setlength{\textfloatsep}{5mm}  % top/bottom space between text and floats
+
+% Table types
+
+% New 'M' style for tables that centers text vertically and horizontally. 
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+% New 'R' style for tables that centers text vertically and to the right
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}m{#1}}
+% New 'L' style for tables that centers text vertically and to the left
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}m{#1}}
+
+
+\let\oldquote\quote \renewcommand\quote{\oldquote\sf\itshape} 
+\let\oldquote\quotation \renewcommand\quotation{\oldquote\sf} 
+
+
+% ------------------------------------------------------------------------------
+%% ICONS
+
+% Command to vertically centre adjacent content
+\newcommand{\vcenteredhbox}[1]
+{%
+    \noindent\setbox0=\hbox{#1}\parbox{\wd0}{\box0}%
+}
+
+% 1: FontAwesome icon command, e.g.: "\faLinkedIn"
+% 2: box size (in pt), e.g.: "12" 
+% 3: color, e.g.: "blue"
+\newcommand{\icon}[3]
+{%
+    \vcenteredhbox{%
+        \colorbox{#3}{%
+            \renewcommand{\arraystretch}{0.8}\tabular{#3}
+                \renewcommand{\arraystretch}{1.0}
+                \textcolor{white}{\noindent #1}%
+            \endtabular
+        }%
+    }%
+}
+
+
+% ------------------------------------------------------------------------------
+% PAGE STYLE AND GEOMETRY
+
+\geometry{
+    a4paper,
+    top     = 2.5cm,
+    bottom  = 2.5cm,
+    inner   = 3.5cm,
+    outer   = 2.5cm
+}
+\setlength{\headheight}{13.6pt}
+
+% Chapters
+
+\fancypagestyle{chapters}
+{
+    \fancyhfoffset[RO,LE]{0cm}
+    
+    \fancyhead[LE]{\sf\small{\thepage}}
+    \fancyhead[RE]{\sf\small{\nouppercase{\leftmark}}}  
+    \fancyhead[C]{}
+    \fancyhead[LO]{\sf\small{\nouppercase{\rightmark}}}
+    \fancyhead[RO]{\sf\small{\thepage}}   
+    
+    \fancyfoot[LE]{\sf\small{\thepage}}
+    \fancyfoot[RE]{\sf\small{\thesisTitleShort}}
+    \fancyfoot[C]{}
+    \fancyfoot[LO]{\sf\small{\thesisAuthor}}
+    \fancyfoot[RO]{\sf\small{\thepage}}
+    
+    \renewcommand{\headrulewidth}{0.1mm}
+    \renewcommand{\footrulewidth}{0.1mm}
+}
+
+% Addendum
+
+\fancypagestyle{addenda}
+{
+    \fancyhfoffset[RO,LE]{0cm}
+    
+    \fancyhead[LE]{\sf\small{\thepage}}
+    \fancyhead[RE]{\sf\small{\nouppercase{\leftmark}}} 
+    \fancyhead[C]{}
+    \fancyhead[LO]{\sf\small{\nouppercase{\rightmark}}}
+    \fancyhead[RO]{\sf\small{\thepage}}
+    
+    \fancyfoot[LE]{\sf\small{\thepage}}
+    \fancyfoot[RE]{\sf\small{\thesisTitleShort}}
+    \fancyfoot[C]{}
+    \fancyfoot[LO]{\sf\small{\thesisAuthor}}
+    \fancyfoot[RO]{\sf\small{\thepage}}
+    
+    \renewcommand{\headrulewidth}{0.1mm}
+    \renewcommand{\footrulewidth}{0.1mm}
+}
+
+% Plain
+
+\fancypagestyle{plain}
+{
+    \fancyhfoffset[RO,LE]{0cm}
+    
+    \fancyhead[LE]{}
+    \fancyhead[RE]{} 
+    \fancyhead[C]{}
+    \fancyhead[LO]{}
+    \fancyhead[RO]{}
+    
+    \fancyfoot[LE]{\sf\small{\thepage}}
+    \fancyfoot[RE]{}
+    \fancyfoot[C]{}
+    \fancyfoot[LO]{}
+    \fancyfoot[RO]{\sf\small{\thepage}}
+    
+    \renewcommand{\headrulewidth}{0.0mm}
+    \renewcommand{\footrulewidth}{0.0mm}
+}
+
+
+
+% Empty
+
+\fancypagestyle{empty}
+{
+    \fancyhf{}
+    \fancyhead{}
+    
+    \fancyhead[LE]{}
+    \fancyhead[RE]{} 
+    \fancyhead[C]{}
+    \fancyhead[LO]{}
+    \fancyhead[RO]{}
+    
+    \fancyfoot[LE]{}
+    \fancyfoot[RE]{}
+    \fancyfoot[C]{}
+    \fancyfoot[LO]{}
+    \fancyfoot[RO]{}
+    
+    \renewcommand{\headrulewidth}{0mm}
+    \renewcommand{\footrulewidth}{0mm}
+}
+
+
+% Bibliography
+
+\fancypagestyle{biblio}
+{
+    \fancyhfoffset[RO,LE]{0cm}
+    
+    \fancyhead[LE]{\sf\small{\thepage}}
+    \fancyhead[RE]{\sf\small{\nouppercase{\leftmark}}} 
+    \fancyhead[C]{}
+    \fancyhead[LO]{\sf\small{\nouppercase{\rightmark}}}
+    \fancyhead[RO]{\sf\small{\thepage}}
+    
+    \fancyfoot[LE]{\sf\small{\thepage}}
+    \fancyfoot[RE]{\sf\small{\thesisTitleShort}}
+    \fancyfoot[C]{}
+    \fancyfoot[LO]{\sf\small{\thesisAuthor}}
+    \fancyfoot[RO]{\sf\small{\thepage}}
+    
+    \renewcommand{\headrulewidth}{0.2mm}
+    \renewcommand{\footrulewidth}{0.2mm}
+}
+
+
+% ------------------------------------------------------------------------------
+% Really blank pages between chapters 
+
+\let\origdoublepage\cleardoublepage
+\newcommand{\clearemptydoublepage}{%
+  \clearpage
+  {\pagestyle{plain}\origdoublepage}%
+}
+
+\let\cleardoublepage\clearemptydoublepage

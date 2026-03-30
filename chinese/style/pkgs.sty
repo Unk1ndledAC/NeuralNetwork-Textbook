@@ -1,0 +1,160 @@
+% 
+%            ,,,                                        
+%          `7MM            _.o9                                
+%            MM                                             
+%  ,6"Yb.    MM  ,p6"bo   ,6"Yb.  M"""MMV  ,6"Yb.  `7Mb,od8 
+% 8)   MM    MM 6M'  OO  8)   MM  '  AMV  8)   MM    MM' "' 
+%  ,pm9MM    MM 8M        ,pm9MM    AMV    ,pm9MM    MM     
+% 8M   MM    MM YM.    , 8M   MM   AMV  , 8M   MM    MM     
+% `Moo9^Yo..JMML.YMbmd'  `Moo9^Yo.AMMmmmM `Moo9^Yo..JMML.   
+%
+%
+% Neural Network Textbook - Packages
+
+% ------------------------------------------------------------------------------
+% DEBUG
+\usepackage{lipsum}
+
+
+% ------------------------------------------------------------------------------
+% BASE
+
+\usepackage[english, japanese, chinese]{babel}  % Language support for Chinese
+\usepackage[utf8]{inputenc}  % File encoding 
+
+
+% ------------------------------------------------------------------------------
+% TEXT AND FONTS
+
+% Document font. Default & recommended: Libertinus Serif
+\usepackage{libertinus}
+\usepackage[libertine]{newtxmath}  % Math support for libertinus
+
+% Sans-serif font - Default: Libertinus Sans (included in libertinus)
+
+% Monospace font - Default: IBM Plex Mono
+\usepackage[scale=0.85]{plex-mono}  % scaled when used with libertinus
+
+% Output encoding
+\usepackage[T1]{fontenc}
+
+% Symbols
+\usepackage{eurosym}  % Euro symbol
+
+% Misc
+\usepackage{moresize}  % More text sizes
+\usepackage[singlespacing]{setspace}  % Control line spacing
+
+
+% ------------------------------------------------------------------------------
+% MATH
+
+\usepackage{amsmath}  % Math
+\usepackage[separate-uncertainty=true]{siunitx}  % International System units
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+
+% ------------------------------------------------------------------------------
+% GRAPHICS AND ICONS
+
+\usepackage{graphicx}  % Required for inserting images
+\DeclareGraphicsExtensions{.pdf,.png,.jpg,.gif}
+
+\usepackage{fontawesome5}  % FontAwesome icons
+
+\usepackage{pdfpages}  % Insert PDF pages
+
+\usepackage{tikz}
+\usetikzlibrary{shapes, backgrounds, arrows.meta, positioning, calc, patterns}
+\tikzset{x=1cm, y=1cm} % Default tikz units
+
+
+% ------------------------------------------------------------------------------
+% PAGE GEOMETRY AND STYLE
+
+\usepackage{geometry}  % Modify page geometry
+\usepackage{fancyhdr}  % Fancy page style
+\usepackage{changepage}  % Margin adjustment and detection of odd/even pages
+\usepackage{pdflscape}  % Landscape pages
+
+
+% ------------------------------------------------------------------------------
+% TITLE FORMATTING
+
+\usepackage{titlesec}  % Modify title style and spacing
+
+
+% ------------------------------------------------------------------------------
+% URL, REF AND HYPERREF
+
+\usepackage{hyperref}
+\usepackage{hyperxmp}
+\usepackage{xurl}  % eXtended url package
+\usepackage{nameref}  % get section names by label
+
+
+% ------------------------------------------------------------------------------
+% LICENSE
+
+\usepackage[
+    type={CC},
+    modifier={by-nc-sa},
+    version={4.0},
+]{doclicense}
+
+
+% ------------------------------------------------------------------------------
+% APPENDIX
+
+\usepackage{appendix}
+
+
+% ------------------------------------------------------------------------------
+% TABLES
+
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{booktabs}
+
+
+% ------------------------------------------------------------------------------
+% FIGURES
+
+\usepackage{float}
+\usepackage[labelsep=endash, font={sf, small}, format=plain, labelfont={bf, up}]{caption}
+\usepackage{subcaption}  % Subfigures
+
+% for \FloatBarrier
+\usepackage{placeins}
+
+
+% ------------------------------------------------------------------------------
+% CODE LISTINGS
+
+\usepackage[newfloat]{minted}
+
+
+% ------------------------------------------------------------------------------
+% LISTS
+
+\usepackage{enumitem}
+
+
+% ------------------------------------------------------------------------------
+% BIBLIOGRAPHY
+
+\usepackage{csquotes}
+\usepackage[style=ieee, citestyle=ieee-comp, backend=biber]{biblatex}
+
+
+% ------------------------------------------------------------------------------
+% GLOSSARIES AND ACRONYMS
+
+\usepackage[toc, style=mcoltreehypergroup, stylemods=mcols, nonumberlist, automake=immediate]{glossaries-extra}  
+
+\usepackage{glossary/glossary}  % Glossary file
+\makeglossaries

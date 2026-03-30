@@ -1,0 +1,300 @@
+%
+% Chapter 10: Training Process and Frameworks
+
+\clearpage
+\cleardoublepage
+
+\chapter{Training Process and Frameworks}
+
+\section{The Training Loop}
+
+Neural network training consists of iterative optimization over data.
+
+\begin{algorithm}[Training Loop]
+\begin{enumerate}
+    \item Initialize model weights
+    \item For each epoch:
+    \begin{enumerate}
+        \item Shuffle training data
+        \item For each batch:
+        \begin{enumerate}
+            \item Forward pass: compute predictions
+            \item Compute loss
+            \item Backward pass: compute gradients
+            \item Update weights using optimizer
+        \end{enumerate}
+        \item Evaluate on validation set
+        \item Save checkpoint if improved
+    \end{enumerate}
+    \item Return best model
+\end{enumerate}
+\end{algorithm}
+
+\section{Hyperparameters}
+
+Critical hyperparameters that affect training:
+
+\subsection{Learning Rate}
+
+The most important hyperparameter.
+
+\begin{itemize}
+    \item \textbf{Too high:} Divergence, exploding loss
+    \item \textbf{Too low:} Slow convergence, local minima
+    \item \textbf{Typical range:} $10^{-5}$ to $0.1$
+    \item \textbf{Default for Adam:} $10^{-3}$
+    \item \textbf{Default for SGD:} $10^{-2}$
+\end{itemize}
+
+Finding good learning rates:
+\begin{itemize}
+    \item Learning rate range test (LR finder)
+    \item Start with known good defaults
+    \item Reduce by factor of 10 if loss diverges
+\end{itemize}
+
+\subsection{Batch Size}
+
+Number of samples per training step.
+
+\begin{itemize}
+    \item \textbf{Small batch:} Noisier gradients, better generalization
+    \item \textbf{Large batch:} Smoother gradients, faster but needs LR scaling
+    \item \textbf{Typical values:} 16, 32, 64, 128, 256
+    \item \textbf{Large batch scaling:} $\alpha_{large} = \alpha_{small} \times \frac{B_{large}}{B_{small}}$
+\end{itemize}
+
+\begin{note}[Batch Size vs. Generalization]
+Research shows smaller batches often achieve better generalization, but the effect depends on other factors like learning rate and network architecture.
+\end{note}
+
+\begin{table}[h]
+    \centering
+    \caption{Hyperparameter Ranges}
+    \begin{tabular}{L{2.5cm} L{3cm} L{3.5cm}}
+        \toprule
+        \textbf{Hyperparameter} & \textbf{Typical Range} & \textbf{Notes} \\
+        \midrule
+        Learning Rate & $10^{-5}$ to $0.1$ & Adam: $10^{-3}$, SGD: $10^{-2}$ \\
+        Batch Size & 16-512 & Depends on GPU memory \\
+        Epochs & 10-1000 & Depends on dataset size \\
+        Weight Decay & $10^{-6}$ to $10^{-2}$ & AdamW: $10^{-2}$ typical \\
+        Dropout & 0.1-0.5 & Depends on regularization need \\
+        Momentum & 0.9-0.999 & For SGD \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Regularization}
+
+Techniques to prevent overfitting:
+
+\subsection{Dropout}
+
+Randomly zero out activations during training:
+\begin{equation}
+\mathbf{y} = \mathbf{W} \cdot (\mathbf{x} \odot \mathbf{m})
+\end{equation}
+where $\mathbf{m} \sim \text{Bernoulli}(p)$ is the mask.
+
+During inference, no dropout (or use inverted dropout).
+
+\begin{properties}[Dropout Effects]
+\begin{itemize}
+    \item Ensemble of sub-networks
+    \item Reduces co-adaptation
+    \item Increases training time slightly
+    \item Typical dropout rate: 0.1-0.5
+\end{itemize}
+\end{properties}
+
+\subsection{Weight Decay}
+
+L2 regularization:
+\begin{equation}
+\mathcal{L}_{reg} = \mathcal{L} + \frac{\lambda}{2}\|\mathbf{W}\|_F^2
+\end{equation}
+
+Equivalent to:
+\begin{equation}
+\mathbf{W} \leftarrow (1 - \alpha\lambda)\mathbf{W} - \alpha \nabla \mathcal{L}
+\end{equation}
+
+For AdamW: Weight decay is applied independently of the adaptive learning rate.
+
+\section{Early Stopping}
+
+Stop training when validation performance stops improving:
+\begin{enumerate}
+    \item Monitor validation loss
+    \item Save best model
+    \item Stop if no improvement for $N$ epochs
+    \item Return best model
+\end{enumerate}
+
+Typical patience: 10-20 epochs
+
+\section{Model Checkpointing}
+
+Save model state during training:
+\begin{itemize}
+    \item \textbf{Architecture:} Model definition
+    \item \textbf{Weights:} Learned parameters
+    \item \textbf{Optimizer state:} Momentum, etc.
+    \item \textbf{Epoch:} Current training progress
+    \item \textbf{Best metric:} For model selection
+\end{itemize}
+
+\section{Backpropagation}
+
+The algorithm for computing gradients through the computational graph.
+
+\begin{algorithm}[Backpropagation]
+\begin{enumerate}
+    \item Forward pass: compute all intermediate values
+    \item Compute loss $\mathcal{L}$
+    \item Backward pass:
+    \begin{enumerate}
+        \item $\frac{\partial \mathcal{L}}{\partial \mathbf{y}}$ at output
+        \item For each layer (reverse order):
+        \begin{enumerate}
+            \item Compute $\frac{\partial \mathcal{L}}{\partial \mathbf{x}} = \frac{\partial \mathcal{L}}{\partial \mathbf{y}} \cdot \frac{\partial \mathbf{y}}{\partial \mathbf{x}}$
+            \item Compute $\frac{\partial \mathcal{L}}{\partial \mathbf{W}}$ for weight update
+        \end{enumerate}
+    \end{enumerate}
+\end{enumerate}
+\end{algorithm}
+
+\begin{note}[Chain Rule]
+Backpropagation applies the chain rule repeatedly:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial x} = \frac{\partial \mathcal{L}}{\partial y} \cdot \frac{\partial y}{\partial x}
+\end{equation}
+For complex graphs, this is computed efficiently using automatic differentiation.
+\end{note}
+
+\section{PyTorch Framework}
+
+PyTorch is the most popular framework for deep learning research.
+
+\begin{code}
+    \captionof{listing}{Training Loop in PyTorch}
+    \label{code:training_pytorch}
+\begin{minted}{python}
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+
+# Model
+model = nn.Sequential(
+    nn.Linear(784, 256),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Linear(256, 10)
+)
+
+# Loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
+
+# Training loop
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = model.to(device)
+
+for epoch in range(num_epochs):
+    model.train()
+    train_loss = 0.0
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        
+        optimizer.zero_grad()
+        output = model(data.view(data.size(0), -1))
+        loss = criterion(output, target)
+        loss.backward()
+        optimizer.step()
+        
+        train_loss += loss.item()
+    
+    # Validation
+    model.eval()
+    val_loss = 0.0
+    correct = 0
+    with torch.no_grad():
+        for data, target in val_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data.view(data.size(0), -1))
+            val_loss += criterion(output, target).item()
+            pred = output.argmax(dim=1)
+            correct += pred.eq(target).sum().item()
+    
+    print(f'Epoch {epoch}: Train Loss={train_loss/len(train_loader):.4f}, '
+          f'Val Loss={val_loss/len(val_loader):.4f}, '
+          f'Accuracy={100.*correct/len(val_loader.dataset):.2f}%')
+\end{minted}
+\end{code}
+
+\section{CUDA and GPU Training}
+
+PyTorch uses CUDA for GPU acceleration.
+
+\begin{code}
+    \captionof{listing}{CUDA Operations in PyTorch}
+    \label{code:cuda_pytorch}
+\begin{minted}{python}
+import torch
+
+# Check CUDA availability
+print(torch.cuda.is_available())
+print(torch.cuda.device_count())
+print(torch.cuda.get_device_name(0))
+
+# Move tensors to GPU
+device = torch.device('cuda')
+x = torch.randn(1000, 1000).to(device)
+y = torch.randn(1000, 1000).to(device)
+z = x @ y  # Matrix multiplication on GPU
+
+# Move model to GPU
+model = MyModel().to(device)
+
+# DataLoader for efficient loading
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=32,
+    shuffle=True,
+    num_workers=4,  # Parallel data loading
+    pin_memory=True  # Faster GPU transfer
+)
+
+# Mixed precision training
+scaler = torch.cuda.amp.GradScaler()
+with torch.cuda.amp.autocast():
+    output = model(data)
+    loss = criterion(output, target)
+
+scaler.scale(loss).backward()
+scaler.step(optimizer)
+scaler.update()
+\end{minted}
+\end{code}
+
+\begin{properties}[CUDA Principles]
+\begin{itemize}
+    \item GPUs excel at parallel operations (matrix mult, convolutions)
+    \item Data transfer between CPU and GPU is expensive
+    \item Batching improves GPU utilization
+    \item Mixed precision (FP16) reduces memory and increases speed
+\end{itemize}
+\end{properties}
+
+\section{Chapter Summary}
+
+\begin{enumerate}
+    \item Training involves iterative optimization over batches
+    \item Hyperparameters (LR, batch size) critically affect training
+    \item Regularization prevents overfitting
+    \item Backpropagation computes gradients efficiently
+    \item PyTorch provides flexible deep learning primitives
+    \item CUDA enables GPU acceleration for training
+\end{enumerate}

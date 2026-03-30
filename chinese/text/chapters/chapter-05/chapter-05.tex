@@ -1,0 +1,112 @@
+%
+% 第5章：核心操作
+
+\clearpage
+\cleardoublepage
+
+\chapter{神经网络核心操作}
+
+\section{引言}
+
+本章介绍现代神经网络的基本构建块：卷积、池化和归一化操作。理解这些操作对于设计和实现有效的神经网络架构至关重要。
+
+\section{卷积操作}
+
+卷积是卷积神经网络（CNN）的基石。
+
+对于输入 $\mathbf{X} \in \mathbb{R}^{H \times W}$ 和卷积核 $\mathbf{K} \in \mathbb{R}^{K \times K}$：
+\begin{equation}
+y[i,j] = \sum_{m=0}^{K-1}\sum_{n=0}^{K-1} k[m,n] \cdot x[i+m, j+n]
+\end{equation}
+
+卷积参数：
+\begin{itemize}
+    \item \textbf{卷积核大小：} $K \times K$（常见：$3\times3$, $5\times5$, $7\times7$）
+    \item \textbf{步长（$s$）：} 滑动窗口的步长
+    \item \textbf{填充（$p$）：} 输入周围的零填充
+    \item \textbf{膨胀（$d$）：} 卷积核元素之间的间距
+\end{itemize}
+
+输出大小：
+\begin{equation}
+H_{out} = \left\lfloor \frac{H_{in} + 2p - d(K-1) - 1}{s} + 1 \right\rfloor
+\end{equation}
+
+卷积优势：
+\begin{itemize}
+    \item \textbf{局部感受野}
+    \item \textbf{参数共享}
+    \item \textbf{平移等变性}
+\end{itemize}
+
+\section{池化操作}
+
+池化减少空间维度并提供平移不变性。
+
+\subsection{最大池化}
+
+\begin{equation}
+y[i,j] = \max_{m,n \in \mathcal{N}(i,j)} x[m,n]
+\end{equation}
+
+保留最强激活，提供局部平移不变性。
+
+\subsection{平均池化}
+
+\begin{equation}
+y[i,j] = \frac{1}{K \cdot K}\sum_{m,n \in \mathcal{N}(i,j)} x[m,n]
+\end{equation}
+
+在邻域内取平均。
+
+\section{归一化技术}
+
+归一化通过控制层输入分布来稳定训练。
+
+\subsection{批归一化（BatchNorm）}
+
+在批次维度上归一化激活：
+\begin{equation}
+\hat{x}_i = \frac{x_i - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}}, \quad y_i = \gamma \hat{x}_i + \beta
+\end{equation}
+
+属性：
+\begin{itemize}
+    \item \textbf{减少内部协变量偏移}
+    \item \textbf{允许更高的学习率}
+    \item \textbf{提供轻微正则化}
+\end{itemize}
+
+\subsection{层归一化（LayerNorm）}
+
+在单个样本的特征维度上归一化：
+\begin{equation}
+\mu = \frac{1}{D}\sum_{i=1}^{D} x_i, \quad \sigma = \frac{1}{D}\sum_{i=1}^{D}(x_i - \mu)^2
+\end{equation}
+
+独立于批次大小，用于RNN和Transformer。
+
+\begin{table}[h]
+    \centering
+    \caption{归一化方法比较}
+    \begin{tabular}{L{2cm} L{2.5cm} L{2.5cm} L{3cm}}
+        \toprule
+        \textbf{方法} & \textbf{归一化维度} & \textbf{依赖批次} & \textbf{使用场景} \\
+        \midrule
+        BatchNorm & $(H, W, C)$ & 是 & CNNs \\
+        LayerNorm & $(H, W, N)$ & 否 & Transformers \\
+        InstanceNorm & $(H, W)$ & 否 & 风格迁移 \\
+        GroupNorm & $(H, W, G)$ & 否 & 小批次CNNs \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{本章小结}
+
+\begin{enumerate}
+    \item 卷积通过共享权重提取局部特征
+    \item 池化提供空间约简和平移不变性
+    \item 归一化稳定训练动态
+    \item 现代架构将这些操作组合成标准化块
+    \item 操作选择取决于任务和数据特征
+\end{enumerate}

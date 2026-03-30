@@ -1,0 +1,68 @@
+%
+% 第6章：跳跃连接与注意力机制
+
+\clearpage
+\cleardoublepage
+
+\chapter{跳跃连接与注意力机制}
+
+\section{跳跃连接}
+
+跳跃连接（捷径）绕过层以实现深度网络中的梯度流动。
+
+\subsection{残差连接（ResNet）}
+
+残差学习框架：
+\begin{equation}
+\mathbf{y} = \mathcal{F}(\mathbf{x}) + \mathbf{x}
+\end{equation}
+其中 $\mathcal{F}$ 是学习的残差映射。
+
+属性：
+\begin{itemize}
+    \item \textbf{实现极深网络（100+层）的训练}
+    \item \textbf{缓解梯度消失/爆炸问题}
+    \item \textbf{减少退化问题}
+    \item \textbf{易于实现，计算开销小}
+\end{itemize}
+
+如果维度匹配：$\mathbf{y} = \mathcal{F}(\mathbf{x}, \{W_i\}) + \mathbf{x}$
+
+如果维度不同：$\mathbf{y} = \mathcal{F}(\mathbf{x}, \{W_i\}) + W_s\mathbf{x}$
+
+\section{注意力机制}
+
+注意力允许模型关注输入的相关部分。
+
+\subsection{自注意力}
+
+注意力函数：
+\begin{equation}
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)\mathbf{V}
+\end{equation}
+
+其中：
+\begin{itemize}
+    \item $\mathbf{Q} = \mathbf{X}\mathbf{W}_Q$（查询）
+    \item $\mathbf{K} = \mathbf{X}\mathbf{W}_K$（键）
+    \item $\mathbf{V} = \mathbf{X}\mathbf{W}_V$（值）
+\end{itemize}
+
+缩放因子 $\sqrt{d_k}$ 防止大 $d_k$ 时的梯度消失。
+
+自注意力属性：
+\begin{itemize}
+    \item \textbf{允许建模长期依赖}
+    \item \textbf{计算 $O(n^2)$ 但可并行化}
+    \item \textbf{可解释：} 注意力权重显示相关性
+\end{itemize}
+
+\section{本章小结}
+
+\begin{enumerate}
+    \item 跳跃连接通过改善梯度流动实现深度网络
+    \item 残差连接是使用最广泛的跳跃连接
+    \item 注意力机制允许动态关注相关特征
+    \item 自注意力是Transformer的基础
+    \item 通道注意力（SE）提供高效的特征重校准
+\end{enumerate}

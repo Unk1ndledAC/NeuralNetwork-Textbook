@@ -1,0 +1,172 @@
+%
+%            ,,,                                        
+%          `7MM            _.o9                                
+%            MM                                             
+%  ,6"Yb.    MM  ,p6"bo   ,6"Yb.  M"""MMV  ,6"Yb.  `7Mb,od8 
+% 8)   MM    MM 6M'  OO  8)   MM  '  AMV  8)   MM    MM' "' 
+%  ,pm9MM    MM 8M        ,pm9MM    AMV    ,pm9MM    MM     
+% 8M   MM    MM YM.    , 8M   MM   AMV  , 8M   MM    MM     
+% `Moo9^Yo..JMML.YMbmd'  `Moo9^Yo.AMMmmmM `Moo9^Yo..JMML.   
+%
+%
+% 第1章：数学基础
+
+\clearpage
+\cleardoublepage
+
+\chapter{数学基础}
+
+\section{引言}
+
+神经网络建立在坚实的数学基础之上，结合了线性代数、微积分、概率论和优化理论。本章提供理解神经网络学习和预测所需的基本数学知识。我们将从深度学习应用的角度介绍这些主题，提供理论见解和实践直觉。
+
+神经网络的数学可以看作是线性变换（矩阵乘法）与非线性激活函数的组合，通过基于梯度的优化方法进行优化。理解这个框架需要熟练掌握向量和矩阵运算、多元函数求导以及随机优化。
+
+\section{线性代数}
+
+线性代数提供了在神经网络中表示和操作数据的语言。神经网络基本上通过线性变换（矩阵乘法）结合非线性激活函数来运算。
+
+\subsection{向量和矩阵}
+
+向量是有序的数字集合，可以表示$n$维空间中的一个点。在神经网络中，输入数据、隐藏表示和参数都表示为向量或更高维的张量。
+
+\begin{definition}[向量]
+向量 $\mathbf{x} \in \mathbb{R}^n$ 是 $n$ 个实数的有序元组：
+\begin{equation}
+\mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix} = (x_1, x_2, \ldots, x_n)^\top
+\end{equation}
+其中 $x_i$ 是向量的第 $i$ 个分量。
+\end{definition}
+
+\begin{definition}[矩阵]
+矩阵 $\mathbf{A} \in \mathbb{R}^{m \times n}$ 是 $m$ 行 $n$ 列的二维数组：
+\begin{equation}
+\mathbf{A} = \begin{bmatrix}
+a_{11} & a_{12} & \cdots & a_{1n} \\
+a_{21} & a_{22} & \cdots & a_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{m1} & a_{m2} & \cdots & a_{mn}
+\end{bmatrix}
+\end{equation}
+其中 $a_{ij}$ 表示第 $i$ 行第 $j$ 列的元素。
+\end{definition}
+
+\begin{example}[神经网络层作为矩阵运算]
+单层全连接神经网络的运算：
+\begin{equation}
+\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}
+\end{equation}
+其中：
+\begin{itemize}
+    \item $\mathbf{x} \in \mathbb{R}^{d_{in}}$ 是输入向量
+    \item $\mathbf{W} \in \mathbb{R}^{d_{out} \times d_{in}}$ 是权重矩阵
+    \item $\mathbf{b} \in \mathbb{R}^{d_{out}}$ 是偏置向量
+    \item $\mathbf{y} \in \mathbb{R}^{d_{out}}$ 是输出向量
+\end{itemize}
+如果 $d_{in} = 784$（MNIST图像）且 $d_{out} = 128$，则 $\mathbf{W}$ 包含 $784 \times 128 = 100,352$ 个参数。
+\end{example}
+
+\section{微积分}
+
+微积分，特别是微分学，对于理解神经网络通过基于梯度的优化进行学习至关重要。
+
+\subsection{导数和梯度}
+
+\begin{definition}[梯度]
+对于标量函数 $f: \mathbb{R}^n \to \mathbb{R}$，梯度是偏导数的向量：
+\begin{equation}
+\nabla f(\mathbf{x}) = \begin{bmatrix}
+\frac{\partial f}{\partial x_1} \\
+\frac{\partial f}{\partial x_2} \\
+\vdots \\
+\frac{\partial f}{\partial x_n}
+\end{bmatrix}
+\end{equation}
+梯度指向函数最速上升的方向。
+\end{definition}
+
+\begin{property}[链式法则]
+反向传播中，我们计算标量输出（如损失）相对于向量输入的梯度：
+\begin{equation}
+\frac{\partial L}{\partial \mathbf{x}} = \left(\frac{\partial \mathbf{y}}{\partial \mathbf{x}}\right)^\top \frac{\partial L}{\partial \mathbf{y}} = \mathbf{J}^\top \nabla_\mathbf{y} L
+\end{equation}
+后向传播高效地计算这个乘积，而无需显式形成完整的雅可比矩阵。
+\end{property}
+
+\section{概率论}
+
+概率论为理解不确定性、进行预测和设计损失函数提供了框架。
+
+\subsection{Softmax分布}
+
+Softmax函数将logit向量 $\mathbf{z} \in \mathbb{R}^K$ 转换为概率分布：
+\begin{equation}
+\text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{K} e^{z_j}}
+\end{equation}
+
+属性：
+\begin{itemize}
+    \item $\sum_{i=1}^{K} \text{softmax}(z_i) = 1$
+    \item $\text{softmax}(z_i) \in (0, 1)$ 对所有 $i$
+    \item $\arg\max_i \text{softmax}(z_i) = \arg\max_i z_i$
+\end{itemize}
+
+用于多类分类输出。
+
+\section{优化}
+
+神经网络训练本质是一个优化问题：找到最小化损失函数的参数。
+
+\begin{problem}[神经网络训练]
+给定：
+\begin{itemize}
+    \item 带参数 $\mathbf{\theta}$ 的神经网络 $f(\mathbf{x}; \mathbf{\theta})$
+    \item 数据集 $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$
+    \item 损失函数 $\mathcal{L}(\mathbf{\theta})$
+\end{itemize}
+找到：
+\begin{equation}
+\mathbf{\theta}^* = \arg\min_{\mathbf{\theta}} \mathcal{L}(\mathbf{\theta})
+\end{equation}
+其中通常：
+\begin{equation}
+\mathcal{L}(\mathbf{\theta}) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \mathbf{\theta}), \mathbf{y}_i)
+\end{equation}
+\end{problem}
+
+\section{信息论}
+
+信息论为理解损失函数（特别是交叉熵）提供了框架。
+
+\begin{definition}[KL散度]
+\begin{equation}
+D_{KL}(p \| q) = \sum_{x} p(x) \log \frac{p(x)}{q(x)}
+\end{equation}
+KL散度衡量从 $q$ 到 $p$ 的"距离"（不是真正的度量，因为不对称）。
+\end{definition}
+
+\begin{example}[交叉熵损失]
+对于 $N$ 个样本和 $K$ 个类的分类：
+\begin{equation}
+\mathcal{L}_{CE} = -\frac{1}{N}\sum_{i=1}^{N}\sum_{k=1}^{K} y_{ik} \log \hat{y}_{ik}
+\end{equation}
+其中 $y_{ik}$ 是真实标签（独热编码），$\hat{y}_{ik} = \text{softmax}(z_{ik})$ 是预测。
+
+最小化交叉熵等价于最小化真实分布和预测分布之间的KL散度。
+\end{example}
+
+\section{本章小结}
+
+本章涵盖了神经网络的基本数学基础：
+
+\begin{enumerate}
+    \item \textbf{线性代数：} 向量、矩阵、张量运算和范数是神经网络中表示和操作数据和参数的构建块。
+    
+    \item \textbf{微积分：} 导数、梯度和链式法则是反向传播计算梯度的基本工具。
+    
+    \item \textbf{概率论：} 分布、期望和贝叶斯公式为理解预测和设计损失函数提供了框架。
+    
+    \item \textbf{优化：} 梯度下降及其变体是神经网络训练的核心。
+    
+    \item \textbf{信息论：} 熵和KL散度证明了交叉熵损失的使用是合理的。
+\end{enumerate}

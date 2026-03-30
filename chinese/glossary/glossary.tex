@@ -1,0 +1,141 @@
+% 
+%            ,,,                                        
+%          `7MM            _.o9                                
+%            MM                                             
+%  ,6"Yb.    MM  ,p6"bo   ,6"Yb.  M"""MMV  ,6"Yb.  `7Mb,od8 
+% 8)   MM    MM 6M'  OO  8)   MM  '  AMV  8)   MM    MM' "' 
+%  ,pm9MM    MM 8M        ,pm9MM    AMV    ,pm9MM    MM     
+% 8M   MM    MM YM.    , 8M   MM   AMV  , 8M   MM    MM     
+% `Moo9^Yo..JMML.YMbmd'  `Moo9^Yo.AMMmmmM `Moo9^Yo..JMML.   
+%
+%
+% 神经网络教材 - 术语表
+
+% Glossary entries with Chinese translations
+
+\newglossaryentry{ANN}{
+    name={Artificial Neural Network (ANN) / 人工神经网络 (ANN)},
+    description={受生物神经网络启发的计算系统，由相互连接的节点（神经元）组成}
+}
+
+\newglossaryentry{DNN}{
+    name={Deep Neural Network (DNN) / 深度神经网络 (DNN)},
+    description={具有多个隐藏层的神经网络，能够学习复杂表示}
+}
+
+\newglossaryentry{CNN}{
+    name={Convolutional Neural Network (CNN) / 卷积神经网络 (CNN)},
+    description={专为处理结构化网格数据（如图像）而设计的深度学习架构}
+}
+
+\newglossaryentry{RNN}{
+    name={Recurrent Neural Network (RNN) / 循环神经网络 (RNN)},
+    description={为序列数据处理而设计的神经网络架构}
+}
+
+\newglossaryentry{LSTM}{
+    name={Long Short-Term Memory (LSTM) / 长短期记忆网络 (LSTM)},
+    description={使用门控机制控制信息流的RNN架构，解决梯度消失问题}
+}
+
+\newglossaryentry{BN}{
+    name={Batch Normalization (BN) / 批归一化 (BN)},
+    description={通过在批次上归一化层输入来稳定和加速神经网络训练的技术}
+}
+
+\newglossaryentry{Dropout}{
+    name={Dropout / Dropout},
+    description={在训练过程中随机将一部分神经元输出置零以防止过拟合的正则化技术}
+}
+
+\newglossaryentry{FLOPs}{
+    name={Floating Point Operations (FLOPs) / 浮点运算次数 (FLOPs)},
+    description={衡量计算复杂度的指标，表示执行的浮点运算数量}
+}
+
+\newglossaryentry{GPU}{
+    name={Graphics Processing Unit (GPU) / 图形处理器 (GPU)},
+    description={专门用于加速图像渲染的电子电路，现广泛用于深度学习的并行计算}
+}
+
+\newglossaryentry{CUDA}{
+    name={Compute Unified Device Architecture (CUDA) / 统一计算设备架构 (CUDA)},
+    description={NVIDIA开发的并行计算平台和API，用于GPU通用计算}
+}
+
+\newglossaryentry{backprop}{
+    name={Backpropagation / 反向传播},
+    description={通过应用链式法则计算损失函数相对于网络权重的梯度的算法}
+}
+
+\newglossaryentry{SGD}{
+    name={Stochastic Gradient Descent (SGD) / 随机梯度下降 (SGD)},
+    description={使用随机子集（mini-batch）训练数据计算梯度和更新权重的优化算法}
+}
+
+\newglossaryentry{Adam}{
+    name={Adam Optimizer / Adam优化器},
+    description={自适应学习率优化算法，结合动量和RMSprop}
+}
+
+\newglossaryentry{overfitting}{
+    name={Overfitting / 过拟合},
+    description={模型过度学习训练数据（包括噪声）导致泛化能力差的现象}
+}
+
+\newglossaryentry{underfitting}{
+    name={Underfitting / 欠拟合},
+    description={模型未能学习训练数据中的潜在模式，在训练和测试集上表现都差}
+}
+
+\newglossaryentry{regularization}{
+    name={Regularization / 正则化},
+    description={通过向模型添加约束或修改训练目标来防止过拟合的技术}
+}
+
+\newglossaryentry{lossfunction}{
+    name={Loss Function / 损失函数},
+    description={衡量预测值与真实值之间差异的函数，用于指导模型优化}
+}
+
+\newglossaryentry{activation}{
+    name={Activation Function / 激活函数},
+    description={应用于神经元输出的数学函数，向网络引入非线性}
+}
+
+\newglossaryentry{attention}{
+    name={Attention Mechanism / 注意力机制},
+    description={允许模型在处理序列时关注输入相关部分的技术}
+}
+
+\newglossaryentry{transformer}{
+    name={Transformer / Transformer},
+    description={基于自注意力机制的神经网络架构，消除了对循环和卷积的需求}
+}
+
+\newglossaryentry{ResNet}{
+    name={Residual Network (ResNet) / 残差网络 (ResNet)},
+    description={使用跳跃连接实现超深网络训练的CNN架构}
+}
+
+\newglossaryentry{VGG}{
+    name={VGG Network / VGG网络},
+    description={以简洁著称的CNN架构，仅使用$3\times3$卷积层构成深网络}
+}
+
+\newglossaryentry{AlexNet}{
+    name={AlexNet / AlexNet},
+    description={2012年ImageNet竞赛冠军的CNN架构，使深度学习在计算机视觉领域得到普及}
+}
+
+
+% Glossary and acronyms
+
+\clearpage
+\cleardoublepage
+\phantomsection
+
+{
+    \footnotesize
+    \printglossaries
+}

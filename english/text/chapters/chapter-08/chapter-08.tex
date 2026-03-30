@@ -1,0 +1,246 @@
+%
+% Chapter 8: Classic Network Architectures
+
+\clearpage
+\cleardoublepage
+
+\chapter{Classic Network Architectures}
+
+\section{Evolution of Neural Networks}
+
+The history of deep learning shows a progression from simple networks to increasingly complex architectures, each building upon innovations of the previous era.
+
+\section{Perceptron and Early Neural Networks}
+
+\subsection{The Perceptron (1958)}
+
+The perceptron, introduced by Frank Rosenblatt, was the first attempt at artificial neural networks:
+\begin{equation}
+y = \begin{cases} 1 & \text{if } \mathbf{w} \cdot \mathbf{x} + b > 0 \\ 0 & \text{otherwise} \end{cases}
+\end{equation}
+
+Limitations: Can only solve linearly separable problems (XOR problem showed this).
+
+\section{LeNet (1998)}
+
+Yann LeCun's LeNet was the first successful CNN for digit recognition.
+
+\begin{architecture}[LeNet-5 Architecture]
+\begin{enumerate}
+    \item Input: $32\times32$ grayscale image
+    \item C1: $6$ filters of $5\times5$, stride 1 $\rightarrow$ $28\times28\times6$
+    \item S2: $2\times2$ avg pool, stride 2 $\rightarrow$ $14\times14\times6$
+    \item C3: $16$ filters of $5\times5$ $\rightarrow$ $10\times10\times16$
+    \item S4: $2\times2$ avg pool $\rightarrow$ $5\times5\times16$
+    \item C5: $120$ filters of $5\times5$ $\rightarrow$ $120$
+    \item F6: Fully connected, 84 units
+    \item Output: 10 classes (digits)
+\end{enumerate}
+\end{architecture}
+
+Total parameters: $\sim$60,000
+
+Key innovations:
+\begin{itemize}
+    \item Weight sharing through convolutions
+    \item Local receptive fields
+    \item Spatial subsampling (pooling)
+\end{itemize}
+
+\section{AlexNet (2012)}
+
+AlexNet won ImageNet LSVRC-2012 with a significant margin, revolutionizing computer vision.
+
+\begin{architecture}[AlexNet Architecture]
+\begin{enumerate}
+    \item Input: $224\times224\times3$ RGB image
+    \item Conv1: $96$ filters of $11\times11$, stride 4 $\rightarrow$ $55\times55\times96$
+    \item Pool1: $3\times3$ max pool, stride 2 $\rightarrow$ $27\times27\times96$
+    \item Norm1: Response normalization
+    \item Conv2: $256$ filters of $5\times5$ $\rightarrow$ $27\times27\times256$
+    \item Pool2: $3\times3$ max pool $\rightarrow$ $13\times13\times256$
+    \item Conv3: $384$ filters of $3\times3$
+    \item Conv4: $384$ filters of $3\times3$
+    \item Conv5: $256$ filters of $3\times3$
+    \item Pool5: $3\times3$ max pool $\rightarrow$ $6\times6\times256$
+    \item FC6: 4096 neurons
+    \item FC7: 4096 neurons
+    \item FC8: 1000 classes (ImageNet)
+\end{enumerate}
+\end{architecture}
+
+Key innovations:
+\begin{itemize}
+    \item ReLU activation (faster training)
+    \item GPU training (5-6 days vs weeks)
+    \item Data augmentation
+    \item Dropout regularization
+    \item Response normalization
+\end{itemize}
+
+Parameters: $\sim$60 million
+
+\section{VGGNet (2014)}
+
+VGGNet emphasized depth and simplicity, using only $3\times3$ convolutions.
+
+\begin{architecture}[VGG-16 Architecture]
+\begin{enumerate}
+    \item Input: $224\times224\times3$
+    \item Conv blocks:
+    \begin{itemize}
+        \item Block 1: $2\times$ conv $64$, pool
+        \item Block 2: $2\times$ conv $128$, pool
+        \item Block 3: $3\times$ conv $256$, pool
+        \item Block 4: $3\times$ conv $512$, pool
+        \item Block 5: $3\times$ conv $512$, pool
+    \end{itemize}
+    \item FC: 4096, 4096, 1000
+\end{enumerate}
+\end{architecture}
+
+Key insight: Two $3\times3$ convolutions have receptive field of $5\times5$ but fewer parameters:
+\begin{itemize}
+    \item $5\times5$ conv: $25C^2$ parameters
+    \item Two $3\times3$ convs: $18C^2$ parameters (28\% reduction)
+    \item More nonlinearities with two ReLUs
+\end{itemize}
+
+Parameters: $\sim$138 million
+
+\section{GoogLeNet / Inception (2014)}
+
+Introduced the Inception module with parallel multi-scale convolutions.
+
+\begin{architecture}[Inception Module]
+Parallel operations at different scales:
+\begin{itemize}
+    \item $1\times1$ conv (bottleneck)
+    \item $3\times3$ conv (after $1\times1$)
+    \item $5\times5$ conv (after $1\times1$)
+    \item $3\times3$ max pool (after $1\times1$)
+\end{itemize}
+Concatenate all outputs along channel dimension.
+\end{architecture}
+
+Key innovations:
+\begin{itemize}
+    \item Multi-scale feature extraction
+    \item Dimensionality reduction with $1\times1$ conv
+    \item Global Average Pooling
+    \item Auxiliary classifiers for training
+\end{itemize}
+
+Parameters: $\sim$4 million (very efficient!)
+
+\section{ResNet (2015)}
+
+ResNet introduced residual connections, enabling training of very deep networks.
+
+\begin{architecture}[ResNet-50 (Bottleneck)]
+\begin{enumerate}
+    \item Conv1: $7\times7$, 64, stride 2
+    \item Pool: $3\times3$ max, stride 2
+    \item Stage 1: 3 blocks, 64 channels
+    \item Stage 2: 4 blocks, 128 channels
+    \item Stage 3: 6 blocks, 256 channels
+    \item Stage 4: 3 blocks, 512 channels
+    \item Pool: Global Average
+    \item FC: 1000 classes
+\end{enumerate}
+\end{architecture}
+
+Key innovations:
+\begin{itemize}
+    \item Skip connections for gradient flow
+    \item Identity shortcuts
+    \item Bottleneck design ($1\times1$, $3\times3$, $1\times1$)
+    \item Enables 1000+ layers
+\end{itemize}
+
+Parameters: $\sim$25 million
+
+\section{DenseNet (2017)}
+
+Dense connections where each layer receives inputs from all preceding layers.
+
+\begin{architecture}[DenseNet Block]
+For a block with $L$ layers, each receives $k_0 + k \times (l-1)$ inputs:
+\begin{align}
+\mathbf{x}_1 &= H_1([\mathbf{x}_0]) \\
+\mathbf{x}_2 &= H_2([\mathbf{x}_0, \mathbf{x}_1]) \\
+\mathbf{x}_3 &= H_3([\mathbf{x}_0, \mathbf{x}_1, \mathbf{x}_2]) \\
+\vdots \\
+\mathbf{x}_L &= H_L([\mathbf{x}_0, \mathbf{x}_1, \ldots, \mathbf{x}_{L-1}])
+\end{align}
+\end{architecture}
+
+Key innovations:
+\begin{itemize}
+    \item Feature reuse reduces parameters
+    \item Strong gradient flow
+    \item Better parameter efficiency than ResNet
+\end{itemize}
+
+Parameters: $\sim$27 million (similar to ResNet but better)
+
+\section{Transformer (2017)}
+
+The Transformer architecture replaced recurrence with self-attention.
+
+\begin{architecture}[Transformer Architecture]
+\begin{enumerate}
+    \item \textbf{Encoder:} $N$ identical layers
+    \begin{itemize}
+        \item Multi-head self-attention
+        \item Feed-forward network
+        \item Layer normalization
+        \item Residual connections
+    \end{itemize}
+    \item \textbf{Decoder:} $N$ identical layers
+    \begin{itemize}
+        \item Masked multi-head self-attention
+        \item Encoder-decoder attention
+        \item Feed-forward network
+    \end{itemize}
+    \item \textbf{Positional encoding} (sinusoidal or learned)
+\end{enumerate}
+\end{architecture}
+
+Key innovations:
+\begin{itemize}
+    \item Self-attention replaces recurrence
+    \item Parallelizable (unlike RNNs)
+    \item Captures long-range dependencies
+    \item Scalable with computation
+\end{itemize}
+
+Parameters: 65M (base) to 175B (GPT-3) and beyond
+
+\begin{table}[h]
+    \centering
+    \caption{Architecture Comparison}
+    \begin{tabular}{L{2.5cm} L{2cm} L{2.5cm} L{2.5cm}}
+        \toprule
+        \textbf{Network} & \textbf{Year} & \textbf{Parameters} & \textbf{Top-1 Acc.} \\
+        \midrule
+        AlexNet & 2012 & 60M & 62.5\% \\
+        VGG-16 & 2014 & 138M & 71.5\% \\
+        GoogLeNet & 2014 & 4M & 72.0\% \\
+        ResNet-50 & 2015 & 25M & 76.1\% \\
+        DenseNet-121 & 2017 & 8M & 74.4\% \\
+        ViT-B/16 & 2021 & 86M & 79.9\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Chapter Summary}
+
+\begin{enumerate}
+    \item LeNet pioneered CNNs for digit recognition
+    \item AlexNet popularized deep learning with GPU training
+    \item VGG showed depth through $3\times3$ convolutions
+    \item Inception introduced multi-scale processing
+    \item ResNet enabled ultra-deep networks with skip connections
+    \item Transformer revolutionized NLP and later vision with attention
+\end{enumerate}

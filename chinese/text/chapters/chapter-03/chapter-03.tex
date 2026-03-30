@@ -1,0 +1,146 @@
+%
+% 第3章：损失函数
+
+\clearpage
+\cleardoublepage
+
+\chapter{损失函数}
+
+\section{引言}
+
+损失函数（也称为目标函数、成本函数或误差函数）是量化神经网络预测与真实目标匹配程度的数学度量。训练过程旨在通过基于梯度的优化调整网络参数来最小化这个损失。
+
+损失函数应该：
+\begin{enumerate}
+    \item 可微（用于基于梯度的优化）
+    \item 适当地惩罚较大误差
+    \item 鼓励特定任务的正确行为
+    \item 具有有用的统计解释
+\end{enumerate}
+
+\section{回归损失函数}
+
+回归任务预测连续值。
+
+\subsection{均方误差（MSE）}
+
+Mean Squared Error（L2损失）：
+\begin{equation}
+\mathcal{L}_{MSE} = \frac{1}{N}\sum_{i=1}^{N} \|\mathbf{y}_i - \hat{\mathbf{y}}_i\|^2
+\end{equation}
+
+属性：
+\begin{itemize}
+    \item \textbf{凸函数（线性模型）}
+    \item \textbf{对异常值敏感}
+    \item \textbf{假设高斯误差分布}
+\end{itemize}
+
+\begin{advantages}
+    \item 凸函数，易于优化
+    \item 闭式解（线性回归）
+    \item 平滑梯度
+\end{advantages}
+
+\begin{disadvantages}
+    \item 对异常值敏感
+    \item 二次惩罚可能导致大误差主导
+\end{disadvantages}
+
+\subsection{平均绝对误差（MAE）}
+
+Mean Absolute Error（L1损失）：
+\begin{equation}
+\mathcal{L}_{MAE} = \frac{1}{N}\sum_{i=1}^{N} \|\mathbf{y}_i - \hat{\mathbf{y}}_i\|_1
+\end{equation}
+
+对异常值鲁棒，但在零处不可微。
+
+\section{分类损失函数}
+
+分类任务预测离散类别标签。
+
+\subsection{二元交叉熵}
+
+对于二分类 ($y \in \{0, 1\}$)：
+\begin{equation}
+\mathcal{L}_{BCE} = -\frac{1}{N}\sum_{i=1}^{N}[y_i \log \hat{y}_i + (1-y_i) \log(1-\hat{y}_i)]
+\end{equation}
+
+\begin{advantages}
+    \item 概率解释
+    \item 等价于二分类的最大似然估计
+    \item 即使预测自信但错误时也有强梯度
+\end{advantages}
+
+\begin{code}
+    \captionof{listing}{PyTorch中的损失函数}
+    \label{code:loss_chinese}
+\begin{minted}{python}
+import torch.nn as nn
+
+# 分类
+criterion = nn.CrossEntropyLoss()  # 多分类
+criterion = nn.BCEWithLogitsLoss()  # 二分类
+
+# 回归
+criterion = nn.MSELoss()  # MSE
+criterion = nn.L1Loss()   # MAE
+criterion = nn.SmoothL1Loss()  # Huber loss
+\end{minted}
+\end{code}
+
+\section{高级损失函数}
+
+\subsection{Focal Loss}
+
+解决密集目标检测中的类别不平衡：
+\begin{equation}
+\mathcal{L}_{\text{Focal}} = -\alpha_t (1 - \hat{y}_t)^\gamma \log(\hat{y}_t)
+\end{equation}
+
+其中 $\gamma \geq 0$ 聚焦于难以分类的样本。
+
+\subsection{标签平滑}
+
+通过软化硬标签进行正则化：
+\begin{equation}
+y_{LS} = y(1 - \epsilon) + \frac{\epsilon}{K}
+\end{equation}
+
+其中 $\epsilon \in [0, 1]$ 是平滑参数。
+
+\begin{advantages}
+    \item 正则化效果
+    \item 防止过度自信的预测
+    \item 改善校准
+\end{advantages}
+
+\section{选择损失函数}
+
+\begin{table}[h]
+    \centering
+    \caption{损失函数选择指南}
+    \begin{tabular}{L{2.5cm} L{4cm} L{4cm}}
+        \toprule
+        \textbf{任务} & \textbf{推荐损失} & \textbf{备注} \\
+        \midrule
+        二分类 & BCE & 标准选择 \\
+        多分类 & 交叉熵 & 可选标签平滑 \\
+        回归 & MSE & 对异常值敏感 \\
+        鲁棒回归 & MAE/Huber & 抗异常值 \\
+        类别不平衡分类 & Focal Loss & 聚焦困难样本 \\
+        分割 & Dice + CE & 处理类别不平衡 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{本章小结}
+
+\begin{enumerate}
+    \item \textbf{损失函数量化预测误差} 并指导网络优化。
+    \item \textbf{MSE} 是回归的标准但对异常值敏感。
+    \item \textbf{交叉熵} 是分类的标准，具有概率解释。
+    \item \textbf{高级损失} 如Focal Loss和Dice Loss解决特定挑战。
+    \item \textbf{标签平滑} 提供正则化和改善校准。
+\end{enumerate}
