@@ -1,6 +1,6 @@
 # Neural Network Textbook Makefile
 
-TEX = pdflatex
+TEX = xelatex
 BIB = biber
 MAIN = main
 

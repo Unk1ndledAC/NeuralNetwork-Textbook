@@ -21,7 +21,6 @@
 
 \usepackage{ctex}  % Chinese language support
 \usepackage[english]{babel}  % Language support
-\usepackage[utf8]{inputenc}  % File encoding 
 
 
 % ------------------------------------------------------------------------------
@@ -29,15 +28,13 @@
 
 % Document font. Default & recommended: Libertinus Serif
 \usepackage{libertinus}
-\usepackage[libertine]{newtxmath}  % Math support for libertinus (loaded after amssymb)
 
 % Sans-serif font - Default: Libertinus Sans (included in libertinus)
 
 % Monospace font - Default: IBM Plex Mono
 \usepackage[scale=0.85]{plex-mono}  % scaled when used with libertinus
 
-% Output encoding
-\usepackage[T1]{fontenc}
+% Output encoding (fontenc not needed with XeLaTeX/LuaLaTeX)
 
 % Symbols
 \usepackage{eurosym}  % Euro symbol
@@ -50,11 +47,10 @@
 % ------------------------------------------------------------------------------
 % MATH
 
-\usepackage{amsmath}  % Math
-\usepackage{amssymb}  % Load amssymb before newtxmath
+\usepackage{amssymb}
 \usepackage[separate-uncertainty=true]{siunitx}  % International System units
 \usepackage{mathtools}
-
+\usepackage[libertine]{newtxmath}  % Math support for libertinus (loaded after amssymb)
 
 % ------------------------------------------------------------------------------
 % GRAPHICS AND ICONS
@@ -136,7 +132,7 @@
 % ------------------------------------------------------------------------------
 % CODE LISTINGS
 
-\usepackage[newfloat]{minted}
+\usepackage{listings}
 
 
 % ------------------------------------------------------------------------------
@@ -149,7 +145,7 @@
 % BIBLIOGRAPHY
 
 \usepackage{csquotes}
-\usepackage[style=ieee, citestyle=ieee-comp, backend=biber]{biblatex}
+\usepackage[style=ieee, backend=biber]{biblatex}
 
 
 % ------------------------------------------------------------------------------

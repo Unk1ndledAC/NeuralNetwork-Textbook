@@ -65,8 +65,8 @@
 % ------------------------------------------------------------------------------
 % TABLE OF CONTENTS 
 
-\settocdepth{4}
-\secnumdepth{4}
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
 
 % Column separation - multicol
 \setlength{\columnsep}{8mm}
@@ -101,26 +101,24 @@
 
 
 % ------------------------------------------------------------------------------
-% CODE LISTINGS - MINTED
+% CODE LISTINGS - LISTINGS
 
-\usemintedstyle{colorful}
-
-\setminted{bgcolor=listing-background,
-           fontsize=\footnotesize,
-           escapeinside=¢¢,
-           tabsize=4,
-           linenos,
-           breaklines}
+\lstset{
+    backgroundcolor=\color{listing-background},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    tabsize=4,
+    numbers=left,
+    numberstyle=\tiny\color{gray-500},
+    frame=single,
+    rulecolor=\color{gray-300},
+    captionpos=b,
+    escapeinside={(*@}{@*)},
+    showstringspaces=false,
+}
            
-\newenvironment{code}{\captionsetup{type=listing}}{}
-\SetupFloatingEnvironment{listing}{name=Listing}
-
-% Style line numbers
-\renewcommand{\theFancyVerbLine}{
-\ttfamily
-\textcolor[rgb]{0.4,0.4,0.4}{
-\footnotesize{
-\arabic{FancyVerbLine}}}}
+\newenvironment{code}{\captionsetup{type=lstlisting}}{}
+\SetupFloatingEnvironment{lstlisting}{name=Listing}
 
 
 % ------------------------------------------------------------------------------

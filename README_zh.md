@@ -44,7 +44,8 @@ NeuralNetwork-Textbook/
 │   ├── main.tex            # 主编译入口
 │   └── Makefile
 ├── english/                # 英文版（结构同中文版）
-└── README.md
+├── README_en.md
+└── README_zh.md
 ```
 
 ## 编译 / Build
