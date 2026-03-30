@@ -197,7 +197,7 @@ where $\hat{y} = \sigma(\mathbf{w}^\top \mathbf{x} + b)$.
         ]
             \addplot[thick, blue] {tanh(x)};
             \addlegendentry{Tanh $\tanh(x)$}
-            \addplot[thick, red, dashed] {sech(x)^2};
+            \addplot[thick, red, dashed] {1/(cosh(x)^2)};
             \addlegendentry{Derivative $\tanh'(x)$}
             
             % Horizontal lines

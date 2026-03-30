@@ -358,7 +358,8 @@ where typically:
 
 \subsection{Gradient Descent}
 
-\begin{algorithm}[Batch Gradient Descent]
+\begin{algorithm}[H]
+\caption{Batch Gradient Descent}
 \begin{enumerate}
     \item Initialize parameters $\mathbf{\theta}^{(0)}$
     \item For $t = 0, 1, 2, \ldots$:
@@ -386,7 +387,7 @@ The learning rate $\alpha > 0$ controls the step size. Choosing an appropriate l
             % Loss surface approximation
             \addplot3[
                 surf,
-                colormap/coolwarm,
+                colormap/viridis,
                 samples=30,
                 domain=-2:2,
                 opacity=0.8

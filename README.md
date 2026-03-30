@@ -1,3 +1,8 @@
+## Choose Language / 选择语言
+
+- [English Version](./docs/README.en.md)
+- [中文版本](./docs/README.zh.md)
+
 # Neural Network Textbook
 
 **Neural Networks: A Comprehensive Textbook for AI Students**
@@ -43,8 +48,7 @@ NeuralNetwork-Textbook/
 │   ├── main.tex            # Main compilation entry
 │   └──   Makefile
 ├── english/                # English edition (same structure)
-├── README_en.md               # English README
-└── README_zh.md               # Chinese README
+└── README.md               # README
 
 ```
 

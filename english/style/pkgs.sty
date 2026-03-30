@@ -26,6 +26,14 @@
 % ------------------------------------------------------------------------------
 % TEXT AND FONTS
 
+% Load amsthm before libertinus to avoid \openbox conflict
+\usepackage{amsthm}  % Theorem environments (theorem, lemma, corollary, proof)
+\theoremstyle{definition}  % upright body text (no italics)
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+\newtheorem{property}{Property}
+\newtheorem{problem}{Problem}
+
 % Document font. Default & recommended: Libertinus Serif
 \usepackage{libertinus}
 
@@ -128,6 +136,27 @@
 
 % for \FloatBarrier
 \usepackage{placeins}
+
+
+% ------------------------------------------------------------------------------
+% THEOREM-LIKE ENVIRONMENTS
+
+% (amsthm + theoremstyle + newtheorems already loaded above before fonts)
+\newtheorem{properties}{Properties}
+\newtheorem{advantages}{Advantages}
+\newtheorem{disadvantages}{Disadvantages}
+
+% ------------------------------------------------------------------------------
+% ALGORITHMS
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}  % Algorithmic pseudocode
+
+% ------------------------------------------------------------------------------
+% PLOTS
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 
 
 % ------------------------------------------------------------------------------
