@@ -28,7 +28,7 @@
 
 % Document font. Default & recommended: Libertinus Serif
 \usepackage{libertinus}
-\usepackage[libertine]{newtxmath}  % Math support for libertinus
+\usepackage[libertine]{newtxmath}  % Math support for libertinus (loaded after amssymb)
 
 % Sans-serif font - Default: Libertinus Sans (included in libertinus)
 
@@ -50,8 +50,8 @@
 % MATH
 
 \usepackage{amsmath}  % Math
+\usepackage{amssymb}  % Load amssymb before newtxmath
 \usepackage[separate-uncertainty=true]{siunitx}  % International System units
-\usepackage{amssymb}
 \usepackage{mathtools}
 
 
@@ -156,5 +156,4 @@
 
 \usepackage[toc, style=mcoltreehypergroup, stylemods=mcols, nonumberlist, automake=immediate]{glossaries-extra}  
 
-\usepackage{glossary/glossary}  % Glossary file
 \makeglossaries
