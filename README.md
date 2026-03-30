@@ -1,6 +1,6 @@
 # Neural Network Textbook
 
-**Neural Networks: A Comprehensive Textbook for AI Students**
+**Neural Networks: A Comprehensive Guide for AI Students**
 
 A comprehensive, systematic textbook on neural networks covering core topics from fundamental mathematics to state-of-the-art architectures, featuring detailed mathematical derivations, PyTorch practical examples, and real-world application cases.
 
