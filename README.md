@@ -2,7 +2,7 @@
 
 **Neural Networks: A Comprehensive Textbook for AI Students**
 
-A comprehensive, systematic textbook on neural networks covering core topics from fundamental mathematics to state-of-the-art architectures, featuring detailed mathematical derivations, PyTorch practical examples, and real-world application cases. Available in both English and Chinese.
+A comprehensive, systematic textbook on neural networks covering core topics from fundamental mathematics to state-of-the-art architectures, featuring detailed mathematical derivations, PyTorch practical examples, and real-world application cases.
 
 ## Features
 
@@ -32,7 +32,7 @@ A comprehensive, systematic textbook on neural networks covering core topics fro
 
 ```
 NeuralNetwork-Textbook/
-├── Eng/                # English edition
+├── Eng/               
 │   ├── opening/            # Front matter (title page, abstract, acknowledgements, etc.)
 │   ├── text/
 │   │   ├── chapters/       # Main chapters (chapter-01 ~ chapter-11)
@@ -53,19 +53,11 @@ NeuralNetwork-Textbook/
 - **TeX Live 2024+** or **MiKTeX** (full installation)
 - **Python 3** with [Pygments](https://pygments.org/) installed (`pip install Pygments`) — required by the `minted` package for code highlighting
 - **Biber** — for bibliography processing
-- Chinese edition requires **XeLaTeX** (recommended) or LuaLaTeX
 
 ### Compilation
 
-**English edition (pdfLaTeX):**
 ```bash
-cd english
-make pdf
-```
-
-**Chinese edition (XeLaTeX):**
-```bash
-cd chinese
+cd Eng
 make pdf
 ```
 
