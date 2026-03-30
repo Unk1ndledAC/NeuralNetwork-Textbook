@@ -1,8 +1,3 @@
-## Choose Language / 选择语言
-
-- [English Version](./docs/README.en.md)
-- [中文版本](./docs/README.zh.md)
-
 # Neural Network Textbook
 
 **Neural Networks: A Comprehensive Textbook for AI Students**
@@ -37,7 +32,7 @@ A comprehensive, systematic textbook on neural networks covering core topics fro
 
 ```
 NeuralNetwork-Textbook/
-├── chinese/                # Chinese edition
+├── Eng/                # English edition
 │   ├── opening/            # Front matter (title page, abstract, acknowledgements, etc.)
 │   ├── text/
 │   │   ├── chapters/       # Main chapters (chapter-01 ~ chapter-11)
@@ -47,7 +42,6 @@ NeuralNetwork-Textbook/
 │   ├── style/              # LaTeX style files
 │   ├── main.tex            # Main compilation entry
 │   └──   Makefile
-├── english/                # English edition (same structure)
 └── README.md               # README
 
 ```

@@ -1,0 +1,181 @@
+%
+% Chapter 9: Parameter and Computation Analysis
+
+\clearpage
+\cleardoublepage
+
+\chapter{Parameter and Computation Analysis}
+
+\section{Importance of Model Efficiency}
+
+Understanding model efficiency is crucial for:
+\begin{itemize}
+    \item Deployment on resource-constrained devices
+    \item Training cost estimation
+    \item Model selection and architecture design
+    \item Benchmarking and comparison
+\end{itemize}
+
+Key metrics:
+\begin{itemize}
+    \item \textbf{Parameters:} Model size and memory footprint
+    \item \textbf{FLOPs:} Computational complexity
+    \item \textbf{Latency:} Inference time
+    \item \textbf{Throughput:} Samples per second
+\end{itemize}
+
+\section{Parameter Counting}
+
+Parameters are the learnable weights and biases in the network.
+
+\subsection{Fully Connected Layer}
+
+For input dimension $d_{in}$ and output dimension $d_{out}$:
+\begin{align}
+\text{Weights} &= d_{in} \times d_{out} \\
+\text{Biases} &= d_{out} \\
+\text{Total} &= d_{in} \times d_{out} + d_{out}
+\end{align}
+
+Example: FC layer from 784 to 256:
+\begin{equation}
+784 \times 256 + 256 = 200,704 + 256 = 200,960 \text{ parameters}
+\end{equation}
+
+\subsection{Convolutional Layer}
+
+For input channels $C_{in}$, output channels $C_{out}$, kernel size $K$:
+\begin{align}
+\text{Weights} &= K \times K \times C_{in} \times C_{out} \\
+\text{Biases} &= C_{out} \quad \text{(typically)} \\
+\text{Total} &= K^2 \times C_{in} \times C_{out} + C_{out}
+\end{align}
+
+Example: Conv layer $3\times3$, 64 in, 128 out:
+\begin{equation}
+3 \times 3 \times 64 \times 128 + 128 = 73,728 + 128 = 73,856 \text{ parameters}
+\end{equation}
+
+\subsection{Batch Normalization}
+
+For $C$ channels:
+\begin{align}
+\gamma \text{ (scale)} &= C \\
+\beta \text{ (shift)} &= C \\
+\mu \text{ (running mean)} &= C \quad \text{(inference only)} \\
+\sigma \text{ (running var)} &= C \quad \text{(inference only)} \\
+\text{Total trainable} &= 2C
+\end{align}
+
+Note: During training, BN has 2 trainable and 2 non-trainable parameters per channel.
+
+\section{FLOPs (Floating Point Operations)}
+
+FLOPs measure the computational cost of a forward pass.
+
+\subsection{FLOPs for FC Layer}
+
+For matrix multiplication $\mathbf{Y} = \mathbf{W}\mathbf{X} + \mathbf{b}$:
+\begin{align}
+\text{Multiplications} &= d_{out} \times d_{in} \quad \text{(per sample)} \\
+\text{Additions} &= d_{out} \times (d_{in} - 1) \quad \text{(approximately } d_{out} \times d_{in}) \\
+\text{FLOPs} &\approx 2 \times d_{out} \times d_{in} \quad \text{(counting mult+add as 2 FLOPs)}
+\end{align}
+
+For batch of $N$: FLOPs $= 2 \times N \times d_{out} \times d_{in}$
+
+\subsection{FLOPs for Conv Layer}
+
+For output feature map $H_{out} \times W_{out}$:
+\begin{align}
+\text{FLOPs per output pixel} &= K^2 \times C_{in} \times C_{out} \quad \text{(mult-add pairs)} \times 2 \\
+\text{Total FLOPs} &= H_{out} \times W_{out} \times K^2 \times C_{in} \times C_{out} \times 2
+\end{align}
+
+Example: $224\times224$ input, $3\times3$ conv, 64 in, 128 out:
+\begin{align}
+H_{out} \times W_{out} &= 224 \times 224 = 50,176 \\
+\text{FLOPs} &= 50,176 \times 3 \times 3 \times 64 \times 128 \times 2 \approx 1.17 \text{ GFLOPs}
+\end{align}
+
+\begin{note}[MACs vs FLOPs]
+Sometimes FLOPs are reported as Multiply-Accumulate (MAC) operations:
+\begin{equation}
+\text{MAC} = \sum_{i} a_i \cdot b_i
+\end{equation}
+Each MAC typically counts as 1 operation (or 2 FLOPs if counting mult and add separately).
+
+1 MAC $\approx$ 2 FLOPs for basic arithmetic.
+\end{note}
+
+\section{Practical Examples}
+
+\subsection{LeNet-5 Parameter Count}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{L{2.5cm} L{2cm} L{2cm} L{2cm}}
+        \toprule
+        \textbf{Layer} & \textbf{Input} & \textbf{Weights} & \textbf{FLOPs} \\
+        \midrule
+        Conv1 & $1\times32\times32$ & $150$ & $2.7M$ \\
+        Conv2 & $6\times14\times14$ & $2,400$ & $4.2M$ \\
+        FC1 & 400 & $240K$ & $480K$ \\
+        FC2 & 120 & $48K$ & $48K$ \\
+        \midrule
+        Total & - & $\sim$60K & $\sim$7M \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{AlexNet Parameter Count}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{L{2cm} L{2.5cm} L{2cm} L{2cm}}
+        \toprule
+        \textbf{Layer} & \textbf{Output} & \textbf{Params} & \textbf{FLOPs} \\
+        \midrule
+        Conv1 & $96\times55\times55$ & 35K & 105M \\
+        Conv2 & $256\times27\times27$ & 614K & 448M \\
+        Conv3 & $384\times13\times13$ & 885K & 149M \\
+        Conv4 & $384\times13\times13$ & 1.3M & 224M \\
+        Conv5 & $256\times13\times13$ & 884K & 149M \\
+        FC6 & 4096 & 37.7M & 37.7M \\
+        FC7 & 4096 & 16.8M & 16.8M \\
+        FC8 & 1000 & 4.1M & 4.1M \\
+        \midrule
+        Total & - & $\sim$60M & $\sim$1.1B \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Transfer Learning and Efficiency}
+
+Transfer learning can dramatically reduce required data and training.
+
+\begin{properties}[Transfer Learning Benefits]
+\begin{itemize}
+    \item Lower training cost (no training from scratch)
+    \item Can use smaller datasets
+    \item Faster convergence
+    \item Often better final performance
+\end{itemize}
+\end{properties}
+
+Common strategies:
+\begin{enumerate}
+    \item \textbf{Freeze:} Keep pretrained weights fixed
+    \item \textbf{Fine-tune:} Adapt all/some layers with small learning rate
+    \item \textbf{Extract features:} Use pretrained as feature extractor
+\end{enumerate}
+
+\section{Chapter Summary}
+
+\begin{enumerate}
+    \item Parameter count determines model size and memory requirements
+    \item FLOPs measure computational complexity
+    \item Efficient architectures like MobileNet reduce both
+    \item Transfer learning leverages pretrained models efficiently
+    \item Understanding efficiency guides model selection
+\end{enumerate}

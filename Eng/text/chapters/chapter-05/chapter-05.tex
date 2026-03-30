@@ -1,0 +1,300 @@
+%
+% Chapter 5: Core Operations
+
+\clearpage
+\cleardoublepage
+
+\chapter{Core Operations in Neural Networks}
+
+\section{Introduction}
+
+This chapter covers the fundamental building blocks of modern neural networks: convolution, pooling, and normalization operations. Understanding these operations is essential for designing and implementing effective neural network architectures.
+
+\section{Convolution Operation}
+
+Convolution is the cornerstone of convolutional neural networks (CNNs).
+
+\subsection{2D Convolution}
+
+For input $\mathbf{X} \in \mathbb{R}^{H \times W}$ and kernel $\mathbf{K} \in \mathbb{R}^{K \times K}$:
+\begin{equation}
+y[i,j] = \sum_{m=0}^{K-1}\sum_{n=0}^{K-1} k[m,n] \cdot x[i+m, j+n]
+\end{equation}
+
+In practice, we often add bias and use multiple kernels for multiple output channels.
+
+\begin{properties}[Convolution Parameters]
+\begin{itemize}
+    \item \textbf{Kernel size:} $K \times K$ (common: $3\times3$, $5\times5$, $7\times7$)
+    \item \textbf{Stride ($s$):} Step size for sliding window
+    \item \textbf{Padding ($p$):} Zero padding around input
+    \item \textbf{Dilation ($d$):} Spacing between kernel elements
+\end{itemize}
+\end{properties}
+
+Output size with padding and stride:
+\begin{equation}
+H_{out} = \left\lfloor \frac{H_{in} + 2p - d(K-1) - 1}{s} + 1 \right\rfloor
+\end{equation}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[scale=0.7]
+        % Input with padding
+        \foreach \x in {0,...,4} {
+            \foreach \y in {0,...,4} {
+                \ifthenelse{\x < 1 \OR \x > 3 \OR \y < 1 \OR \y > 3}
+                {\fill[gray!30] (\x, \y) +(-0.4, -0.4) rectangle ++(0.4, 0.4);}
+                {\fill[blue!50] (\x, \y) +(-0.4, -0.4) rectangle ++(0.4, 0.4);}
+            }
+        }
+        \node at (2, -1) {Input $5\times5$ with padding};
+        
+        % Kernel
+        \foreach \x in {0,...,2} {
+            \foreach \y in {0,...,2} {
+                \fill[red!50] (7+\x, 2+\y) +(-0.4, -0.4) rectangle ++(0.4, 0.4);
+            }
+        }
+        \node at (8, 0.5) {$3\times3$ kernel};
+        
+        % Output
+        \foreach \x in {0,...,2} {
+            \foreach \y in {0,...,2} {
+                \fill[green!50] (7+\x, -3+\y) +(-0.4, -0.4) rectangle ++(0.4, 0.4);
+            }
+        }
+        \node at (8, -5) {$3\times3$ output};
+        
+        % Stride 1
+        \node[draw, dashed, red] at (1.5, 2.5) {};
+        \node[draw, dashed, red] at (2.5, 2.5) {};
+        \node[draw, dashed, red] at (3.5, 2.5) {};
+    \end{tikzpicture}
+    \caption{Convolution with padding}
+    \label{fig:conv_padding}
+\end{figure}
+
+\subsection{Grouped and Depthwise Convolution}
+
+\begin{itemize}
+    \item \textbf{Grouped convolution:} Split input channels into groups, apply separate conv per group
+    \item \textbf{Depthwise convolution:} One kernel per input channel (grouped with $G = C_{in}$)
+    \item \textbf{Pointwise convolution:} $1\times1$ conv (used to mix channels)
+\end{itemize}
+
+MobileNet uses: Depthwise Separable Convolution = Depthwise + Pointwise
+
+\begin{properties}[Depthwise Separable Convolution]
+\begin{itemize}
+    \item \textbf{Standard conv FLOPs:} $H \cdot W \cdot K^2 \cdot C_{in} \cdot C_{out}$
+    \item \textbf{Separable conv FLOPs:} $H \cdot W \cdot K^2 \cdot C_{in} + H \cdot W \cdot C_{in} \cdot C_{out}$
+    \item \textbf{Speedup:} $\frac{1}{K^2} + \frac{1}{C_{out}}$ approximately
+\end{itemize}
+\end{properties}
+
+\section{Pooling Operations}
+
+Pooling reduces spatial dimensions and provides translation invariance.
+
+\subsection{Max Pooling}
+
+\begin{equation}
+y[i,j] = \max_{m,n \in \mathcal{N}(i,j)} x[m,n]
+\end{equation}
+
+where $\mathcal{N}(i,j)$ is the neighborhood.
+
+\begin{itemize}
+    \item \textbf{Retains strongest activation}
+    \item \textbf{Provides local translation invariance}
+    \item \textbf{Common: } $2\times2$ with stride 2
+\end{itemize}
+
+\subsection{Average Pooling}
+
+\begin{equation}
+y[i,j] = \frac{1}{K \cdot K}\sum_{m,n \in \mathcal{N}(i,j)} x[m,n]
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{Averages over neighborhood}
+    \item \textbf{Less aggressive than max pooling}
+    \item \textbf{Used in global pooling}
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[scale=0.7]
+        % Input
+        \foreach \x in {0,...,3} {
+            \foreach \y in {0,...,3} {
+                \node[draw, minimum size=0.8cm] at (\x, -\y) {$a_{\x\y}$};
+            }
+        }
+        
+        % Max pooling boxes
+        \draw[red, thick] (-0.1, 0.1) rectangle (1.9, -1.9);
+        \draw[red, thick] (2.1, 0.1) rectangle (4.1, -1.9);
+        \draw[red, thick] (-0.1, -2.1) rectangle (1.9, -4.1);
+        \draw[red, thick] (2.1, -2.1) rectangle (4.1, -4.1);
+        
+        \node at (4.5, -1) {$\Rightarrow$};
+        
+        % Output
+        \node[draw, blue, minimum size=0.8cm] at (6, 0) {$\max_0$};
+        \node[draw, blue, minimum size=0.8cm] at (7, 0) {$\max_1$};
+        \node[draw, blue, minimum size=0.8cm] at (6, -1) {$\max_2$};
+        \node[draw, blue, minimum size=0.8cm] at (7, -1) {$\max_3$};
+    \end{tikzpicture}
+    \caption{Max pooling $2\times2$, stride 2}
+    \label{fig:maxpool}
+\end{figure}
+
+\subsection{Global Pooling}
+
+Applied over entire feature map to produce single value per channel:
+\begin{itemize}
+    \item \textbf{Global Average Pooling (GAP):} $\frac{1}{HW}\sum_{i,j} x_{ij}$
+    \item \textbf{Global Max Pooling:} $\max_{i,j} x_{ij}$
+    \item \textbf{Replaces FC layers} in modern architectures
+\end{itemize}
+
+\section{Normalization Techniques}
+
+Normalization stabilizes training by controlling layer input distributions.
+
+\subsection{Batch Normalization}
+
+Normalizes activations across batch dimension:
+\begin{equation}
+\hat{x}_i = \frac{x_i - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}}, \quad y_i = \gamma \hat{x}_i + \beta
+\end{equation}
+
+where:
+\begin{align}
+\mu_B &= \frac{1}{m}\sum_{i=1}^{m} x_i \\
+\sigma_B^2 &= \frac{1}{m}\sum_{i=1}^{m}(x_i - \mu_B)^2
+\end{align}
+
+\begin{properties}[BatchNorm Properties]
+\begin{itemize}
+    \item \textbf{Reduces internal covariate shift}
+    \item \textbf{Allows higher learning rates}
+    \item \textbf{Provides slight regularization}
+    \item \textbf{Dependent on batch size and can be problematic in small batches}
+\end{itemize}
+\end{properties}
+
+\begin{note}[BatchNorm vs. Inference]
+During training, BatchNorm uses batch statistics. During inference, use running statistics:
+\begin{equation}
+\hat{x} = \frac{x - \tilde{\mu}}{\sqrt{\tilde{\sigma}^2 + \epsilon}}
+\end{equation}
+where $\tilde{\mu}$ and $\tilde{\sigma}^2$ are running averages.
+\end{note}
+
+\subsection{Layer Normalization}
+
+Normalizes across features within a single sample:
+\begin{equation}
+\mu = \frac{1}{D}\sum_{i=1}^{D} x_i, \quad \sigma = \frac{1}{D}\sum_{i=1}^{D}(x_i - \mu)^2
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{Independent of batch size}
+    \item \textbf{Used in RNNs and Transformers}
+    \item \textbf{Same for training and inference}
+\end{itemize}
+
+\begin{table}[h]
+    \centering
+    \caption{Normalization Comparison}
+    \begin{tabular}{L{2cm} L{2.5cm} L{2.5cm} L{3cm}}
+        \toprule
+        \textbf{Method} & \textbf{Normalize over} & \textbf{Batch dep.} & \textbf{Use case} \\
+        \midrule
+        BatchNorm & $(H, W, C)$ & Yes & CNNs \\
+        LayerNorm & $(H, W, N)$ & No & Transformers \\
+        InstanceNorm & $(H, W)$ & No & Style transfer \\
+        GroupNorm & $(H, W, G)$ & No & Small batch CNNs \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Instance Normalization}
+
+Normalizes each sample and channel independently:
+\begin{equation}
+y_{nchw} = \frac{x_{nchw} - \mu_{nc}}{\sqrt{\sigma_{nc}^2 + \epsilon}}
+\end{equation}
+
+Used in style transfer where instance-specific statistics matter.
+
+\section{Combining Operations}
+
+Modern networks combine these operations in standardized blocks.
+
+\subsection{Basic Conv Block}
+
+A typical convolutional block:
+\begin{enumerate}
+    \item Convolution
+    \item Batch Normalization
+    \item Activation (ReLU/GELU)
+\end{enumerate}
+
+Common patterns:
+\begin{itemize}
+    \item Conv-BN-ReLU (VGG style)
+    \item BN-ReLU-Conv (ResNet style, pre-activation)
+\end{itemize}
+
+\begin{code}
+    \captionof{listing}{Conv Block in PyTorch}
+    \label{code:conv_block}
+\begin{lstlisting}[language=python]
+import torch.nn as nn
+
+class ConvBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, kernel_size=3, stride=1):
+        super().__init__()
+        padding = kernel_size // 2
+        self.block = nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, kernel_size, stride, padding, bias=False),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True)
+        )
+    
+    def forward(self, x):
+        return self.block(x)
+
+# Pre-activation block (ResNet style)
+class PreActBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, stride=1):
+        super().__init__()
+        self.block = nn.Sequential(
+            nn.BatchNorm2d(in_ch),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_ch, out_ch, 3, stride, 1, bias=False),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_ch, out_ch, 3, 1, 1, bias=False)
+        )
+        self.shortcut = nn.Identity() if stride==1 and in_ch==out_ch else \
+                        nn.Conv2d(in_ch, out_ch, 1, stride, bias=False)
+    
+    def forward(self, x):
+        return self.block(x) + self.shortcut(x)
+\end{lstlisting}
+\end{code}
+
+\section{Chapter Summary}
+
+\begin{enumerate}
+    \item Convolution extracts local features with shared weights
+    \item Pooling provides spatial reduction and invariance
+    \item Normalization stabilizes training dynamics
+    \item Modern architectures combine these in standardized blocks
+    \item Choice of operations depends on task and data characteristics
+\end{enumerate}
