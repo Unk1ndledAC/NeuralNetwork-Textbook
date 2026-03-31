@@ -42,27 +42,66 @@ NeuralNetwork-Textbook/
 │   ├── style/              # LaTeX style files
 │   ├── main.tex            # Main compilation entry
 │   └── Makefile
+├── .vscode/                # VS Code configuration
+│   └── settings.json       # LaTeX Workshop compilation settings (see details below)
+├── LICENSE                 # License file
 └── README.md               # README
 
 ```
+
+## .vscode Configuration
+
+The `.vscode/settings.json` file configures **VS Code LaTeX Workshop** for optimal compilation:
+
+- **Compilation pipeline**: `pdflatex → biber → pdflatex → pdflatex → biber → pdflatex → pdflatex` (7 steps)
+  - This ensures complex bibliographic systems with cross-references converge completely
+- **Auto-compilation**: Files are compiled automatically when saved (with 1-second debounce)
+- **PDF viewer**: Built-in VS Code tab viewer with SyncTeX support for reverse search
+- **Special characters**: Biber's `--output-safechars` flag ensures proper handling of Unicode characters
+
+If you customize the LaTeX compilation process, modify `.vscode/settings.json` to adjust the tools and recipes.
 
 ## Build
 
 ### Prerequisites
 
-- **TeX Live 2024+** or **MiKTeX** (full installation)
+- **TeX Live 2024+**
 - **Biber** — for bibliography processing
 
 ### Compilation
+
+#### Option 1: Using VS Code LaTeX Workshop (Recommended)
+
+1. Open the project folder in VS Code
+2. Install the **LaTeX Workshop** extension (if not already installed)
+3. Open any `.tex` file in the `Eng/` directory
+4. The compilation will start automatically when you save the file
+5. View the generated PDF in the VS Code tab panel
+
+**How it works:**
+- The `.vscode/settings.json` configuration defines a 7-step compilation pipeline
+- Files are compiled automatically with a 1-second debounce after saving
+- Biber processes bibliography automatically as part of the pipeline
+- PDF updates in real-time in the VS Code viewer
+
+**Compile times:**
+- First compilation: ~40-60 seconds (includes bibliography processing)
+- Subsequent edits: ~15-20 seconds
+- Regular content changes: ~10-15 seconds
+
+#### Option 2: Using Make (Command Line)
 
 ```bash
 cd Eng
 make pdf
 ```
 
+This uses the traditional `Makefile`-based compilation pipeline.
+
 ### Clean up
 
 ```bash
+cd Eng
 make clean       # Remove auxiliary files
 make cleanall    # Remove auxiliary files + PDF
 ```

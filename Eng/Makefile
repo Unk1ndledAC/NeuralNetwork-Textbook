@@ -15,6 +15,10 @@ $(MAIN).pdf: $(MAIN).tex
 	$(BIB) $(MAIN)
 	$(TEX) $(MAIN)
 	$(TEX) $(MAIN)
+	$(TEX) $(MAIN)
+	$(BIB) $(MAIN)
+	$(TEX) $(MAIN)
+	$(TEX) $(MAIN)
 
 clean:
 	rm -f *.aux *.bbl *.blg *.log *.out *.toc *.lof *.lot *.synctex.gz *.fls *.fdb_latexmk
