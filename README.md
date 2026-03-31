@@ -131,5 +131,5 @@ Thanks to the developers of PyTorch, NumPy, and other tools that have made deep 
 ### Preview
 
 <p align="center">
-    < img src="Eng/cover.png" width="100%" />
+<img src="Eng/cover.png" width="100%" />
 </p>
