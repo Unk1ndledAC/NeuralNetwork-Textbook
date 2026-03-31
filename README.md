@@ -32,6 +32,8 @@ A comprehensive, systematic textbook on neural networks covering core topics fro
 
 ```
 NeuralNetwork-Textbook/
+├── .vscode/                # VS Code configuration
+│   └── settings.json       # LaTeX Workshop compilation settings (see details below)
 ├── Eng/               
 │   ├── opening/            # Front matter (title page, abstract, acknowledgements, etc.)
 │   ├── text/
@@ -40,10 +42,10 @@ NeuralNetwork-Textbook/
 │   ├── bibliography/       # References
 │   ├── glossary/           # Glossary
 │   ├── style/              # LaTeX style files
+│   ├── cover.png           # Cover of the textbook
+│   ├── main.pdf            # Downloadable textbook
 │   ├── main.tex            # Main compilation entry
 │   └── Makefile
-├── .vscode/                # VS Code configuration
-│   └── settings.json       # LaTeX Workshop compilation settings (see details below)
 ├── LICENSE                 # License file
 └── README.md               # README
 
@@ -126,8 +128,22 @@ Thanks to Yann LeCun, Geoffrey Hinton, Yoshua Bengio, and many other researchers
 
 Thanks to the developers of PyTorch, NumPy, and other tools that have made deep learning accessible to researchers and practitioners worldwide.
 
-### Preview
+### Download PDF
+
 <details>
-  <summary> Preview </summary>
-  <embed src="./Eng/main.pdf" width="100%" height="500px" /> 
+  <summary>Click to expand preview and download</summary>
+  
+  <p align="center">
+    < img src="./Eng/cover.png" alt="PDF Cover Preview" width="60%" />
+  </p >
+  
+  <p align="center">
+    <a href=" " download>
+      <button>Download Full PDF</button>
+    </a >
+  </p >
+  
+  <p align="center">
+    <sub>Note: Click the button to download directly or open in a new tab to view.</sub>
+  </p >
 </details>
