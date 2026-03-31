@@ -1,4 +1,4 @@
-\clearpage
+﻿\clearpage
 \cleardoublepage
 
 \chapter{Loss Functions}
@@ -17,15 +17,15 @@ The choice of loss function depends on:
 
 \section{The Role of Loss Functions}
 
-Given a dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$ and a model $f(\mathbf{x}; \mathbf{\theta})$, the empirical risk is:
+Given a dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$ and a model $f(\mathbf{x}; \boldsymbol{\theta})$, the empirical risk is:
 \begin{equation}
-\mathcal{R}(\mathbf{\theta}) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \mathbf{\theta}), \mathbf{y}_i)
+\mathcal{R}(\boldsymbol{\theta}) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \boldsymbol{\theta}), \mathbf{y}_i)
 \end{equation}
 where $\ell(\cdot, \cdot)$ is the loss function.
 
 Training seeks to find:
 \begin{equation}
-\mathbf{\theta}^* = \arg\min_{\mathbf{\theta}} \mathcal{R}(\mathbf{\theta})
+\boldsymbol{\theta}^* = \arg\min_{\boldsymbol{\theta}} \mathcal{R}(\boldsymbol{\theta})
 \end{equation}
 
 The loss function should:
@@ -55,7 +55,7 @@ The Mean Squared Error (L2 loss):
 \end{itemize}
 \end{properties}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.7]
         \begin{axis}[

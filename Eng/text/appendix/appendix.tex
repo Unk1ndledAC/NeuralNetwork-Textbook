@@ -50,7 +50,7 @@ E[X] &= \sum_x x \cdot P(X=x) \\
 
 \section{Common Operations}
 
-\begin{minted}{python}
+\begin{lstlisting}[language=Python, caption={Common PyTorch tensor operations}]
 import torch
 
 # Creation
@@ -68,24 +68,24 @@ y = x.mean(dim=1)  # Mean
 x = x.cuda()
 x = x.cpu()
 x = x.to('cuda:0')
-\end{minted}
+\end{lstlisting}
 
 \section{Model Creation}
 
-\begin{minted}{python}
+\begin{lstlisting}[language=Python, caption={PyTorch model definition example}]
 class MyModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.fc1 = nn.Linear(784, 128)
         self.fc2 = nn.Linear(128, 10)
         self.dropout = nn.Dropout(0.2)
-    
+
     def forward(self, x):
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         return self.fc2(x)
-\end{minted}
+\end{lstlisting}
 
 \chapter{Glossary}
 

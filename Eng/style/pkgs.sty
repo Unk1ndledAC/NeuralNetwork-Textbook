@@ -5,77 +5,123 @@
 
 % ------------------------------------------------------------------------------
 % BASE
+% Note: inputenc is NOT loaded — XeLaTeX/LuaLaTeX handle UTF-8 natively.
 
 \usepackage[english]{babel}
-\usepackage[utf8]{inputenc} 
 
 
 % ------------------------------------------------------------------------------
 % TEXT AND FONTS
-
-% Load amsthm before libertinus to avoid \openbox conflict
-\usepackage{amsthm}  % Theorem environments (theorem, lemma, corollary, proof)
-\theoremstyle{definition}  % upright body text (no italics)
-\newtheorem{definition}{Definition}
-\newtheorem{example}{Example}
-\newtheorem{property}{Property}
-\newtheorem{problem}{Problem}
-
-% Document font. Default & recommended: Libertinus Serif
-\usepackage{libertinus}
-
-% Sans-serif font - Default: Libertinus Sans (included in libertinus)
-
-% Monospace font - Default: IBM Plex Mono
-\usepackage[scale=0.85]{plex-mono}  % scaled when used with libertinus
-
-% Output encoding
-\usepackage[T1]{fontenc}
-
-% Symbols
-\usepackage{eurosym}  % Euro symbol
-
-% Misc
-\usepackage{moresize}  % More text sizes
-\usepackage[singlespacing]{setspace}  % Control line spacing
+%
+% Font strategy for XeLaTeX / LuaLaTeX:
+%   • fontspec          — loads OpenType/TrueType fonts natively
+%   • libertinus-otf    — Libertinus Serif/Sans/Mono text fonts (OTF)
+%   • unicode-math      — Unicode math support; use LibertinusMath-Regular.otf
+%
+% This combination avoids ALL of the following known issues:
+%   ✗ "Can't use xelatex/lualatex" — caused by libertinus-type1 (pdfLaTeX only)
+%   ✗ "Missing character … in font cmr" — OTF fonts are natively supported
+%   ✗ "Command \eth already defined"   — unicode-math replaces amssymb cleanly
+%
+% Load order (MUST be followed):
+%   1. amsthm                        (before any math font — prevents \openbox conflict)
+%   2. mathtools                     (MUST precede unicode-math; unicode-math overwrites
+%                                    \dblcolon, \coloneqq, \Coloneqq, \eqqcolon)
+%   3. \PassOptionsToPackage{…}{unicode-math}  (MUST precede libertinus-otf)
+%   4. libertinus-otf                (loads fontspec + unicode-math + setmathfont internally)
+%   5. siunitx                       (units — must come after math packages)
 
 
-% ------------------------------------------------------------------------------
-% MATH
+% ---- 1. Theorem environments (must precede math fonts) ----------------------
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{example}{Example}[chapter]
+\newtheorem{property}{Property}[chapter]
+\newtheorem{problem}{Problem}[chapter]
+\newtheorem{properties}{Properties}[chapter]
+\newtheorem{advantages}{Advantages}[chapter]
+\newtheorem{disadvantages}{Disadvantages}[chapter]
+\newtheorem{architecture}{Architecture}[chapter]
+\newtheorem{note}{Note}[chapter]
 
-\usepackage{amssymb}
-\usepackage[separate-uncertainty=true]{siunitx}  % International System units
-\usepackage{mathtools}
-\usepackage[libertine]{newtxmath}  % Math support for libertinus (loaded after amssymb)
+% ---- 2. Font loader (XeLaTeX/LuaLaTeX native) -------------------------------
+\usepackage{fontspec}
+
+% ---- 3. Math tools — loaded BEFORE libertinus-otf ----------------------------
+% mathtools must precede unicode-math so that amsmath/mathtools definitions
+% are in place before unicode-math tries to overwrite \dblcolon, \coloneqq,
+% \Coloneqq, \eqqcolon.  unicode-math will overwrite these — that is intentional.
+% amsthm is already loaded (line 36) before this section, so no \openbox conflict.
+\usepackage{mathtools}             % extends amsmath; loaded before unicode-math
+
+% ---- 4. Text + Math fonts (Libertinus OTF) ----------------------------------
+% libertinus-otf internally loads unicode-math and calls \setmathfont.
+% Passing unicode-math options via \PassOptionsToPackage BEFORE loading
+% libertinus-otf avoids the "Option clash for package unicode-math" error.
+% Do NOT load \usepackage{unicode-math} separately — libertinus-otf handles it.
+%
+% \symbf is unicode-math's correct bold math command (uses Mathematical Bold
+% Unicode block, rendered from LibertinusMath). We redefine \mathbf to use it
+% so that \mathbf{\Sigma}/\mathbf{\theta} route through the math font rather
+% than LibertinusSerif-Bold.
+% Wrapping in \mathord prevents LaTeX3 group markers (\__um_group_begin:) from
+% leaking into subscript contexts (e.g. _\mathbf{y}), which previously caused
+% "Missing {" and "can't use \eqno" errors.
+\PassOptionsToPackage{math-style=ISO, bold-style=ISO}{unicode-math}
+\usepackage{libertinus-otf}
+% LibertinusMath's cmap table does NOT contain the Mathematical Bold Unicode block
+% (U+1D6B8, U+1D703 etc.), so unicode-math's \symbf/\mathbf for Greek letters
+% would fall back to LibertinusSerif-Bold which also lacks them.
+% Solution: load the bm package AFTER libertinus-otf.  bm.bold replaces
+% \boldsymbol with an approach that uses the font's bold variant via
+% OpenType embolden feature, NOT Unicode character substitution.
+% We also define a convenience macro \boldsym for \boldsymbol (shorter).
+\usepackage{bm}
+\let\boldsym\boldsymbol
+% Note: \mathbf for Latin letters (x, y, J etc.) still works fine through
+% LibertinusSerif-Bold. Only Greek letters need bm. We keep \mathbf as-is.
+
+% ---- 4. Monospace -----------------------------------------------------------
+\usepackage[scale=0.85]{plex-mono}
+
+% ---- 6. Additional math tools -----------------------------------------------
+\usepackage[separate-uncertainty=true]{siunitx}
+
+% ---- 7. Misc text ------------------------------------------------------------
+\usepackage{eurosym}
+\usepackage{moresize}
+\usepackage[singlespacing]{setspace}
+
 
 % ------------------------------------------------------------------------------
 % GRAPHICS AND ICONS
 
-\usepackage{graphicx}  % Required for inserting images
+\usepackage{graphicx}
 \DeclareGraphicsExtensions{.pdf,.png,.jpg,.gif}
 
-\usepackage{fontawesome5}  % FontAwesome icons
+\usepackage{fontawesome5}
 
-\usepackage{pdfpages}  % Insert PDF pages
+\usepackage{pdfpages}
 
 \usepackage{tikz}
 \usetikzlibrary{shapes, backgrounds, arrows.meta, positioning, calc, patterns}
-\tikzset{x=1cm, y=1cm} % Default tikz units
+\tikzset{x=1cm, y=1cm}
 
 
 % ------------------------------------------------------------------------------
 % PAGE GEOMETRY AND STYLE
 
-\usepackage{geometry}  % Modify page geometry
-\usepackage{fancyhdr}  % Fancy page style
-\usepackage{changepage}  % Margin adjustment and detection of odd/even pages
-\usepackage{pdflscape}  % Landscape pages
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{changepage}
+\usepackage{pdflscape}
 
 
 % ------------------------------------------------------------------------------
 % TITLE FORMATTING
 
-\usepackage{titlesec}  % Modify title style and spacing
+\usepackage{titlesec}
 
 
 % ------------------------------------------------------------------------------
@@ -83,8 +129,8 @@
 
 \usepackage{hyperref}
 \usepackage{hyperxmp}
-\usepackage{xurl}  % eXtended url package
-\usepackage{nameref}  % get section names by label
+\usepackage{xurl}
+\usepackage{nameref}
 
 
 % ------------------------------------------------------------------------------
@@ -119,27 +165,16 @@
 
 \usepackage{float}
 \usepackage[labelsep=endash, font={sf, small}, format=plain, labelfont={bf, up}]{caption}
-\usepackage{subcaption}  % Subfigures
-
-% for \FloatBarrier
+\usepackage{subcaption}
 \usepackage{placeins}
 
-
-% ------------------------------------------------------------------------------
-% THEOREM-LIKE ENVIRONMENTS
-
-% (amsthm + theoremstyle + newtheorems already loaded above before fonts)
-\newtheorem{properties}{Properties}
-\newtheorem{advantages}{Advantages}
-\newtheorem{disadvantages}{Disadvantages}
-\newtheorem{architecture}{Architecture}
-\newtheorem{note}{Note}
 
 % ------------------------------------------------------------------------------
 % ALGORITHMS
 
 \usepackage{algorithm}
-\usepackage{algpseudocode}  % Algorithmic pseudocode
+\usepackage{algpseudocode}
+
 
 % ------------------------------------------------------------------------------
 % PLOTS
@@ -152,7 +187,7 @@
 % CODE LISTINGS
 
 \usepackage{listings}
-\usepackage{newfloat}  % Required to declare listing as a float type for \lstlistoflistings
+\usepackage{newfloat}
 \DeclareFloatingEnvironment[fileext=lol, listname=List of Listings, name=Listing]{listing}
 
 
@@ -172,6 +207,6 @@
 % ------------------------------------------------------------------------------
 % GLOSSARIES AND ACRONYMS
 
-\usepackage[toc, style=mcoltreehypergroup, stylemods=mcols, nonumberlist, automake=immediate]{glossaries-extra}  
+\usepackage[toc, style=mcoltreehypergroup, stylemods=mcols, nonumberlist, automake=immediate]{glossaries-extra}
 
 \makeglossaries

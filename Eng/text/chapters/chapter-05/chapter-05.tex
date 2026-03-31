@@ -1,4 +1,4 @@
-\clearpage
+﻿\clearpage
 \cleardoublepage
 
 \chapter{Core Operations in Neural Networks}
@@ -34,7 +34,7 @@ Output size with padding and stride:
 H_{out} = \left\lfloor \frac{H_{in} + 2p - d(K-1) - 1}{s} + 1 \right\rfloor
 \end{equation}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.7]
         % Input with padding
@@ -120,7 +120,7 @@ y[i,j] = \frac{1}{K \cdot K}\sum_{m,n \in \mathcal{N}(i,j)} x[m,n]
     \item \textbf{Used in global pooling}
 \end{itemize}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.7]
         % Input

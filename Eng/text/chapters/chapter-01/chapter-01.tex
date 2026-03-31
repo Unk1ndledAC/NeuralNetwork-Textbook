@@ -1,4 +1,4 @@
-\clearpage
+﻿\clearpage
 \cleardoublepage
 
 \chapter{Mathematical Foundations}
@@ -112,12 +112,12 @@ then $\lambda$ is called an eigenvalue and $\mathbf{v}$ is the corresponding eig
 \begin{definition}[Singular Value Decomposition]
 For any matrix $\mathbf{A} \in \mathbb{R}^{m \times n}$, the Singular Value Decomposition (SVD) is:
 \begin{equation}
-\mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^\top
+\mathbf{A} = \mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^\top
 \end{equation}
 where:
 \begin{itemize}
     \item $\mathbf{U} \in \mathbb{R}^{m \times m}$ and $\mathbf{V} \in \mathbb{R}^{n \times n}$ are orthogonal matrices
-    \item $\mathbf{\Sigma} \in \mathbb{R}^{m \times n}$ is a diagonal matrix containing singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq 0$
+    \item $\boldsymbol{\Sigma} \in \mathbb{R}^{m \times n}$ is a diagonal matrix containing singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq 0$
 \end{itemize}
 The singular values are related to eigenvalues by $\sigma_i = \sqrt{\lambda_i(\mathbf{A}^\top\mathbf{A})}$.
 \end{definition}
@@ -236,7 +236,7 @@ The Jacobian generalizes the gradient to vector-valued functions, which is essen
 \begin{example}[Jacobian in Backpropagation]
 In backpropagation, we compute gradients of scalar outputs (like loss) with respect to vector inputs. If $\mathbf{y} = f(\mathbf{x})$ and $L$ is a scalar loss, then:
 \begin{equation}
-\frac{\partial L}{\partial \mathbf{x}} = \left(\frac{\partial \mathbf{y}}{\partial \mathbf{x}}\right)^\top \frac{\partial L}{\partial \mathbf{y}} = \mathbf{J}^\top \nabla_\mathbf{y} L
+\frac{\partial L}{\partial \mathbf{x}} = \left(\frac{\partial \mathbf{y}}{\partial \mathbf{x}}\right)^\top \frac{\partial L}{\partial \mathbf{y}} = \mathbf{J}^\top \nabla_{\mathbf{y}} L
 \end{equation}
 The backward pass efficiently computes this product without explicitly forming the full Jacobian.
 \end{example}
@@ -329,17 +329,17 @@ Neural network training is fundamentally an optimization problem: finding parame
 \begin{problem}[Neural Network Training]
 Given:
 \begin{itemize}
-    \item A neural network $f(\mathbf{x}; \mathbf{\theta})$ with parameters $\mathbf{\theta}$
+    \item A neural network $f(\mathbf{x}; \boldsymbol{\theta})$ with parameters $\boldsymbol{\theta}$
     \item A dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$
-    \item A loss function $\mathcal{L}(\mathbf{\theta})$
+    \item A loss function $\mathcal{L}(\boldsymbol{\theta})$
 \end{itemize}
 Find:
 \begin{equation}
-\mathbf{\theta}^* = \arg\min_{\mathbf{\theta}} \mathcal{L}(\mathbf{\theta})
+\boldsymbol{\theta}^* = \arg\min_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta})
 \end{equation}
 where typically:
 \begin{equation}
-\mathcal{L}(\mathbf{\theta}) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \mathbf{\theta}), \mathbf{y}_i)
+\mathcal{L}(\boldsymbol{\theta}) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \boldsymbol{\theta}), \mathbf{y}_i)
 \end{equation}
 \end{problem}
 
@@ -348,11 +348,11 @@ where typically:
 \begin{algorithm}[H]
 \caption{Batch Gradient Descent}
 \begin{enumerate}
-    \item Initialize parameters $\mathbf{\theta}^{(0)}$
+    \item Initialize parameters $\boldsymbol{\theta}^{(0)}$
     \item For $t = 0, 1, 2, \ldots$:
     \begin{enumerate}
-        \item Compute gradient: $\mathbf{g}_t = \nabla \mathcal{L}(\mathbf{\theta}^{(t)})$
-        \item Update parameters: $\mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \alpha \mathbf{g}_t$
+        \item Compute gradient: $\mathbf{g}_t = \nabla \mathcal{L}(\boldsymbol{\theta}^{(t)})$
+        \item Update parameters: $\boldsymbol{\theta}^{(t+1)} = \boldsymbol{\theta}^{(t)} - \alpha \mathbf{g}_t$
     \end{enumerate}
     \item Stop when convergence criteria are met
 \end{enumerate}
@@ -360,7 +360,7 @@ where typically:
 
 The learning rate $\alpha > 0$ controls the step size. Choosing an appropriate learning rate is crucial for successful training.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.8]
         \begin{axis}[
@@ -411,7 +411,7 @@ The learning rate $\alpha > 0$ controls the step size. Choosing an appropriate l
     \item \textbf{Loss Landscapes:} Neural network loss landscapes are complex, with many local minima, saddle points, and flat regions.
 \end{itemize}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.8]
         % Drawing a schematic loss landscape

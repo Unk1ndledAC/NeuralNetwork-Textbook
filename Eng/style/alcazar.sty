@@ -7,10 +7,17 @@
 
 % ------------------------------------------------------------------------------
 % PDF PARAMETERS
+% These commands are only available under pdfLaTeX; guard them accordingly.
 
-\pdfminorversion=7
-\pdfinclusioncopyfonts=1
-\pdfgentounicode=1
+\ifdefined\pdfminorversion
+  \pdfminorversion=7
+\fi
+\ifdefined\pdfinclusioncopyfonts
+  \pdfinclusioncopyfonts=1
+\fi
+\ifdefined\pdfgentounicode
+  \pdfgentounicode=1
+\fi
 
 % ------------------------------------------------------------------------------
 % TEXT STYLE

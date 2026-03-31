@@ -41,7 +41,7 @@ NeuralNetwork-Textbook/
 │   ├── glossary/           # Glossary
 │   ├── style/              # LaTeX style files
 │   ├── main.tex            # Main compilation entry
-│   └──   Makefile
+│   └── Makefile
 └── README.md               # README
 
 ```
@@ -51,7 +51,6 @@ NeuralNetwork-Textbook/
 ### Prerequisites
 
 - **TeX Live 2024+** or **MiKTeX** (full installation)
-- **Python 3** with [Pygments](https://pygments.org/) installed (`pip install Pygments`) — required by the `minted` package for code highlighting
 - **Biber** — for bibliography processing
 
 ### Compilation
@@ -60,8 +59,6 @@ NeuralNetwork-Textbook/
 cd Eng
 make pdf
 ```
-
-The Makefile includes the `-shell-escape` flag required by `minted`.
 
 ### Clean up
 

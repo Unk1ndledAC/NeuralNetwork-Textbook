@@ -1,4 +1,4 @@
-\clearpage
+﻿\clearpage
 \cleardoublepage
 
 \chapter{Neural Network Architectures}
@@ -19,7 +19,7 @@ A fully-connected DNN performs:
 \end{equation}
 where $l = 1, \ldots, L$ indexes the layers.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.8]
         % Input layer
@@ -84,7 +84,7 @@ The convolution operation:
 y[i,j] = \sum_{m}\sum_{n} w[m,n] \cdot x[i+m, j+n]
 \end{equation}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.7]
         % Input feature map
@@ -152,7 +152,7 @@ For input sequence $\mathbf{x}^{(1)}, \mathbf{x}^{(2)}, \ldots, \mathbf{x}^{(T)}
 \mathbf{y}^{(t)} &= g(\mathbf{W}_{hy}\mathbf{h}^{(t)} + \mathbf{b}_y)
 \end{align}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.8]
         % RNN cell
@@ -208,7 +208,7 @@ LSTM addresses the vanishing gradient problem with gating mechanisms.
 \mathbf{h}^{(t)} &= \mathbf{o}^{(t)} \odot \tanh(\mathbf{c}^{(t)}) \quad \text{(hidden state)}
 \end{align}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \begin{tikzpicture}[scale=0.8]
         % LSTM cell representation
