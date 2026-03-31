@@ -132,14 +132,18 @@ Thanks to the developers of PyTorch, NumPy, and other tools that have made deep 
 
 <details>
   <summary>Click to expand preview and download</summary>
-  
+
   <p align="center">
     < img src="./Eng/cover.png" alt="PDF Cover Preview" width="60%" />
   </p >
-  
+
   <p align="center">
-    <a href="./Eng/main.pdf" download>
+    <a href=" " target="_blank">
       <button>Download Full PDF</button>
     </a >
+  </p >
+
+  <p align="center">
+    <sub>Note: If the file opens in your browser, right-click and select "Save As" to download.</sub>
   </p >
 </details>
