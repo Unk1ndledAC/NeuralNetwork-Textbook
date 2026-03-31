@@ -128,7 +128,7 @@ Thanks to Yann LeCun, Geoffrey Hinton, Yoshua Bengio, and many other researchers
 
 Thanks to the developers of PyTorch, NumPy, and other tools that have made deep learning accessible to researchers and practitioners worldwide.
 
-### Download PDF
+### Download Textbook Only
 
 <details>
   <summary>Click to expand preview and download</summary>
@@ -138,12 +138,8 @@ Thanks to the developers of PyTorch, NumPy, and other tools that have made deep 
   </p >
   
   <p align="center">
-    <a href=" " download>
+    <a href="./Eng/main.pdf" download>
       <button>Download Full PDF</button>
     </a >
-  </p >
-  
-  <p align="center">
-    <sub>Note: Click the button to download directly or open in a new tab to view.</sub>
   </p >
 </details>
