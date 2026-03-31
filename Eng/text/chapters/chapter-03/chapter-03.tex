@@ -17,15 +17,15 @@ The choice of loss function depends on:
 
 \section{The Role of Loss Functions}
 
-Given a dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$ and a model $f(\mathbf{x}; \boldsymbol{\theta})$, the empirical risk is:
+Given a dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$ and a model $f(\mathbf{x}; \theta)$, the empirical risk is:
 \begin{equation}
-\mathcal{R}(\boldsymbol{\theta}) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \boldsymbol{\theta}), \mathbf{y}_i)
+\mathcal{R}(\theta) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \theta), \mathbf{y}_i)
 \end{equation}
 where $\ell(\cdot, \cdot)$ is the loss function.
 
 Training seeks to find:
 \begin{equation}
-\boldsymbol{\theta}^* = \arg\min_{\boldsymbol{\theta}} \mathcal{R}(\boldsymbol{\theta})
+\theta^* = \arg\min_{\theta} \mathcal{R}(\theta)
 \end{equation}
 
 The loss function should:
@@ -171,7 +171,7 @@ Handles class imbalance in segmentation.
 
 \section{Choosing a Loss Function}
 
-\begin{table}[h]
+\begin{table}[ht]
     \centering
     \caption{Loss Function Selection Guide}
     \begin{tabular}{L{2.5cm} L{4cm} L{4cm}}

@@ -2,13 +2,13 @@
     // ─────────────────────────────────────────────────────────────────────────
     // LaTeX Workshop – Project-level overrides
     //
-    // Compiler : XeLaTeX  (required for fontspec / libertinus-otf / unicode-math)
-    // Bib tool : Biber    (required for biblatex; NOT bibtex)
-    // Full build: xelatex → biber → xelatex → xelatex
+    // Compiler : pdfLaTeX  (XeLaTeX version uses style/pkgs, see style/pkgs-pdflatex.sty)
+    // Bib tool : Biber     (required for biblatex; NOT bibtex)
+    // Full build: pdflatex → biber → pdflatex → pdflatex
     // ─────────────────────────────────────────────────────────────────────────
 
     // Always use this recipe by default for this project (not "lastUsed")
-    "latex-workshop.latex.recipe.default": "xelatex -> biber -> xelatex (biblatex)",
+    "latex-workshop.latex.recipe.default": "pdflatex -> biber -> pdflatex*2",
 
     // Root file: always compile main.tex regardless of which file is open
     "latex-workshop.latex.rootFile.useSubFileAsRoot": false,

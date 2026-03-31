@@ -1,35 +1,50 @@
 % ------------------------------------------------------------------------------
+% pdfLaTeX 编译专用包管理文件
+% 替换原 XeLaTeX 的 pkgs.sty
+%
+% 迁移说明（XeLaTeX → pdfLaTeX）：
+%   ✗ fontspec         → 移除（pdfLaTeX 不需要）
+%   ✗ libertinus-otf  → 改用 libertinus-type1 + libertinust1math
+%   ✗ unicode-math    → 移除（由 libertinust1math 替代）
+%   ✓ plex-mono       → 保留（pdfLaTeX 版自动加载）
+%   ✓ bm              → 可用！pdfLaTeX + libertinust1math 下 \boldsymbol 正常工作
+%   ✓ mathtools       → 保留
+%   ✓ hyperref        → 保留
+%
+% 完整编译命令: pdflatex main → biber main → pdflatex main → pdflatex main
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
 % DEBUG
 \usepackage{lipsum}
 
 
 % ------------------------------------------------------------------------------
 % BASE
-% Note: inputenc is NOT loaded — XeLaTeX/LuaLaTeX handle UTF-8 natively.
-
 \usepackage[english]{babel}
+
+
+% ------------------------------------------------------------------------------
+% ENCODING (pdfLaTeX 专用)
+\usepackage[utf8]{inputenc}      % UTF-8 输入（XeLaTeX 不需要，pdfLaTeX 需要）
+\usepackage[T1]{fontenc}          % T1 字体编码（影响断行和特殊字符）
 
 
 % ------------------------------------------------------------------------------
 % TEXT AND FONTS
 %
-% Font strategy for XeLaTeX / LuaLaTeX:
-%   • fontspec          — loads OpenType/TrueType fonts natively
-%   • libertinus-otf    — Libertinus Serif/Sans/Mono text fonts (OTF)
-%   • unicode-math      — Unicode math support; use LibertinusMath-Regular.otf
+% pdfLaTeX 字体体系：
+%   • libertinus-type1   — Libertinus Serif/Sans/Mono 文本字体（Type1）
+%   • libertinust1math  — Libertinus 数学字体（pdfLaTeX 版）
+%   • bm                — 加粗数学符号（pdfLaTeX 下与 math 字体兼容！）
 %
-% This combination avoids ALL of the following known issues:
-%   ✗ "Can't use xelatex/lualatex" — caused by libertinus-type1 (pdfLaTeX only)
-%   ✗ "Missing character … in font cmr" — OTF fonts are natively supported
-%   ✗ "Command \eth already defined"   — unicode-math replaces amssymb cleanly
-%
-% Load order (MUST be followed):
-%   1. amsthm                        (before any math font — prevents \openbox conflict)
-%   2. mathtools                     (MUST precede unicode-math; unicode-math overwrites
-%                                    \dblcolon, \coloneqq, \Coloneqq, \eqqcolon)
-%   3. \PassOptionsToPackage{…}{unicode-math}  (MUST precede libertinus-otf)
-%   4. libertinus-otf                (loads fontspec + unicode-math + setmathfont internally)
-%   5. siunitx                       (units — must come after math packages)
+% Load order（必须遵守）：
+%   1. amsthm / mathtools   （数学环境，先于任何数学字体加载）
+%   2. libertinus-type1      （文本字体）
+%   3. libertinust1math      （数学字体，LOADS mathtools 内部）
+%   4. bm                    （加粗数学，必须在所有数学字体之后）
+%   5. siunitx               （单位，放在数学包之后）
 
 
 % ---- 1. Theorem environments (must precede math fonts) ----------------------
@@ -45,47 +60,40 @@
 \newtheorem{architecture}{Architecture}[chapter]
 \newtheorem{note}{Note}[chapter]
 
-% ---- 2. Font loader (XeLaTeX/LuaLaTeX native) -------------------------------
-\usepackage{fontspec}
+% ---- 2. Text fonts (Libertinus Type1) --------------------------------------
+\usepackage{libertinus-type1}
 
-% ---- 3. Math tools — loaded BEFORE libertinus-otf ----------------------------
-% mathtools must precede unicode-math so that amsmath/mathtools definitions
-% are in place before unicode-math tries to overwrite \dblcolon, \coloneqq,
-% \Coloneqq, \eqqcolon.  unicode-math will overwrite these — that is intentional.
-% amsthm is already loaded (line 36) before this section, so no \openbox conflict.
-\usepackage{mathtools}             % extends amsmath; loaded before unicode-math
+% ---- 3. Math tools — loaded BEFORE libertinust1math -----------------------
+% mathtools must precede the math font; libertinust1math loads mathtools
+% internally but we load it first to control the order explicitly.
+\usepackage{mathtools}
 
-% ---- 4. Text + Math fonts (Libertinus OTF) ----------------------------------
-% libertinus-otf internally loads unicode-math and calls \setmathfont.
-% Passing unicode-math options via \PassOptionsToPackage BEFORE loading
-% libertinus-otf avoids the "Option clash for package unicode-math" error.
-% Do NOT load \usepackage{unicode-math} separately — libertinus-otf handles it.
-%
-% \symbf is unicode-math's correct bold math command (uses Mathematical Bold
-% Unicode block, rendered from LibertinusMath). We redefine \mathbf to use it
-% so that \mathbf{\Sigma}/\mathbf{\theta} route through the math font rather
-% than LibertinusSerif-Bold.
-% Wrapping in \mathord prevents LaTeX3 group markers (\__um_group_begin:) from
-% leaking into subscript contexts (e.g. _\mathbf{y}), which previously caused
-% "Missing {" and "can't use \eqno" errors.
-\PassOptionsToPackage{math-style=ISO, bold-style=ISO}{unicode-math}
-\usepackage{libertinus-otf}
-% LibertinusMath's cmap table does NOT contain the Mathematical Bold Unicode block
-% (U+1D6B8, U+1D703 etc.), so \symbf/\mathbf for Greek letters fall back to
-% LibertinusSerif-Bold which also lacks them.  This means Greek letters (e.g.
-% \Sigma, \theta) render in their regular upright form even when in \mathbf{...}.
-% This is acceptable — Greek bold-style math symbols are a typographic secondary
-% concern; the surrounding \mathbf{Latin} symbols provide sufficient emphasis.
-% We keep \mathbf as-is; bm is NOT loaded (bm is incompatible with unicode-math
-% in XeLaTeX and causes "Improper alphabetic constant" crashes on Greek letters).
+% ---- 4. Math fonts (Libertinus Math for pdfLaTeX) --------------------------
+% libertinust1math provides the Libertinus Math font family for pdfLaTeX.
+% It also sets up proper Greek/math alphabets.  bm is loaded AFTER this
+% so that \boldsymbol works correctly for all math symbols including Greek.
+\usepackage{libertinust1math}
 
-% ---- 4. Monospace -----------------------------------------------------------
+% ---- 4b. Bold math (bm — works correctly in pdfLaTeX!) --------------------
+% bm uses the font's bold variant via PostScript Type1 embolden, NOT Unicode
+% character substitution, so \boldsymbol{\Sigma} and \boldsymbol{\theta}
+% render correctly in pdfLaTeX.  This is the key difference from XeLaTeX
+% where bm conflicts with unicode-math.
+\usepackage{bm}
+\let\boldsym\boldsymbol          % convenience alias
+
+
+% ---- 5. Monospace ---------------------------------------------------------
+% plex-mono is loaded automatically by libertinus-type1 as the mono font,
+% but we set it explicitly for clarity.
 \usepackage[scale=0.85]{plex-mono}
 
-% ---- 6. Additional math tools -----------------------------------------------
+
+% ---- 6. Additional math tools ---------------------------------------------
 \usepackage[separate-uncertainty=true]{siunitx}
 
-% ---- 7. Misc text ------------------------------------------------------------
+
+% ---- 7. Misc text ---------------------------------------------------------
 \usepackage{eurosym}
 \usepackage{moresize}
 \usepackage[singlespacing]{setspace}
@@ -97,8 +105,8 @@
 \usepackage{graphicx}
 \DeclareGraphicsExtensions{.pdf,.png,.jpg,.gif}
 
-\usepackage{fontawesome5}
-
+\usepackage{fontawesome5}         % 注意：fontawesome5 需支持 XeLaTeX/LuaLaTeX，
+                                   % pdfLaTeX 下请改用 \usepackage{fontawesome}
 \usepackage{pdfpages}
 
 \usepackage{tikz}

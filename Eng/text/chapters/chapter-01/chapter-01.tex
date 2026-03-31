@@ -112,12 +112,12 @@ then $\lambda$ is called an eigenvalue and $\mathbf{v}$ is the corresponding eig
 \begin{definition}[Singular Value Decomposition]
 For any matrix $\mathbf{A} \in \mathbb{R}^{m \times n}$, the Singular Value Decomposition (SVD) is:
 \begin{equation}
-\mathbf{A} = \mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^\top
+\mathbf{A} = \mathbf{U}\Sigma\mathbf{V}^\top
 \end{equation}
 where:
 \begin{itemize}
     \item $\mathbf{U} \in \mathbb{R}^{m \times m}$ and $\mathbf{V} \in \mathbb{R}^{n \times n}$ are orthogonal matrices
-    \item $\boldsymbol{\Sigma} \in \mathbb{R}^{m \times n}$ is a diagonal matrix containing singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq 0$
+    \item $\Sigma \in \mathbb{R}^{m \times n}$ is a diagonal matrix containing singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq 0$
 \end{itemize}
 The singular values are related to eigenvalues by $\sigma_i = \sqrt{\lambda_i(\mathbf{A}^\top\mathbf{A})}$.
 \end{definition}
@@ -272,7 +272,7 @@ A random variable $X$ is a function that maps outcomes of a random experiment to
 
 \subsection{Common Distributions}
 
-\begin{table}[h]
+\begin{table}[ht]
     \centering
     \caption{Common Probability Distributions in Deep Learning}
     \begin{tabular}{L{3cm} L{4cm} L{5cm}}
@@ -329,17 +329,17 @@ Neural network training is fundamentally an optimization problem: finding parame
 \begin{problem}[Neural Network Training]
 Given:
 \begin{itemize}
-    \item A neural network $f(\mathbf{x}; \boldsymbol{\theta})$ with parameters $\boldsymbol{\theta}$
+    \item A neural network $f(\mathbf{x}; \theta)$ with parameters $\theta$
     \item A dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$
-    \item A loss function $\mathcal{L}(\boldsymbol{\theta})$
+    \item A loss function $\mathcal{L}(\theta)$
 \end{itemize}
 Find:
 \begin{equation}
-\boldsymbol{\theta}^* = \arg\min_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta})
+\theta^* = \arg\min_{\theta} \mathcal{L}(\theta)
 \end{equation}
 where typically:
 \begin{equation}
-\mathcal{L}(\boldsymbol{\theta}) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \boldsymbol{\theta}), \mathbf{y}_i)
+\mathcal{L}(\theta) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \theta), \mathbf{y}_i)
 \end{equation}
 \end{problem}
 
@@ -348,11 +348,11 @@ where typically:
 \begin{algorithm}[H]
 \caption{Batch Gradient Descent}
 \begin{enumerate}
-    \item Initialize parameters $\boldsymbol{\theta}^{(0)}$
+    \item Initialize parameters $\theta^{(0)}$
     \item For $t = 0, 1, 2, \ldots$:
     \begin{enumerate}
-        \item Compute gradient: $\mathbf{g}_t = \nabla \mathcal{L}(\boldsymbol{\theta}^{(t)})$
-        \item Update parameters: $\boldsymbol{\theta}^{(t+1)} = \boldsymbol{\theta}^{(t)} - \alpha \mathbf{g}_t$
+        \item Compute gradient: $\mathbf{g}_t = \nabla \mathcal{L}(\theta^{(t)})$
+        \item Update parameters: $\theta^{(t+1)} = \theta^{(t)} - \alpha \mathbf{g}_t$
     \end{enumerate}
     \item Stop when convergence criteria are met
 \end{enumerate}

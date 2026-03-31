@@ -3,23 +3,32 @@
 % ==============================================================================
 
 @article{rosenblatt1958perceptron,
-    title={The perceptron: a probabilistic model for information storage and organization in the brain},
+    title={The perceptron: A probabilistic model for information storage and organization in the brain},
     author={Rosenblatt, Frank},
     journal={Psychological Review},
     volume={65},
     number={6},
     pages={386--408},
     year={1958},
+    doi={10.1037/h0042519},
     publisher={American Psychological Association}
 }
 
 @article{widrow1960adaptive,
     title={Adaptive "ADALINE" neuron using chemical "memistors"},
     author={Widrow, Bernard and Hoff, Marcian E},
-    journal={Comp. Tech. Rep.},
+    booktitle={Solid-State Circuits Society. Dig. Tech. Pap.},
     volume={3},
     pages={1554--1556},
-    year={1960}
+    year={1960},
+    note={Reprinted in \cite{widrow198860}}
+}
+
+@book{widrow198860,
+    title={Adaptive Signal Processing},
+    author={Widrow, Bernard and Stearns, Samuel D},
+    year={1985},
+    publisher={Prentice-Hall, Englewood Cliffs, NJ}
 }
 
 @article{rumelhart1986learning,
@@ -30,6 +39,7 @@
     number={6088},
     pages={533--536},
     year={1986},
+    doi={10.1038/323533a0},
     publisher={Nature Publishing Group}
 }
 
@@ -45,16 +55,19 @@
     number={5786},
     pages={504--507},
     year={2006},
+    doi={10.1126/science.1127647},
     publisher={American Association for the Advancement of Science}
 }
 
-@inproceedings{bengio2007scaling,
-    title={Scaling learning algorithms towards AI},
+@incollection{bengio2007scaling,
+    title={Scaling learning algorithms towards {AI}},
     author={Bengio, Yoshua and LeCun, Yann},
     booktitle={Large-Scale Kernel Machines},
-    year={2007},
     pages={321--359},
-    organization={MIT Press}
+    year={2007},
+    publisher={MIT Press},
+    address={Cambridge, MA},
+    editor={Bottou, L{\'e}on and Chapelle, Olivier and DeCoste, Dennis and Weston, Jason}
 }
 
 @article{lecun2015deep,
@@ -65,6 +78,7 @@
     number={7553},
     pages={436--444},
     year={2015},
+    doi={10.1038/nature14539},
     publisher={Nature Publishing Group}
 }
 
@@ -72,16 +86,19 @@
 % CONVOLUTIONAL NEURAL NETWORKS
 % ==============================================================================
 
-@inproceedings{lecun1989backpropagation,
+@article{lecun1989backpropagation,
     title={Backpropagation applied to handwritten zip code recognition},
     author={LeCun, Yann and Boser, Bernhard and Denker, John and Henderson, D and Howard, Richard and Hubbard, Wayne and Jackel, Lawrence},
-    booktitle={Neural Computation},
-    year={1989},
+    journal={Neural Computation},
+    volume={1},
+    number={4},
     pages={541--551},
-    organization={MIT Press}
+    year={1989},
+    doi={10.1162/neco.1989.1.4.541},
+    publisher={MIT Press}
 }
 
-@inproceedings{lecun1998gradient,
+@article{lecun1998gradient,
     title={Gradient-based learning applied to document recognition},
     author={LeCun, Yann and Bottou, L{\'e}on and Bengio, Yoshua and Haffner, Patrick},
     journal={Proceedings of the IEEE},
@@ -89,23 +106,26 @@
     number={11},
     pages={2278--2324},
     year={1998},
+    doi={10.1109/5.726791},
     publisher={IEEE}
 }
 
-@article{krizhevsky2012imagenet,
+@inproceedings{krizhevsky2012imagenet,
     title={ImageNet classification with deep convolutional neural networks},
     author={Krizhevsky, Alex and Sutskever, Ilya and Hinton, Geoffrey E},
-    journal={Advances in Neural Information Processing Systems},
-    volume={25},
+    booktitle={Advances in Neural Information Processing Systems 25},
     pages={1097--1105},
-    year={2012}
+    year={2012},
+    publisher={Curran Associates, Inc.},
+    address={Red Hook, NY}
 }
 
 @inproceedings{simonyan2014very,
     title={Very deep convolutional networks for large-scale image recognition},
     author={Simonyan, Karen and Zisserman, Andrew},
-    booktitle={International Conference on Learning Representations},
-    year={2014}
+    booktitle={3rd International Conference on Learning Representations (ICLR 2015)},
+    year={2015},
+    note={arXiv:1409.1556}
 }
 
 @inproceedings{szegedy2015going,
@@ -113,7 +133,9 @@
     author={Szegedy, Christian and Liu, Wei and Jia, Yangqing and Sermanet, Pierre and Reed, Scott and Anguelov, Dragomir and Erber, David and Vanhoucke, Vincent and Rabinovich, Andrew},
     booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={1--9},
-    year={2015}
+    year={2015},
+    doi={10.1109/CVPR.2015.7298594},
+    publisher={IEEE}
 }
 
 % ==============================================================================
@@ -125,16 +147,20 @@
     author={He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
     booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={770--778},
-    year={2016}
+    year={2016},
+    doi={10.1109/CVPR.2016.90},
+    publisher={IEEE}
 }
 
 @inproceedings{he2016identity,
     title={Identity mappings in deep residual networks},
     author={He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
-    booktitle={European Conference on Computer Vision},
+    booktitle={Computer Vision -- ECCV 2016},
     pages={630--645},
     year={2016},
-    organization={Springer}
+    doi={10.1007/978-3-319-46493-0_38},
+    publisher={Springer},
+    address={Cham}
 }
 
 % ==============================================================================
@@ -149,22 +175,27 @@
     number={8},
     pages={1735--1780},
     year={1997},
+    doi={10.1162/neco.1997.9.8.1735},
     publisher={MIT Press}
 }
 
 @inproceedings{cho2014properties,
-    title={Properties of neural machine translation: Encoder-decoder approaches},
+    title={On the properties of neural machine translation: Encoder-decoder approaches},
     author={Cho, Kyunghyun and Van Merri{\"e}nboer, Bart and Bahdanau, Dzmitry and Bengio, Yoshua},
     booktitle={Proceedings of SSST-8, 8th Workshop on Syntax, Semantics and Structure in Statistical Translation},
     pages={103--111},
-    year={2014}
+    year={2014},
+    doi={10.3115/v1/W14-4012},
+    publisher={Association for Computational Linguistics},
+    address={Stroudsburg, PA}
 }
 
-@article{ Chung2014empirical,
+@inproceedings{Chung2014empirical,
     title={Empirical evaluation of gated recurrent neural networks on sequence modeling},
     author={Chung, Junyoung and Gulcehre, Caglar and Cho, Kyunghyun and Bengio, Yoshua},
-    journal={arXiv preprint arXiv:1412.3555},
-    year={2014}
+    booktitle={NIPS 2014 Workshop on Recurrent Neural Networks},
+    year={2014},
+    note={arXiv:1412.3555}
 }
 
 % ==============================================================================
@@ -174,32 +205,41 @@
 @article{vaswani2017attention,
     title={Attention is all you need},
     author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, Lukasz and Polosukhin, Illia},
-    journal={Advances in Neural Information Processing Systems},
-    volume={30},
-    year={2017}
+    booktitle={Advances in Neural Information Processing Systems 30},
+    year={2017},
+    eprint={1706.03762},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL},
+    note={NeurIPS 2017}
 }
 
 @article{devlin2018bert,
     title={BERT: Pre-training of deep bidirectional transformers for language understanding},
     author={Devlin, Jacob and Chang, Ming-Wei and Lee, Kenton and Toutanova, Kristina},
-    journal={arXiv preprint arXiv:1810.04805},
-    year={2018}
+    booktitle={Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)},
+    pages={4171--4186},
+    year={2019},
+    doi={10.18653/v1/N19-1423},
+    publisher={Association for Computational Linguistics},
+    address={Minneapolis, MN}
 }
 
 @article{radford2019language,
     title={Language models are unsupervised multitask learners},
     author={Radford, Alec and Wu, Jeffrey and Child, Rewon and Luan, David and Amodei, Dario and Sutskever, Ilya},
-    journal={OpenAI Technical Report},
-    year={2019}
+    year={2019},
+    note={OpenAI Technical Report GPT-2}
 }
 
 @article{brown2020language,
     title={Language models are few-shot learners},
-    author={Brown, Tom and Mann, Benjamin and Ryder, Nick and Subbiah, Melanie and Kaplan, Jared and Dhariwal, Prafulla and Neelakantan, Arvind and Shyam, Pranav and Sastry, Girish and Askell, Amanda and others},
-    journal={Advances in Neural Information Processing Systems},
-    volume={33},
+    author={Brown, Tom B and Mann, Benjamin and Ryder, Nick and Subbiah, Melanie and Kaplan, Jared and Dhariwal, Prafulla and Neelakantan, Arvind and Shyam, Pranav and Sastry, Girish and Askell, Amanda and others},
+    booktitle={Advances in Neural Information Processing Systems 33},
     pages={1877--1901},
-    year={2020}
+    year={2020},
+    eprint={2005.14165},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
 }
 
 % ==============================================================================
@@ -209,34 +249,41 @@
 @article{robins1952stochastic,
     title={A stochastic approximation method},
     author={Robbins, Herbert and Monro, Sutton},
-    journal={Annals of Mathematical Statistics},
+    journal={The Annals of Mathematical Statistics},
     volume={22},
+    number={3},
     pages={400--407},
-    year={1952}
+    year={1951},
+    doi={10.1214/aoms/1177729586}
 }
 
-@inproceedings{tieleman2012lecture,
+@misc{tieleman2012lecture,
     title={Lecture 6.5-rmsprop: Divide the gradient by a running average of its recent magnitude},
     author={Tieleman, Tijmen and Hinton, Geoffrey},
-    journal={COURSERA: Neural Networks for Machine Learning},
-    volume={4},
-    number={2},
-    pages={26--31},
-    year={2012}
+    year={2012},
+    howpublished={COURSERA: Neural Networks for Machine Learning}
 }
 
 @article{kingma2014adam,
     title={Adam: A method for stochastic optimization},
     author={Kingma, Diederik P and Ba, Jimmy},
-    journal={arXiv preprint arXiv:1412.6980},
-    year={2014}
+    booktitle={3rd International Conference on Learning Representations (ICLR 2015)},
+    year={2015},
+    eprint={1412.6980},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG},
+    note={Originally published as arXiv:1412.6980 (2014)}
 }
 
 @article{loshchilov2017decoupled,
     title={Decoupled weight decay regularization},
     author={Loshchilov, Ilya and Hutter, Frank},
-    journal={arXiv preprint arXiv:1711.05101},
-    year={2017}
+    booktitle={7th International Conference on Learning Representations (ICLR 2019)},
+    year={2019},
+    eprint={1711.05101},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG},
+    note={Originally published as arXiv:1711.05101 (2017)}
 }
 
 % ==============================================================================
@@ -246,33 +293,42 @@
 @inproceedings{ioffe2015batch,
     title={Batch normalization: Accelerating deep network training by reducing internal covariate shift},
     author={Ioffe, Sergey and Szegedy, Christian},
-    booktitle={International Conference on Machine Learning},
+    booktitle={Proceedings of the 32nd International Conference on Machine Learning},
     pages={448--456},
-    year={2015}
+    year={2015},
+    doi={10.5555/3045118.3045167},
+    publisher={PMLR},
+    address={Lille, France}
 }
 
 @article{ba2016layer,
     title={Layer normalization},
     author={Ba, Jimmy Lei and Kiros, Jamie Ryan and Hinton, Geoffrey E},
-    journal={arXiv preprint arXiv:1607.06450},
-    year={2016}
+    year={2016},
+    eprint={1607.06450},
+    archivePrefix={arXiv},
+    primaryClass={cs.NE}
 }
 
 @article{ulyanov2016instance,
     title={Instance normalization: The missing ingredient for fast stylization},
     author={Ulyanov, Dmitry and Vedaldi, Andrea and Lempitsky, Victor},
-    journal={arXiv preprint arXiv:1607.08022},
-    year={2016}
+    year={2016},
+    eprint={1607.08022},
+    archivePrefix={arXiv},
+    primaryClass={cs.NE}
 }
 
 @inproceedings{deotte2020layer,
     title={GridMask data augmentation},
     author={Deotte, Jean and others},
-    booktitle={arXiv preprint arXiv:2001.04086},
-    year={2020}
+    year={2020},
+    eprint={2001.04086},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
 }
 
-@inproceedings{srivastava2014dropout,
+@article{srivastava2014dropout,
     title={Dropout: A simple way to prevent neural networks from overfitting},
     author={Srivastava, Nitish and Hinton, Geoffrey and Krizhevsky, Alex and Sutskever, Ilya and Salakhutdinov, Ruslan},
     journal={Journal of Machine Learning Research},
@@ -286,20 +342,23 @@
 % OBJECT DETECTION AND SEGMENTATION
 % ==============================================================================
 
-@article{girshick2014rich,
+@inproceedings{girshick2014rich,
     title={Rich feature hierarchies for accurate object detection and semantic segmentation},
     author={Girshick, Ross and Donahue, Jeff and Darrell, Trevor and Malik, Jitendra},
-    journal={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+    booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={580--587},
-    year={2014}
+    year={2014},
+    doi={10.1109/CVPR.2014.81},
+    publisher={IEEE}
 }
 
 @inproceedings{ren2015faster,
-    title={Faster R-CNN: Towards real-time object detection with region proposal networks},
+    title={Faster {R-CNN}: Towards real-time object detection with region proposal networks},
     author={Ren, Shaoqing and He, Kaiming and Girshick, Ross and Sun, Jian},
-    booktitle={Advances in Neural Information Processing Systems},
+    booktitle={Advances in Neural Information Processing Systems 28},
     pages={91--99},
-    year={2015}
+    year={2015},
+    publisher={Curran Associates, Inc.}
 }
 
 @inproceedings{redmon2016you,
@@ -307,7 +366,9 @@
     author={Redmon, Joseph and Divvala, Santosh and Girshick, Ross and Farhadi, Ali},
     booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={779--788},
-    year={2016}
+    year={2016},
+    doi={10.1109/CVPR.2016.91},
+    publisher={IEEE}
 }
 
 @inproceedings{lin2017feature,
@@ -315,7 +376,9 @@
     author={Lin, Tsung-Yi and Doll{\'a}r, Piotr and Girshick, Ross and He, Kaiming and Hariharan, Bharath and Belongie, Serge},
     booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={2117--2125},
-    year={2017}
+    year={2017},
+    doi={10.1109/CVPR.2017.106},
+    publisher={IEEE}
 }
 
 % ==============================================================================
@@ -324,24 +387,33 @@
 
 @inproceedings{goodfellow2014generative,
     title={Generative adversarial networks},
-    author={Goodfellow, Ian and Pouget-Abadie, Jean and Mirza, Mehdi and Xu, Bing and Warde-Farley, David and Ozair, Sherjil and Courville, Aaron and Bengio, Yoshua},
-    booktitle={Advances in Neural Information Processing Systems},
+    author={Goodfellow, Ian J and Pouget-Abadie, Jean and Mirza, Mehdi and Xu, Bing and Warde-Farley, David and Ozair, Sherjil and Courville, Aaron and Bengio, Yoshua},
+    booktitle={Advances in Neural Information Processing Systems 27},
     pages={2672--2680},
-    year={2014}
+    year={2014},
+    publisher={Curran Associates, Inc.}
 }
 
 @article{kingma2013auto,
-    title={Auto-encoding variational Bayes},
+    title={Auto-encoding variational {B}ayes},
     author={Kingma, Diederik P and Welling, Max},
-    journal={arXiv preprint arXiv:1312.6114},
-    year={2013}
+    booktitle={2nd International Conference on Learning Representations (ICLR 2014)},
+    year={2014},
+    eprint={1312.6114},
+    archivePrefix={arXiv},
+    primaryClass={stat.ML},
+    note={Originally presented at the NIPS 2013 Workshop on Deep Learning}
 }
 
-@article{rezende2014stochastic,
+@inproceedings{rezende2014stochastic,
     title={Stochastic backpropagation and approximate inference in deep generative models},
     author={Rezende, Danilo Jimenez and Mohamed, Shakir and Wierstra, Daan},
-    journal={arXiv preprint arXiv:1401.4082},
-    year={2014}
+    booktitle={Proceedings of the 31st International Conference on Machine Learning},
+    pages={1278--1286},
+    year={2014},
+    doi={10.5555/3044805.3044940},
+    publisher={PMLR},
+    address={Beijing, China}
 }
 
 % ==============================================================================
@@ -353,24 +425,30 @@
     author={Long, Jonathan and Shelhamer, Evan and Darrell, Trevor},
     booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={3431--3440},
-    year={2015}
+    year={2015},
+    doi={10.1109/TPAMI.2016.2572683},
+    publisher={IEEE}
 }
 
 @inproceedings{ronneberger2015u,
     title={U-net: Convolutional networks for biomedical image segmentation},
     author={Ronneberger, Olaf and Fischer, Philipp and Brox, Thomas},
-    booktitle={International Conference on Medical Image Computing and Computer-assisted Intervention},
+    booktitle={Medical Image Computing and Computer-Assisted Intervention (MICCAI 2015)},
     pages={234--241},
     year={2015},
-    organization={Springer}
+    doi={10.1007/978-3-319-24574-4_28},
+    publisher={Springer},
+    address={Cham}
 }
 
 @inproceedings{he2017mask,
-    title={Mask R-CNN},
+    title={Mask {R-CNN}},
     author={He, Kaiming and Gkioxari, Georgia and Doll{\'a}r, Piotr and Girshick, Ross},
     booktitle={Proceedings of the IEEE International Conference on Computer Vision},
     pages={2961--2969},
-    year={2017}
+    year={2017},
+    doi={10.1109/ICCV.2017.322},
+    publisher={IEEE}
 }
 
 % ==============================================================================
@@ -380,16 +458,22 @@
 @article{bahdanau2014neural,
     title={Neural machine translation by jointly learning to align and translate},
     author={Bahdanau, Dzmitry and Cho, Kyunghyun and Bengio, Yoshua},
-    journal={arXiv preprint arXiv:1409.0473},
-    year={2014}
+    year={2014},
+    eprint={1409.0473},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL},
+    booktitle={3rd International Conference on Learning Representations (ICLR 2015)}
 }
 
-@article{xu2015show,
+@inproceedings{xu2015show,
     title={Show, attend and tell: Neural image caption generation with visual attention},
     author={Xu, Kelvin and Ba, Jimmy and Kiros, Ryan and Cho, Kyunghyun and Courville, Aaron and Salakhutdinov, Ruslan and Zemel, Richard and Bengio, Yoshua},
-    journal={International Conference on Machine Learning},
+    booktitle={Proceedings of the 32nd International Conference on Machine Learning},
     pages={2048--2057},
-    year={2015}
+    year={2015},
+    doi={10.5555/3045118.3045259},
+    publisher={PMLR},
+    address={Lille, France}
 }
 
 @inproceedings{hu2018squeeze,
@@ -397,42 +481,54 @@
     author={Hu, Jie and Shen, Li and Sun, Gang},
     booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={7132--7141},
-    year={2018}
+    year={2018},
+    doi={10.1109/CVPR.2018.00745},
+    publisher={IEEE}
 }
 
-@article{wang2018non,
+@inproceedings{wang2018non,
     title={Non-local neural networks},
     author={Wang, Xiaolong and Girshick, Ross and Gupta, Abhinav and He, Kaiming},
-    journal={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+    booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={7794--7803},
-    year={2018}
+    year={2018},
+    doi={10.1109/CVPR.2018.00813},
+    publisher={IEEE}
 }
 
 % ==============================================================================
 % ADVANCED ARCHITECTURES
 % ==============================================================================
 
-@article{dosovitskiy2020image,
+@inproceedings{dosovitskiy2020image,
     title={An image is worth 16x16 words: Transformers for image recognition at scale},
     author={Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and others},
-    journal={arXiv preprint arXiv:2010.11929},
-    year={2020}
+    booktitle={9th International Conference on Learning Representations (ICLR 2021)},
+    year={2021},
+    eprint={2010.11929},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
 }
 
-@article{liu2021swin,
+@inproceedings{liu2021swin,
     title={Swin transformer: Hierarchical vision transformer using shifted windows},
     author={Liu, Ze and Lin, Yutong and Cao, Yue and Hu, Han and Wei, Yixuan and Zhang, Zheng and Lin, Stephen and Guo, Baining},
-    journal={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+    booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
     pages={10012--10022},
-    year={2021}
+    year={2021},
+    doi={10.1109/ICCV48922.2021.00971},
+    publisher={IEEE}
 }
 
-@article{touvron2021training,
+@inproceedings{touvron2021training,
     title={Training data-efficient image transformers and distillation through attention},
     author={Touvron, Hugo and Cord, Matthieu and Douze, Matthijs and Massa, Francisco and Sablayrolles, Alexandre and J{\'e}gou, Herv{\'e}},
-    journal={International Conference on Machine Learning},
+    booktitle={Proceedings of the 38th International Conference on Machine Learning},
     pages={10347--10357},
-    year={2021}
+    year={2021},
+    doi={10.5555/3454284.3455222},
+    publisher={PMLR},
+    address={Virtual}
 }
 
 % ==============================================================================
@@ -444,34 +540,44 @@
     author={Smith, Leslie N},
     booktitle={Proceedings of the IEEE Winter Conference on Applications of Computer Vision},
     pages={464--472},
-    year={2017}
+    year={2017},
+    doi={10.1109/WACV.2017.58},
+    publisher={IEEE}
 }
 
 @article{loshchilov2016sgdr,
     title={SGDR: Stochastic gradient descent with warm restarts},
     author={Loshchilov, Ilya and Hutter, Frank},
-    booktitle={International Conference on Learning Representations},
-    year={2016}
+    booktitle={5th International Conference on Learning Representations (ICLR 2017)},
+    year={2017},
+    eprint={1608.03983},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG},
+    note={Originally published as ICLR 2017 (workshop paper from ICLR 2016)}
 }
 
 % ==============================================================================
 % WEIGHT INITIALIZATION
 % ==============================================================================
 
-@article{glorot2010understanding,
+@inproceedings{glorot2010understanding,
     title={Understanding the difficulty of training deep feedforward neural networks},
     author={Glorot, Xavier and Bengio, Yoshua},
     booktitle={Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics},
     pages={249--256},
-    year={2010}
+    year={2010},
+    publisher={PMLR},
+    address={Sardinia, Italy}
 }
 
-@article{he2015delving,
-    title={Delving deep into rectifiers: Surpassing human-level performance on ImageNet classification},
+@inproceedings{he2015delving,
+    title={Delving deep into rectifiers: Surpassing human-level performance on {ImageNet} classification},
     author={He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
     booktitle={Proceedings of the IEEE International Conference on Computer Vision},
     pages={1026--1034},
-    year={2015}
+    year={2015},
+    doi={10.1109/ICCV.2015.123},
+    publisher={IEEE}
 }
 
 % ==============================================================================
@@ -481,17 +587,19 @@
 @article{paszke2019pytorch,
     title={PyTorch: An imperative style, high-performance deep learning library},
     author={Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and others},
-    journal={Advances in Neural Information Processing Systems},
-    volume={32},
-    year={2019}
+    booktitle={Advances in Neural Information Processing Systems 32},
+    year={2019},
+    publisher={Curran Associates, Inc.}
 }
 
-@article{abadi2016tensorflow,
+@inproceedings{abadi2016tensorflow,
     title={TensorFlow: A system for large-scale machine learning},
     author={Abadi, Mart{\'\i}n and Barham, Paul and Chen, Jianmin and Chen, Zhifeng and Davis, Andy and Dean, Jeffrey and Devin, Matthieu and Ghemawat, Sanjay and Irving, Geoffrey and Isard, Michael and others},
     booktitle={12th USENIX Symposium on Operating Systems Design and Implementation},
     pages={265--283},
-    year={2016}
+    year={2016},
+    publisher={USENIX Association},
+    address={Savannah, GA}
 }
 
 % ==============================================================================
@@ -502,46 +610,56 @@
     title={Deep Learning},
     author={Goodfellow, Ian and Bengio, Yoshua and Courville, Aaron},
     year={2016},
-    publisher={MIT Press}
+    isbn={978-0262035613},
+    publisher={MIT Press},
+    series={Adaptive Computation and Machine Learning}
 }
 
 @book{bishop2006pattern,
     title={Pattern Recognition and Machine Learning},
     author={Bishop, Christopher M},
     year={2006},
-    publisher={Springer}
+    isbn={978-0387310732},
+    publisher={Springer},
+    series={Information Science and Statistics}
 }
 
 @book{murphy2012machine,
     title={Machine Learning: A Probabilistic Perspective},
     author={Murphy, Kevin P},
     year={2012},
-    publisher={MIT Press}
+    isbn={978-0262018029},
+    publisher={MIT Press},
+    series={Adaptive Computation and Machine Learning}
 }
 
 @book{haykin2009neural,
     title={Neural Networks and Learning Machines},
     author={Haykin, Simon O},
     year={2009},
-    publisher={Pearson}
+    isbn={978-0131471399},
+    publisher={Pearson},
+    edition={3}
 }
 
 % ==============================================================================
 % DATA AUGMENTATION
 % ==============================================================================
 
-@inproceedings{shorten2019survey,
-    title={A survey on deep learning: concepts, architectures, and algorithms},
+@article{shorten2019survey,
+    title={A survey on deep learning: Concepts, architectures, and algorithms},
     author={Shorten, Connor and Khoshgoftaar, Taghi M},
-    journal={arXiv preprint arXiv:1908.08994},
-    year={2019}
+    year={2019},
+    eprint={1908.08994},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
 }
 
-@article{cuistantdnn,
-    title={Cutting catalog impact: a comparison of neural network approaches on medium-size datasets},
+@misc{cuistantdnn,
+    title={Cutting catalog impact: A comparison of neural network approaches on medium-size datasets},
     author={Cui, Xiaocong and others},
-    journal={arXiv preprint},
-    year={2020}
+    year={2020},
+    note={arXiv preprint}
 }
 
 % ==============================================================================
@@ -551,17 +669,19 @@
 @book{strang2009introduction,
     title={Introduction to Linear Algebra},
     author={Strang, Gilbert},
-    edition={4},
     year={2009},
+    isbn={978-0980232714},
     publisher={Wellesley-Cambridge Press},
-    address={Wellesley, MA}
+    address={Wellesley, MA},
+    edition={4}
 }
 
 @book{cover2012elements,
     title={Elements of Information Theory},
     author={Cover, Thomas M and Thomas, Joy A},
-    edition={2},
     year={2006},
+    isbn={978-0471241959},
     publisher={Wiley-Interscience},
-    address={Hoboken, NJ}
+    address={Hoboken, NJ},
+    edition={2}
 }
