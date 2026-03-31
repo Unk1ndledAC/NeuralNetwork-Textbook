@@ -125,3 +125,9 @@ Thanks to Yann LeCun, Geoffrey Hinton, Yoshua Bengio, and many other researchers
 ### Open-Source Community
 
 Thanks to the developers of PyTorch, NumPy, and other tools that have made deep learning accessible to researchers and practitioners worldwide.
+
+### Preview
+<details>
+  <summary> Preview </summary>
+  <embed src="./Eng/main.pdf" width="100%" height="500px" /> 
+</details>
