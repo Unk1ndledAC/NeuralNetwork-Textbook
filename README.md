@@ -1,8 +1,6 @@
-# Neural Network Textbook
-
-**Neural Networks: A Comprehensive Guide for AI Students**
-
-A comprehensive, systematic textbook on neural networks covering core topics from fundamental mathematics to state-of-the-art architectures, featuring detailed mathematical derivations, PyTorch practical examples, and real-world application cases.
+<p align="center">
+<img src="Eng/cover.png" width="100%" />
+</p>
 
 ## Features
 
@@ -127,9 +125,3 @@ Thanks to Yann LeCun, Geoffrey Hinton, Yoshua Bengio, and many other researchers
 ### Open-Source Community
 
 Thanks to the developers of PyTorch, NumPy, and other tools that have made deep learning accessible to researchers and practitioners worldwide.
-
-### Preview
-
-<p align="center">
-<img src="Eng/cover.png" width="100%" />
-</p>
