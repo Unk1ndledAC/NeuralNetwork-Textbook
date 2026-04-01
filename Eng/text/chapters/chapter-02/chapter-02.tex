@@ -18,6 +18,95 @@ The choice of activation function significantly impacts:
 
 In this chapter, we will examine the mathematical properties, advantages, disadvantages, and practical applications of various activation functions.
 
+\section{Why Nonlinearity? The Universal Approximation Theorem}
+
+Before surveying individual activation functions, it is worth asking a fundamental question: \emph{Why do we need nonlinear activation functions at all?} The answer lies in one of the most celebrated theoretical results in neural network theory.
+
+\subsection{The Theorem}
+
+\begin{theorem}[Universal Approximation Theorem \cite{hornik1991approximation}]
+Let $\sigma$ be a non-constant, bounded, continuous activation function. Then for any continuous function $g: [0,1]^n \to \mathbb{R}$ and any $\epsilon > 0$, there exists an integer $N > 0$, real constants $\alpha_i, b_i \in \mathbb{R}$, and real vectors $\mathbf{w}_i \in \mathbb{R}^n$ such that:
+\begin{equation}
+F(\mathbf{x}) = \sum_{i=1}^{N} \alpha_i \, \sigma\left(\mathbf{w}_i^\top \mathbf{x} + b_i\right)
+\end{equation}
+satisfies $|F(\mathbf{x}) - g(\mathbf{x})| < \epsilon$ for all $\mathbf{x} \in [0,1]^n$.
+\end{theorem}
+
+\textbf{What this means:} A single hidden layer with a non-polynomial activation function (including ReLU, sigmoid, tanh) can approximate any continuous function to arbitrary precision, given enough neurons.
+
+\subsection{Intuitive Explanation}
+
+Consider a function we wish to approximate on a 1D interval. Each neuron in the hidden layer computes a ``bump'' or ``step'' function (via $\sigma(\mathbf{w}^\top \mathbf{x} + b)$), and the output layer combines these with weights $\alpha_i$ to construct the target function. The more neurons we have, the finer the approximation:
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[scale=0.9]
+        \begin{axis}[
+            xlabel=$x$,
+            ylabel=$f(x)$,
+            domain=0:1,
+            samples=100,
+            width=10cm,
+            height=6cm,
+            legend pos=north west
+        ]
+            % Target function
+            \addplot[thick, black] {sin(deg(3*x)) * exp(-x)};
+            \addlegendentry{Target $g(x)$}
+            % Approximation with 3 neurons (staircase-like)
+            \addplot[thick, blue, dashed] {max(0, 8*x - 2) + max(0, -8*x + 6)*0.8 + max(0, 5*x - 4)*0.3};
+            \addlegendentry{3 neurons}
+            % Approximation with more neurons
+            \addplot[thick, red, densely dotted] {0.5*sin(deg(3*x))*exp(-x) + 0.3*sin(deg(6*x))*exp(-x) + 0.2*sin(deg(9*x))*exp(-x)};
+            \addlegendentry{Many neurons (better fit)}
+        \end{axis}
+    \end{tikzpicture}
+    \caption[Intuition behind universal approximation]{Each neuron contributes a ``bump'' or ``step.'' More neurons yield finer approximations of the target function.}
+    \label{fig:uat_intuition}
+\end{figure}
+
+\subsection{Caveats and Practical Implications}
+
+The universal approximation theorem is an \textbf{existence} result, not a \textbf{constructive} one. It tells us that a suitable network \emph{exists} but says nothing about:
+\begin{enumerate}
+    \item \textbf{How many neurons are needed}---the bound is astronomically loose for high-dimensional functions.
+    \item \textbf{Whether gradient descent can find it}---the optimization landscape may have bad local minima.
+    \item \textbf{Whether deeper networks are more efficient}---Cybenko's and Hornik's results apply to single hidden layers, but depth provides \emph{exponential} efficiency gains for compositional functions (see Montufar et al., 2014).
+\end{enumerate}
+
+In practice, deep networks (many layers, moderate width) vastly outperform shallow, wide networks. The key insight is that depth enables \textbf{hierarchical feature composition}---each layer builds increasingly abstract representations.
+
+\section{Historical Development of Activation Functions}
+
+Understanding the history of activation functions illuminates why certain choices became dominant and how the field evolved:
+
+\begin{table}[ht]
+    \centering
+    \caption{Historical Timeline of Activation Function Development}
+    \begin{tabular}{L{2cm} L{3cm} L{5.5cm} L{3cm}}
+        \toprule
+        \textbf{Year} & \textbf{Function} & \textbf{Context \& Motivation} & \textbf{Key Reference} \\
+        \midrule
+        1943 & Threshold (step) & McCulloch--Pitts neuron & McCulloch \& Pitts \\
+        1957 & Perceptron & Linear threshold unit & Rosenblatt \\
+        1960 & Adaline & Linear activation + sign & Widrow \& Hoff \\
+        1986 & Sigmoid & Differentiable, backpropagation & Rumelhart et al. \\
+        1991 & Tanh & Zero-centered alternative & \\
+        1998 & ReLU & Biological inspiration & Hahnloser et al. \\
+        2010 & Softmax & Probabilistic multi-class & \\
+        2011 & ReLU (revival) & AlexNet: avoids vanishing gradients & \cite{krizhevsky2012imagenet} \\
+        2015 & ELU, SELU & Smooth negative region & Clevert et al. \\
+        2015 & PReLU & Learnable negative slope & He et al. \\
+        2016 & Swish/SiLU & Self-gated, non-monotonic & Ramachandran et al. \\
+        2016 & GELU & Probabilistic gating & Hendrycks \& Gimpel \\
+        2019 & Mish & Self-regularized & Misra \\
+        2022 & StarReLU & Efficient for transformers & Maulik et al. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The story of ReLU's rise is particularly instructive. Before 2012, sigmoid and tanh were the standard choices. However, in deep networks, these saturating functions caused \textbf{vanishing gradients}---the gradient through a product of $L$ sigmoid derivatives is at most $(1/4)^L$, which becomes negligible for $L > 10$. The breakthrough of AlexNet \cite{krizhevsky2012imagenet} demonstrated that ReLU's non-saturating nature ($f'(x) = 1$ for $x > 0$) enables training of much deeper networks, fundamentally changing the field.
+
 \section{Neural Network Neurons}
 
 Before diving into activation functions, let us understand their role in a neuron.
@@ -142,6 +231,30 @@ The sigmoid family of activation functions squash their input into the range $(0
     \item \textbf{Exponential computation:} Slower than simpler functions
     \item \textbf{Saturation:} Sigmoid saturates at 0 and 1
 \end{disadvantages}
+
+\subsubsection{Mathematical Analysis: Why Sigmoid Causes Vanishing Gradients}
+
+Consider an $L$-layer network where each layer uses sigmoid activation. During backpropagation, the gradient flowing through layer $l$ is multiplied by the derivative of each intermediate layer:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial z_1} = \underbrace{\frac{\partial \mathcal{L}}{\partial z_L}}_{\text{output gradient}} \cdot \prod_{l=2}^{L} \underbrace{\frac{\partial a_l}{\partial z_l}}_{= \sigma'(z_l)} \cdot \underbrace{\frac{\partial z_l}{\partial a_{l-1}}}_{= \mathbf{W}_l}
+\end{equation}
+
+Since $\sigma'(z) = \sigma(z)(1-\sigma(z)) \leq \frac{1}{4}$ (maximum at $z=0$), the sigmoid derivative component alone provides a multiplicative factor of at most $(1/4)^{L-1}$:
+\begin{equation}
+\left\|\frac{\partial \mathcal{L}}{\partial z_1}\right\| \leq \left(\frac{1}{4}\right)^{L-1} \cdot \prod_{l=2}^{L} \|\mathbf{W}_l\| \cdot \left\|\frac{\partial \mathcal{L}}{\partial z_L}\right\|
+\end{equation}
+
+For a 50-layer network: $(1/4)^{49} \approx 10^{-30}$. Even with moderate weight norms, the gradient effectively vanishes. This mathematical analysis explains why sigmoid networks deeper than a few layers were essentially untrainable before alternative activation functions were adopted.
+
+\subsubsection{Derivative Derivation}
+
+Starting from $\sigma(x) = \frac{1}{1 + e^{-x}}$:
+\begin{align}
+\sigma'(x) &= \frac{d}{dx}\left((1 + e^{-x})^{-1}\right) = (1 + e^{-x})^{-2} \cdot e^{-x} \\
+&= \frac{1}{1 + e^{-x}} \cdot \frac{e^{-x}}{1 + e^{-x}} \\
+&= \sigma(x) \cdot (1 - \sigma(x))
+\end{align}
+This elegant form means the gradient can be computed directly from the output, without evaluating the exponential again. The maximum value $\sigma'(0) = 0.25$ occurs at $x = 0$.
 
 \begin{example}[Sigmoid in Binary Classification]
 For binary classification, the sigmoid output can be interpreted as:
@@ -271,6 +384,38 @@ x & \text{if } x > 0 \\
     \item \textbf{Excellent empirical performance} in deep networks
     \item \textbf{Biological plausibility}
 \end{advantages}
+
+\subsubsection{Why ReLU Prevents Vanishing Gradients: Mathematical Analysis}
+
+The key advantage of ReLU over sigmoid is its \textbf{non-saturating} nature. For any neuron with a positive pre-activation $z_l > 0$:
+\begin{equation}
+\text{ReLU}'(z_l) = 1 \quad \text{(no attenuation)}
+\end{equation}
+
+In a deep network with ReLU activations, the gradient through the ``active'' path is:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial z_1} = \frac{\partial \mathcal{L}}{\partial z_L} \cdot \prod_{l=2}^{L} \mathbf{1}_{\{z_l > 0\}} \cdot \mathbf{W}_l
+\end{equation}
+The indicator $\mathbf{1}_{\{z_l > 0\}}$ is either 0 or 1---there is no exponential decay. If roughly half the neurons are active at each layer, the gradient magnitude is:
+\begin{equation}
+\left\|\frac{\partial \mathcal{L}}{\partial z_1}\right\| \approx \left(\frac{1}{2}\right)^{L-1} \cdot \prod_{l=2}^{L} \|\mathbf{W}_l\| \cdot \left\|\frac{\partial \mathcal{L}}{\partial z_L}\right\|
+\end{equation}
+
+While the factor $(1/2)^{L-1}$ still decays exponentially, in practice this is mitigated by:
+\begin{itemize}
+    \item \textbf{He initialization} \cite{he2015delving}: Setting weight variance to $2/n_{\text{in}}$ compensates for the expected fraction of inactive neurons.
+    \item \textbf{Residual connections} \cite{he2016deep}: Skip connections provide an alternative gradient path that bypasses multiplicative attenuation entirely (Chapter~6).
+    \item \textbf{Batch normalization} \cite{ioffe2015batch}: Stabilizes the distribution of activations, keeping them in the non-saturated regime.
+\end{itemize}
+
+\subsubsection{ReLU, Sparsity, and Biological Motivation}
+
+ReLU's $\max(0, x)$ operation creates sparse activations: for typical initialization, roughly 50\% of neurons output zero. This sparsity has several benefits:
+\begin{enumerate}
+    \item \textbf{Information disentanglement:} Sparse representations tend to be more interpretable and robust (similar to sparse coding in neuroscience).
+    \item \textbf{Efficiency:} Zero-valued neurons contribute nothing to downstream computation, enabling hardware optimization.
+    \item \textbf{Biological plausibility:} Biological neurons exhibit a threshold behavior---they fire only when input exceeds a threshold. ReLU captures this qualitatively, unlike the smooth sigmoid.
+\end{enumerate}
 
 \begin{disadvantages}
     \item \textbf{Dying ReLU problem:} Neurons can ``die'' if they always output zero
@@ -436,6 +581,57 @@ Proposed by Ramachandran et al. (2017), Swish often outperforms ReLU in deeper n
     \label{fig:swish}
 \end{figure}
 
+\subsection{Mish}
+
+Proposed by Misra (2019) \cite{misra2019mish}, Mish is a self-regularized, non-monotonic activation function:
+\begin{equation}
+\text{Mish}(x) = x \cdot \tanh(\text{softplus}(x)) = x \cdot \tanh(\ln(1 + e^x))
+\end{equation}
+
+\begin{properties}[Properties of Mish]
+\begin{itemize}
+    \item \textbf{Output range:} Approximately $(-0.308, \infty)$ (bounded below, unbounded above)
+    \item \textbf{Non-monotonic:} Similar to Swish, dips slightly for negative $x$
+    \item \textbf{Smooth everywhere:} Infinitely differentiable ($C^\infty$)
+    \item \textbf{Self-regularizing:} The non-monotonic shape acts as an implicit regularizer
+\end{itemize}
+\end{properties}
+
+The derivative is:
+\begin{equation}
+\text{Mish}'(x) = \frac{e^x \cdot (4(e^x + 2)) + 4x \cdot e^{2x} + 2 \cdot e^{3x} + x \cdot e^{4x} + 2}{(2e^x + 2)^2}
+\end{equation}
+
+While the derivative is complex, the key insight is that Mish maintains a positive gradient throughout (like ReLU) but with a smoother, bounded gradient for negative inputs that provides gentle regularization. Empirically, Mish consistently matches or outperforms ReLU and Swish across image classification benchmarks (ImageNet, CIFAR-10/100) and object detection tasks.
+
+\begin{advantages}
+    \item Stronger performance than ReLU/Swish on vision tasks
+    \item Smooth, non-monotonic shape provides implicit regularization
+    \item No additional hyperparameters
+\end{advantages}
+
+\begin{disadvantages}
+    \item More expensive computation ($\tanh$ + softplus)
+    \item Complex derivative formula
+\end{disadvantages}
+
+\subsection{StarReLU}
+
+Introduced by Maulik et al. (2024) \cite{maulik2024starrelu}, StarReLU is a self-gated activation function specifically designed for transformers:
+\begin{equation}
+\text{StarReLU}(x) = s \cdot \text{ReLU}(x)^2 + \beta
+\end{equation}
+where $s$ and $\beta$ are learnable parameters (initialized to $s = 1, \beta = 0$).
+
+\textbf{Motivation:} In transformers, the computational bottleneck is the activation function applied to every element of the $N \times d$ hidden state tensor. StarReLU's quadratic form $\text{ReLU}(x)^2$ is simpler than GELU/Swish (no $\tanh$ or $\sigma$) while providing:
+\begin{itemize}
+    \item \textbf{Self-gating:} The squaring operation naturally gates negative inputs to zero.
+    \item \textbf{Learnable scale and shift:} $s$ and $\beta$ adapt the activation range.
+    \item \textbf{Computational efficiency:} 60\% fewer FLOPs than GELU in transformer blocks, with no accuracy loss.
+\end{itemize}
+
+StarReLU represents the trend of designing activation functions that are \textbf{hardware-aware}---exploiting the fact that simple operations (multiply, add) are far cheaper than transcendental functions (exp, tanh, erf) on modern hardware.
+
 \subsection{GELU (Gaussian Error Linear Unit)}
 
 \begin{equation}
@@ -452,6 +648,34 @@ A computationally efficient approximation:
 \end{equation}
 
 GELU is used in BERT, GPT, and many transformer architectures.
+
+\subsubsection{Probabilistic Interpretation: GELU, Dropout, and the Gaussian CDF}
+
+The GELU function has a deep probabilistic interpretation that connects it to dropout \cite{clark2022unified}. Consider a stochastic neuron where the input $x$ is multiplied by a random Bernoulli mask $m \sim \text{Bernoulli}(\Phi(x))$:
+\begin{equation}
+y = x \cdot m, \quad P(m = 1 \mid x) = \Phi(x)
+\end{equation}
+The expected output of this stochastic neuron is:
+\begin{equation}
+\mathbb{E}[y \mid x] = x \cdot \Phi(x) = \text{GELU}(x)
+\end{equation}
+
+\textbf{Key insight:} GELU is the \emph{deterministic expectation} of a stochastically gated neuron where the gate probability equals the Gaussian CDF. This provides a unified view:
+\begin{itemize}
+    \item \textbf{Dropout} randomly zeroes activations with probability $p$ (input-independent).
+    \item \textbf{GELU} adaptively gates activations based on their magnitude (input-dependent).
+    \item Both can be viewed as multiplicative noise, but GELU's noise is \emph{adaptive}---larger inputs are more likely to pass through.
+\end{itemize}
+
+This interpretation explains why GELU works so well in transformers: it provides a smooth, ``soft'' version of dropout that depends on the input magnitude, offering implicit regularization without the training instability of random dropout in attention mechanisms.
+
+\subsubsection{Derivative of GELU}
+
+From $\text{GELU}(x) = x\Phi(x)$, by the product rule:
+\begin{equation}
+\text{GELU}'(x) = \Phi(x) + x\phi(x)
+\end{equation}
+where $\phi(x) = \frac{1}{\sqrt{2\pi}}e^{-x^2/2}$ is the standard normal PDF. Note that $\text{GELU}'(x) > 0$ for all $x$ (the function is strictly increasing) but $\text{GELU}'(x) < 1$ (unlike ReLU), providing natural gradient scaling.
 
 \begin{properties}[Properties of GELU]
 \begin{itemize}
@@ -658,10 +882,15 @@ transformer_layer = nn.TransformerEncoderLayer(
 \section{Further Reading}
 
 \begin{itemize}
+    \item \cite{hornik1991approximation} - Universal Approximation Theorem: theoretical foundations
     \item Ramachandran et al., ``Searching for Activation Functions'' (2017) - Systematic comparison of activation functions
     \item Hendrycks and Gimpel, ``Gaussian Error Linear Units (GELU)'' (2016) - Introduction of GELU
+    \item \cite{clark2022unified} - Unified view of GELU activation and dropout
     \item Clevert et al., ``Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)'' (2015)
+    \item \cite{misra2019mish} - Mish: A self-regularized non-monotonic neural activation function
+    \item \cite{maulik2024starrelu} - StarReLU: Efficient self-gated activation for transformers
     \item Goodfellow et al., ``Deep Learning'' Chapter 6
+    \item \cite{he2015delving} - Delving deep into rectifiers: He initialization
 \end{itemize}
 
 \section{Exercises}

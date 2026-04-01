@@ -1,0 +1,375 @@
+\clearpage
+\cleardoublepage
+
+\chapter{Modern Training Techniques}
+
+\section{Introduction}
+
+Training modern deep learning systems involves far more than gradient descent. This chapter covers advanced training techniques that enable training on massive datasets, transfer knowledge across tasks, and achieve state-of-the-art performance. These techniques are essential for anyone working with contemporary neural networks.
+
+\section{Pre-training and Fine-tuning}
+
+The dominant paradigm for building powerful models is pre-training followed by fine-tuning.
+
+\subsection{Pre-training Objectives}
+
+Pre-training learns general representations from large unlabeled data:
+
+\begin{itemize}
+    \item \textbf{Language Modeling (CLM):} Predict the next token given previous tokens
+    \item \textbf{Masked Language Modeling (MLM):} Predict randomly masked tokens (BERT-style)
+    \item \textbf{Denoising Autoencoder:} Reconstruct corrupted input
+    \item \textbf{Next Sentence Prediction (NSP):} Predict sentence ordering
+\end{itemize}
+
+For vision:
+\begin{itemize}
+    \item \textbf{Contrastive Learning:} Maximize similarity between positive pairs
+    \item \textbf{Masked Autoencoding (MAE):} Reconstruct masked patches
+    \item \textbf{Self-distillation:} Student learns from teacher
+\end{itemize}
+
+\subsection{Fine-tuning Strategies}
+
+After pre-training, models are adapted to specific tasks:
+
+\begin{enumerate}
+    \item \textbf{Full fine-tuning:} Update all parameters on target task data
+    \item \textbf{Linear probing:} Train only a linear classifier on frozen features
+    \item \textbf{Adapter methods:} Add small trainable modules between layers
+    \item \textbf{LoRA (Low-Rank Adaptation):} Optimize low-rank decompositions of weight matrices
+\end{enumerate}
+
+\begin{note}[When to use each approach]
+\begin{itemize}
+    \item \textbf{Abundant task data:} Full fine-tuning typically best
+    \item \textbf{Limited task data:} LoRA/adapters prevent overfitting
+    \item \textbf{Many tasks:} Adapter methods enable parameter-efficient multi-task learning
+\end{itemize}
+\end{note}
+
+\section{LoRA: Low-Rank Adaptation}
+
+LoRA reduces trainable parameters by decomposing weight updates:
+
+\begin{equation}
+\mathbf{W} \leftarrow \mathbf{W} + \Delta\mathbf{W}, \quad \Delta\mathbf{W} = \mathbf{B}\mathbf{A}
+\end{equation}
+
+where $\mathbf{B} \in \mathbb{R}^{d \times r}$, $\mathbf{A} \in \mathbb{R}^{r \times k}$, and $r \ll \min(d, k)$.
+
+During forward pass with input $\mathbf{x}$:
+\begin{equation}
+\mathbf{h} = \mathbf{W}\mathbf{x} + \frac{\alpha}{r}\mathbf{B}\mathbf{A}\mathbf{x}
+\end{equation}
+
+where $\alpha$ is a scaling factor (typically equal to rank $r$).
+
+\begin{code}
+    \captionof{listing}{LoRA Implementation in PyTorch}
+    \label{code:lora}
+\begin{lstlisting}[language=python]
+import torch
+import torch.nn as nn
+
+class LoRALinear(nn.Module):
+    def __init__(self, in_features, out_features, rank=4, alpha=4):
+        super().__init__()
+        self.rank = rank
+        self.alpha = alpha
+        self.scaling = alpha / rank
+        
+        # Original frozen weights
+        self.weight = nn.Parameter(
+            torch.randn(out_features, in_features), 
+            requires_grad=False
+        )
+        
+        # Trainable low-rank matrices
+        self.lora_A = nn.Parameter(torch.randn(rank, in_features))
+        self.lora_B = nn.Parameter(torch.zeros(out_features, rank))
+        
+        # Initialize A with random Gaussian, B with zeros
+        nn.init.normal_(self.lora_A, std=1.0 / rank)
+    
+    def forward(self, x):
+        # Original forward pass
+        h = F.linear(x, self.weight)
+        # LoRA update
+        h += self.scaling * (x @ self.lora_A.T @ self.lora_B.T)
+        return h
+
+# Usage in a model
+class LoRALinearLayer(nn.Module):
+    def __init__(self, linear_layer, rank=4, alpha=4):
+        super().__init__()
+        self.linear = linear_layer
+        self.lora = LoRALinear(
+            linear_layer.in_features,
+            linear_layer.out_features,
+            rank=rank,
+            alpha=alpha
+        )
+    
+    def forward(self, x):
+        return self.lora(x)
+\end{lstlisting}
+\end{code}
+
+Trainable parameters reduced from $d \times k$ to $r \times (d + k)$.
+
+\section{Transfer Learning}
+
+Transfer learning leverages knowledge from related tasks.
+
+\subsection{Feature Transfer}
+
+Features learned on one domain often transfer well:
+
+\begin{itemize}
+    \item ImageNet features transfer to medical imaging, satellite imagery
+    \item BERT features transfer across NLP tasks
+    \item Key insight: Lower layers capture general features; higher layers capture task-specific patterns
+\end{itemize}
+
+\subsection{Progressive Freezing}
+
+Gradually unfreeze layers during fine-tuning:
+\begin{enumerate}
+    \item Train only the classifier head (frozen backbone)
+    \item Unfreeze last $n$ layers, fine-tune
+    \item Optionally unfreeze remaining layers
+\end{enumerate}
+
+This prevents catastrophic forgetting of pre-trained features.
+
+\section{Multi-Task Learning}
+
+Training a single model on multiple tasks simultaneously.
+
+\subsection{Hard Parameter Sharing}
+
+Share encoder weights across tasks:
+\begin{equation}
+\mathcal{L}_{\text{total}} = \sum_{t=1}^{T} \lambda_t \mathcal{L}_t(\theta_{\text{shared}}, \theta_t)
+\end{equation}
+
+where $\lambda_t$ is task weight and $\theta_t$ are task-specific heads.
+
+\subsection{Soft Parameter Sharing}
+
+Each task has its own parameters, with regularization encouraging similarity:
+\begin{equation}
+\mathcal{L}_{\text{total}} = \sum_{t=1}^{T} \mathcal{L}_t(\theta_t) + \lambda \sum_{i,j} \|\theta_i^{(l)} - \theta_j^{(l)}\|^2
+\end{equation}
+
+\subsection{Task Balancing}
+
+Multi-task learning requires careful task weighting:
+\begin{itemize}
+    \item \textbf{Equal weighting:} Simple but may not optimal
+    \item \textbf{Uncertainty weighting:} Weight by inverse task uncertainty (Kendall et al., 2018)
+    \item \textbf{Gradient balancing:} Balance gradient magnitudes across tasks
+    \item \textbf{Dynamic weighting:} Adjust weights during training
+\end{itemize}
+
+\section{Continual Learning}
+
+Training sequentially on new tasks without forgetting previous ones.
+
+\subsection{Catastrophic Forgetting}
+
+Neural networks tend to forget previous tasks when trained on new ones. Mitigation strategies:
+
+\begin{enumerate}
+    \item \textbf{Experience Replay:} Store samples from previous tasks and replay during new training
+    \item \textbf{Elastic Weight Consolidation (EWC):} Protect important weights with regularization
+    \item \textbf{Progressive Networks:} Add new columns for new tasks while freezing old ones
+    \item \textbf{Architectural Growth:} Expand network capacity for new tasks
+\end{enumerate}
+
+\subsection{EWC Regularization}
+
+\begin{equation}
+\mathcal{L}_{\text{EWC}} = \mathcal{L}_B(\theta) + \frac{\lambda}{2}\sum_i \mathcal{F}_i (\theta_i - \theta_{A,i}^*)^2
+\end{equation}
+
+where $\mathcal{F}$ is the Fisher information matrix capturing parameter importance.
+
+\section{Self-Supervised Learning}
+
+Learning representations without labels using pretext tasks.
+
+\subsection{Contrastive Learning}
+
+Maximize agreement between differently augmented views of the same image:
+
+\begin{equation}
+\mathcal{L} = -\log \frac{\exp(\text{sim}(\mathbf{z}_i, \mathbf{z}_j)/\tau)}{\sum_{k=1}^{2N} \mathbf{1}_{[k \neq i]} \exp(\text{sim}(\mathbf{z}_i, \mathbf{z}_k)/\tau)}
+\end{equation}
+
+where $\tau$ is temperature, $\mathbf{z}$ are normalized embeddings.
+
+Popular contrastive learning frameworks:
+\begin{itemize}
+    \item \textbf{SimCLR:} Simple framework with strong augmentations
+    \item \textbf{MoCo:} Momentum contrast for large negative samples
+    \item \textbf{SwAV:} Cluster assignments instead of pairwise comparison
+\end{itemize}
+
+\subsection{Masked Image Modeling}
+
+BERT-style masking for images (MAE, BEiT):
+\begin{itemize}
+    \item Mask random patches (75\% for MAE)
+    \item Decoder reconstructs masked patches from visible ones
+    \item Encoder operates only on visible patches (highly efficient)
+\end{itemize}
+
+\section{Distillation and Compression}
+
+Transferring knowledge from large models to smaller ones.
+
+\subsection{Knowledge Distillation}
+
+A smaller student model learns from a larger teacher:
+\begin{equation}
+\mathcal{L}_{\text{distill}} = \alpha \cdot \text{CE}(y, \text{softmax}(z_s/T)) + (1-\alpha) \cdot \text{CE}(y, \text{softmax}(z_t/T))
+\end{equation}
+
+where $z_s$ and $z_t$ are student and teacher logits, $T$ is temperature.
+
+Key insight: Soft targets from teacher contain more information than hard labels.
+
+\subsection{Self-Distillation}
+
+A model distills knowledge into itself:
+\begin{itemize}
+    \item Train model A, then use A's predictions to train model B of same size
+    \item BYOL, SimSiam: Two views with predictor network
+    \item Shakes out noise and produces sharper predictions
+\end{itemize}
+
+\section{Large Batch Training}
+
+Scaling training to thousands of GPUs requires careful batch size considerations.
+
+\subsection{Linear Scaling Rule}
+
+When increasing batch size $B$, scale learning rate proportionally:
+\begin{equation}
+\alpha_{\text{new}} = \alpha_{\text{old}} \times \frac{B_{\text{new}}}{B_{\text{old}}}
+\end{equation}
+
+Goyal et al. (2017) achieved 256-way data parallelism on ImageNet with 8K batch size.
+
+\subsection{Warmup and Scaling}
+
+For very large batches ($>$16K):
+\begin{itemize}
+    \item Gradual warmup to prevent early instability
+    \item Layer-wise learning rate decay (LLRD): Lower LR for earlier layers
+    \item Longer training (adjust schedule accordingly)
+\end{itemize}
+
+\section{Efficient Training Techniques}
+
+\subsection{Gradient Checkpointing}
+
+Trade compute for memory by recomputing activations during backward pass:
+\begin{itemize}
+    \item Store activations only at selected checkpoints
+    \item Recompute forward pass segments during backward
+    \item Memory reduction: $O(\sqrt{n})$ with $O(n)$ compute overhead
+\end{itemize}
+
+\subsection{Offloading}
+
+Move tensors between CPU and GPU memory:
+\begin{itemize}
+    \item CPU offload: Keep parameters on CPU, load to GPU per layer
+    \item ZeRO (Zero Redundancy Optimizer): Partition optimizer states across GPUs
+    \item Activations offload: Pipeline recomputation
+\end{itemize}
+
+\section{Debugging Training}
+
+\subsection{Common Issues and Solutions}
+
+\begin{table}[ht]
+    \centering
+    \caption{Common Training Issues and Solutions}
+    \begin{tabular}{L{3cm} L{4cm} L{4cm}}
+        \toprule
+        \textbf{Symptom} & \textbf{Possible Cause} & \textbf{Solution} \\
+        \midrule
+        Loss NaN & Large gradients & Reduce LR, gradient clipping \\
+        Loss not decreasing & Wrong learning rate & LR range test, reduce LR \\
+        Overfitting & Too few data, too many params & Regularization, augmentation \\
+        Underfitting & Model too simple & Larger model, more features \\
+        Catastrophic forgetting & Single-task training & EWC, replay, progressive \\
+        Instability at init & Poor initialization & Kaiming/He init, proper normalization \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Training Recipes}
+
+Proven recipes for common scenarios:
+
+\begin{algorithm}[H]
+\caption{Training Recipe for Vision Models}
+\begin{enumerate}
+    \item Start with small learning rate (1e-4 for Adam, 0.1 for SGD)
+    \item Use LR range test to find optimal LR
+    \item Apply cosine annealing schedule with warmup
+    \item Use strong augmentation (RandAugment, Mixup, CutMix)
+    \item Label smoothing (0.1 for classification)
+    \item Weight decay (0.01 for AdamW)
+    \item Exponential moving average of weights (EMA, decay=0.9999)
+    \item Early stopping on validation loss
+\end{enumerate}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Training Recipe for LLMs}
+\begin{enumerate}
+    \item Pre-train on large corpus (trillion+ tokens for GPT-3 scale)
+    \item Use mixed precision (BF16) with gradient checkpointing
+    \item Apply gradient clipping (1.0)
+    \item Use learning rate warmup (2000-10000 steps)
+    \item Cosine decay to small LR (typically 10\% of peak)
+    \item Weight decay (0.1 for LLaMA-2)
+    \item Attention dropout during fine-tuning
+    \item LoRA for efficient fine-tuning on downstream tasks
+\end{enumerate}
+\end{algorithm}
+
+\section{Chapter Summary}
+
+\begin{enumerate}
+    \item Pre-training on large datasets followed by fine-tuning is the dominant paradigm
+    \item LoRA enables parameter-efficient fine-tuning by decomposing weight updates
+    \item Transfer learning allows leveraging representations across domains
+    \item Multi-task learning requires careful task balancing strategies
+    \item Continual learning techniques prevent catastrophic forgetting
+    \item Self-supervised learning (contrastive, masked) learns from unlabeled data
+    \item Knowledge distillation transfers capabilities from large to small models
+    \item Large batch training benefits from linear learning rate scaling and warmup
+    \item Systematic debugging and proven recipes accelerate development
+\end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+    \item \cite{hinton2015distilling} --- Distilling the Knowledge in a Neural Network
+    \item \cite{devlin2018bert} --- BERT: Pre-training of Deep Bidirectional Transformers
+    \item \cite{kendall2018multi} --- Multi-Task Learning Using Uncertainty to Weigh Losses
+    \item \cite{kirkpatrick2017overcoming} --- Overcoming Catastrophic Forgetting in Neural Networks
+    \item \cite{hu2021lora} --- LoRA: Low-Rank Adaptation of Large Language Models
+    \item \cite{chen2020simple} --- A Simple Framework for Contrastive Learning (SimCLR)
+    \item \cite{he2022masked} --- Masked Autoencoders Are Scalable Vision Learners (MAE)
+    \item \cite{goyal2017accurate} --- Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour
+    \item \cite{rombach2022high} --- High-Resolution Image Synthesis with Latent Diffusion Models
+    \item \cite{wei2022regard} --- Chain-of-Thought Prompting Elicits Reasoning in Large Language Models
+\end{itemize}

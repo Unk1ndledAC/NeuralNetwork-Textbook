@@ -90,6 +90,32 @@ MobileNet uses: Depthwise Separable Convolution = Depthwise + Pointwise
 \end{itemize}
 \end{properties}
 
+\subsection{Dilated (Atrous) Convolution}
+
+Dilated convolution inserts zeros between kernel elements, expanding the receptive field without increasing the parameter count or computation:
+
+\begin{equation}
+y[i,j] = \sum_{m=0}^{K-1}\sum_{n=0}^{K-1} k[m,n] \cdot x[i + m \cdot d, j + n \cdot d]
+\end{equation}
+where $d$ is the dilation rate.
+
+\begin{properties}[Dilated Convolution Properties]
+\begin{itemize}
+    \item \textbf{Receptive field with dilation $d$:} Effective kernel size $= d(K - 1) + 1$
+    \item \textbf{FLOPs:} Same as standard convolution (only the sampling pattern changes)
+    \item \textbf{Parameters:} Same as standard convolution
+    \item \textbf{Key application:} Semantic segmentation (DeepLab series), where large receptive fields are needed without pooling or striding
+\end{itemize}
+\end{properties}
+
+\begin{example}[Stacked Dilated Convolutions]
+Three $3 \times 3$ convolutions with dilation rates $d = 1, 2, 4$ produce a total receptive field of:
+\begin{equation}
+\text{RF} = 1 + (3-1)\times1 + (3-1)\times2 + (3-1)\times4 = 15
+\end{equation}
+This matches a $15 \times 15$ standard convolution but with only $3 \times 9C^2$ parameters instead of $225C^2$. This is the core idea behind \textbf{DeepLab} (Chen et al., 2017).
+\end{example}
+
 \section{Pooling Operations}
 
 Pooling reduces spatial dimensions and provides translation invariance.
@@ -228,6 +254,86 @@ y_{nchw} = \frac{x_{nchw} - \mu_{nc}}{\sqrt{\sigma_{nc}^2 + \epsilon}}
 
 Used in style transfer where instance-specific statistics matter.
 
+\subsection{Group Normalization}
+
+Group Normalization (GN) divides channels into $G$ groups and normalizes within each group independently (Wu \& He, 2018). This provides a unified framework that subsumes LayerNorm and InstanceNorm as special cases.
+
+For a tensor of shape $(N, C, H, W)$ with $C/G$ channels per group:
+\begin{align}
+\mu_g &= \frac{1}{(C/G) \cdot H \cdot W} \sum_{c \in \mathcal{G}_g} \sum_{h,w} x_{nchw} \\
+\sigma_g^2 &= \frac{1}{(C/G) \cdot H \cdot W} \sum_{c \in \mathcal{G}_g} \sum_{h,w} (x_{nchw} - \mu_g)^2 \\
+\hat{x}_{nchw} &= \frac{x_{nchw} - \mu_g}{\sqrt{\sigma_g^2 + \epsilon}}
+\end{align}
+
+\begin{properties}[GN as a Unified Framework]
+\begin{itemize}
+    \item $G = 1$: GroupNorm becomes \textbf{LayerNorm} (normalize across all channels)
+    \item $G = C$: GroupNorm becomes \textbf{InstanceNorm} (normalize per-channel)
+    \item $G = 32$ is the default in most implementations (a good tradeoff)
+    \item \textbf{Independent of batch size}: works with batch size 1 (e.g., in medical imaging)
+    \item Computationally equivalent to BatchNorm; only the grouping changes
+\end{itemize}
+\end{properties}
+
+\begin{table}[ht]
+    \centering
+    \caption{Normalization Methods: Unified View}
+    \begin{tabular}{L{2cm} L{3cm} L{2cm} L{3.5cm}}
+        \toprule
+        \textbf{Method} & \textbf{Compute stats over} & \textbf{Batch dep.} & \textbf{Primary use} \\
+        \midrule
+        BatchNorm & $(N, H, W)$ per $C$ & Yes & CNNs (large batch) \\
+        LayerNorm & $(H, W, C)$ per $N$ & No & Transformers, RNNs \\
+        InstanceNorm & $(H, W)$ per $N,C$ & No & Style transfer \\
+        GroupNorm & $(H, W, C/G)$ per $N$ & No & Detection, small batch \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Regularization Operations}
+
+Beyond normalization, several operations prevent overfitting by introducing stochasticity or constraints during training.
+
+\subsection{Dropout}
+
+Dropout (Srivastava et al., 2014) randomly sets activations to zero during training with probability $p$:
+\begin{equation}
+\tilde{x}_i = \frac{m_i \cdot x_i}{1 - p}, \quad m_i \sim \text{Bernoulli}(1 - p)
+\end{equation}
+The scaling factor $1/(1-p)$ (inverted dropout) ensures that $\mathbb{E}[\tilde{x}_i] = x_i$, so no adjustment is needed at inference.
+
+\subsubsection{Why Dropout Works: Bayesian Interpretation}
+
+Dropout can be viewed as approximate Bayesian inference (Gal \& Ghahramani, 2016). Each dropout mask defines a different sub-network, and training with dropout is equivalent to:
+\begin{equation}
+p(\mathbf{y} \mid \mathbf{x}, \mathcal{D}) \approx \frac{1}{T}\sum_{t=1}^{T} p(\mathbf{y} \mid \mathbf{x}, \mathbf{W} \odot \mathbf{m}^{(t)})
+\end{equation}
+This is \textbf{model averaging} over an exponential number of thinned networks ($2^N$ for $N$ units), which reduces variance and improves generalization.
+
+\subsubsection{Variants of Dropout}
+
+\begin{table}[ht]
+    \centering
+    \caption{Dropout Variants}
+    \begin{tabular}{L{3cm} L{4.5cm} L{4.5cm}}
+        \toprule
+        \textbf{Variant} & \textbf{Operation} & \textbf{Use Case} \\
+        \midrule
+        Standard Dropout & Zero activations with prob.\ $p$ & FC layers \\
+        DropConnect & Zero \textit{weights} with prob.\ $p$ & FC layers \\
+        Spatial Dropout & Drop entire feature maps & CNNs \\
+        DropPath & Skip entire path/blocks & Deep networks \\
+        DropBlock & Drop contiguous regions & CNNs (regularization) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{DropPath} (Stochastic Depth, Huang et al., 2016) randomly skips entire residual blocks during training. For a block with input $\mathbf{x}$ and output $\mathcal{F}(\mathbf{x})$:
+\begin{equation}
+\tilde{\mathbf{y}} = \begin{cases} \mathbf{x} & \text{with probability } p_L \\ \mathcal{F}(\mathbf{x}) + \mathbf{x} & \text{with probability } 1 - p_L \end{cases}
+\end{equation}
+The drop rate $p_L$ typically increases linearly with depth, creating shorter effective networks during training that act as an ensemble.
+
 \section{Combining Operations}
 
 Modern networks combine these operations in standardized blocks.
@@ -290,8 +396,24 @@ class PreActBlock(nn.Module):
 
 \begin{enumerate}
     \item Convolution extracts local features with shared weights
+    \item Depthwise separable convolution reduces computation for mobile deployment
+    \item Dilated convolution expands receptive field without extra parameters
     \item Pooling provides spatial reduction and invariance
-    \item Normalization stabilizes training dynamics
+    \item Normalization stabilizes training dynamics (BN for CNNs, LN for Transformers, GN for small batches)
+    \item Dropout and its variants provide regularization through stochastic depth
     \item Modern architectures combine these in standardized blocks
     \item Choice of operations depends on task and data characteristics
 \end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+    \item Ioffe, S. \& Szegedy, C. (2015). Batch normalization: Accelerating deep network training by reducing internal covariate shift. \textit{ICML}.
+    \item Ba, J., Kiros, J., \& Hinton, G. (2016). Layer normalization. \textit{arXiv:1607.06450}.
+    \item Wu, Y. \& He, K. (2018). Group normalization. \textit{ECCV}.
+    \item Srivastava, N. et al. (2014). Dropout: A simple way to prevent neural networks from overfitting. \textit{JMLR}, 15, 1929--1958.
+    \item Gal, Y. \& Ghahramani, Z. (2016). Dropout as a Bayesian approximation: Representing model uncertainty in deep learning. \textit{ICML}.
+    \item Huang, G. et al. (2016). Deep networks with stochastic depth. \textit{ECCV}.
+    \item Chen, L.-C. et al. (2017). Rethinking atrous convolution for semantic image segmentation. \textit{arXiv:1706.05587}.
+    \item Howard, A. et al. (2017). MobileNets: Efficient convolutional neural networks for mobile vision applications. \textit{arXiv:1704.04861}.
+\end{itemize}

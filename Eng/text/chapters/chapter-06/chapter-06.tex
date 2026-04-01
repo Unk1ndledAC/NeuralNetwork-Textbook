@@ -3,13 +3,17 @@
 
 \chapter{Skip Connections and Attention Mechanisms}
 
+\section{Introduction}
+
+Deep networks face two fundamental challenges: (1) gradients vanish or explode as they propagate through many layers, and (2) models need mechanisms to selectively focus on the most relevant parts of their inputs. Skip connections address the first challenge by providing gradient highways, while attention mechanisms address the second by enabling dynamic, input-dependent weighting. Together, these techniques form the backbone of modern architectures from ResNet to the Transformer.
+
 \section{Skip Connections}
 
 Skip connections (shortcuts) bypass layers to enable gradient flow in deep networks.
 
 \subsection{Residual Connections (ResNet)}
 
-The residual learning framework:
+The residual learning framework \cite{he2016deep}:
 \begin{equation}
 \mathbf{y} = \mathcal{F}(\mathbf{x}) + \mathbf{x}
 \end{equation}
@@ -42,14 +46,49 @@ If dimensions match: $\mathbf{y} = \mathcal{F}(\mathbf{x}, \{W_i\}) + \mathbf{x}
 
 If dimensions differ: $\mathbf{y} = \mathcal{F}(\mathbf{x}, \{W_i\}) + W_s\mathbf{x}$
 
+\subsection{Why Residual Connections Work: Theoretical Analysis}
+
+\subsubsection{Gradient Flow Perspective}
+
+Consider a network with $L$ residual blocks. The gradient of the loss $\mathcal{L}$ with respect to an intermediate activation $\mathbf{x}_l$ is:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}_l} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \left(1 + \frac{\partial}{\partial \mathbf{x}_l}\sum_{i=l}^{L-1} \mathcal{F}(\mathbf{x}_i, W_i)\right)
+\end{equation}
+
+The key insight: the gradient contains an \textbf{identity term} (the ``$1$'') that is added to the residual gradient. Even if the residual gradient $\frac{\partial \mathcal{F}}{\partial \mathbf{x}}$ vanishes, the identity ensures that information can propagate directly:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}_l} \geq \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \cdot 1
+\end{equation}
+
+This is in stark contrast to a plain network, where the gradient involves a product of $L - l$ Jacobians:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}_l}^{\text{plain}} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \prod_{i=l}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
+\end{equation}
+Each factor less than 1 in magnitude causes exponential decay.
+
+\subsubsection{Identity Mapping Hypothesis}
+
+If the optimal function for a layer is close to identity (which is often the case for deep networks), learning the residual $\mathcal{F}(\mathbf{x}) = \mathcal{H}(\mathbf{x}) - \mathbf{x}$ is easier than learning $\mathcal{H}(\mathbf{x})$ from scratch. The network only needs to push the residual to zero, rather than learning a near-identity transformation through nonlinear layers.
+
 \begin{properties}[ResNet Benefits]
 \begin{itemize}
     \item Enables training of very deep networks (100+ layers)
-    \item Alleviates vanishing/exploding gradients
-    \item Reduces degradation problem
+    \item Alleviates vanishing/exploding gradients via identity shortcuts
+    \item Reduces degradation problem (deeper $\neq$ higher training error)
     \item Easy to implement and computationally minimal
+    \item Theoretical guarantees: any function learnable by a plain network is also learnable by its residual counterpart
 \end{itemize}
 \end{properties}
+
+\subsection{Pre-activation ResNet}
+
+He et al.\ (2016) proposed moving BatchNorm and ReLU before the convolutional layers (pre-activation) instead of after (post-activation):
+\begin{align}
+\text{Post-activation:} \quad &\mathbf{y} = \text{ReLU}(\text{BN}(\mathcal{F}(\mathbf{x}) + \mathbf{x})) \\
+\text{Pre-activation:} \quad &\mathbf{y} = \mathcal{F}(\text{ReLU}(\text{BN}(\mathbf{x}))) + \mathbf{x}
+\end{align}
+
+Pre-activation provides a cleaner signal propagation path: the identity shortcut is entirely ``clean'' (no nonlinearity or BN in the path), which improves gradient flow.
 
 \subsection{Bottleneck Architecture}
 
@@ -67,35 +106,66 @@ For input $C$, bottleneck outputs $C$:
     \item $\text{Conv }1\times1, C//4 \rightarrow C$
 \end{enumerate}
 
+\subsection{ResNeXt: Grouped Convolutions in Residual Blocks}
+
+ResNeXt \cite{xie2017aggregated} introduces grouped convolutions into the residual block. Instead of a single wide convolution, it uses $G$ parallel ``cardinal'' paths with smaller width $d$:
+\begin{equation}
+\mathcal{F}(\mathbf{x}) = \sum_{i=1}^{G} \mathcal{T}_i(\mathbf{x})
+\end{equation}
+where each $\mathcal{T}_i$ is a transformation with $C/G$ channels.
+
+\begin{properties}[ResNeXt vs ResNet]
+\begin{itemize}
+    \item \textbf{Same FLOPs and parameters} as a wider ResNet, but better accuracy
+    \item \textbf{Increasing $G$ improves accuracy} even when total width is fixed
+    \item The key is \textbf{cardinality} (number of groups) rather than just depth or width
+    \item $G = 32$ with width $d = 4$ is a common configuration
+\end{itemize}
+\end{properties}
+
+\subsection{Stochastic Depth (DropPath)}
+
+Stochastic Depth \cite{huang2016deep} randomly drops entire residual blocks during training. For a linearly increasing drop rate $p_l = 1 - \frac{l}{L}(1 - p_L)$:
+\begin{equation}
+\mathbf{y}_l = \begin{cases} \mathbf{x}_l & \text{with probability } p_l \text{ (skip block)} \\ \mathcal{F}_l(\mathbf{x}_l) + \mathbf{x}_l & \text{with probability } 1 - p_l \text{ (keep block)} \end{cases}
+\end{equation}
+
+This trains an ensemble of networks of varying depth, providing regularization without extra parameters. It is now a standard component in modern architectures like EfficientNet and Vision Transformers.
+
 \subsection{Dense Connections (DenseNet)}
 
-Each layer receives feature maps from all preceding layers:
+Each layer receives feature maps from all preceding layers \cite{huang2017densely}:
 \begin{equation}
 \mathbf{x}_l = H_l([\mathbf{x}_0, \mathbf{x}_1, \ldots, \mathbf{x}_{l-1}])
 \end{equation}
 
+\begin{properties}[DenseNet Properties]
 \begin{itemize}
-    \item \textbf{Feature reuse:} Reduces parameters
-    \item \textbf{Strong gradient flow}
-    \item \textbf{Higher memory cost} due to concatenation
+    \item \textbf{Feature reuse:} Each layer accesses all preceding features
+    \item \textbf{Strong gradient flow:} Direct connections from any layer to the loss
+    \item \textbf{Parameter efficiency:} Fewer parameters than ResNet at comparable accuracy
+    \item \textbf{Memory cost:} Higher due to concatenation (mitigated by dense connectivity of small growth rate $k$)
+    \item \textbf{Total parameters in a DenseNet block:} $\mathcal{O}(k \times k \times (l-1) \times K^2)$ where $k$ is the growth rate
 \end{itemize}
+\end{properties}
 
 \section{Attention Mechanisms}
 
 Attention allows models to focus on relevant parts of the input.
 
-\subsection{Self-Attention}
+\subsection{Self-Attention (Scaled Dot-Product)}
 
-The attention function:
+The scaled dot-product attention function \cite{vaswani2017attention}:
 \begin{equation}
 \text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)\mathbf{V}
 \end{equation}
 
 where:
 \begin{itemize}
-    \item $\mathbf{Q} = \mathbf{X}\mathbf{W}_Q$ (Query)
-    \item $\mathbf{K} = \mathbf{X}\mathbf{W}_K$ (Key)
-    \item $\mathbf{V} = \mathbf{X}\mathbf{W}_V$ (Value)
+    \item $\mathbf{Q} = \mathbf{X}\mathbf{W}_Q$ (Query), $\mathbf{Q} \in \mathbb{R}^{n \times d_k}$
+    \item $\mathbf{K} = \mathbf{X}\mathbf{W}_K$ (Key), $\mathbf{K} \in \mathbb{R}^{n \times d_k}$
+    \item $\mathbf{V} = \mathbf{X}\mathbf{W}_V$ (Value), $\mathbf{V} \in \mathbb{R}^{n \times d_v}$
+    \item $\mathbf{X} \in \mathbb{R}^{n \times d_{\text{model}}}$ is the input sequence
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -127,19 +197,120 @@ where:
     \label{fig:self_attention}
 \end{figure}
 
-The scaling factor $\sqrt{d_k}$ prevents vanishing gradients for large $d_k$.
+\subsubsection{Why Scale by $\sqrt{d_k}$?}
+
+Without scaling, when $d_k$ is large, the dot products $\mathbf{q}_i \cdot \mathbf{k}_j = \sum_{m=1}^{d_k} q_{im} k_{jm}$ grow in magnitude (variance $= d_k$ for unit-variance random vectors). This pushes the softmax into regions with extremely small gradients:
+\begin{equation}
+\text{If } d_k = 64: \quad \text{softmax}\begin{pmatrix} 8.0 \\ 8.1 \end{pmatrix} \approx \begin{pmatrix} 0.475 \\ 0.525 \end{pmatrix}, \quad \text{softmax}\begin{pmatrix} 800 \\ 810 \end{pmatrix} \approx \begin{pmatrix} 0.000 \\ 1.000 \end{pmatrix}
+\end{equation}
+Scaling by $\sqrt{d_k}$ ensures the dot products have unit variance, keeping the softmax in its ``responsive'' regime.
+
+\subsubsection{Computational Complexity}
+
+For a sequence of length $n$ with model dimension $d$:
+\begin{align}
+\text{Q, K, V projections:} \quad &\mathcal{O}(n \cdot d^2) \\
+\text{Attention scores } \mathbf{Q}\mathbf{K}^\top: \quad &\mathcal{O}(n^2 \cdot d) \\
+\text{Output } \text{softmax}(\cdot)\mathbf{V}: \quad &\mathcal{O}(n^2 \cdot d) \\
+\textbf{Total:} \quad &\mathcal{O}(n^2 \cdot d + n \cdot d^2)
+\end{align}
+The dominant term is $\mathcal{O}(n^2 \cdot d)$ for $n > d$, making self-attention quadratic in sequence length --- a key bottleneck for long sequences.
 
 \begin{properties}[Self-Attention Properties]
 \begin{itemize}
-    \item \textbf{Allows modeling long-range dependencies}
-    \item \textbf{Computationally $O(n^2)$ but parallelizable}
-    \item \textbf{Interpretable:} Attention weights show relevance
+    \item \textbf{Global receptive field:} Every token attends to every other token in one layer
+    \item \textbf{Computationally $O(n^2 d)$:} Quadratic in sequence length
+    \item \textbf{Interpretable:} Attention weights show pairwise relevance
+    \item \textbf{Permutation equivariant:} Self-attention is order-invariant by default (position encoding adds order information)
 \end{itemize}
 \end{properties}
 
+\subsection{Multi-Head Attention}
+
+Instead of a single attention function, Multi-Head Attention (MHA) runs $h$ attention functions in parallel with different learned projections \cite{vaswani2017attention}:
+\begin{align}
+\text{head}_i &= \text{Attention}(\mathbf{Q}\mathbf{W}_i^Q, \mathbf{K}\mathbf{W}_i^K, \mathbf{V}\mathbf{W}_i^V) \\
+\text{MHA}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)\mathbf{W}^O
+\end{align}
+
+where each $\mathbf{W}_i^Q, \mathbf{W}_i^K \in \mathbb{R}^{d \times d_k}$, $\mathbf{W}_i^V \in \mathbb{R}^{d \times d_v}$, $\mathbf{W}^O \in \mathbb{R}^{hd_v \times d}$. Typically $d_k = d_v = d/h$.
+
+\begin{properties}[Why Multiple Heads?]
+\begin{itemize}
+    \item \textbf{Diverse representations:} Each head can learn different attention patterns (syntactic, semantic, positional)
+    \item \textbf{Same total cost:} $h \times \mathcal{O}(n^2 \cdot d_k) = \mathcal{O}(n^2 \cdot d)$ --- same as single-head
+    \item \textbf{Linear projection:} The output projection $\mathbf{W}^O$ mixes information from all heads
+    \item \textbf{Empirical:} $h = 8$ or $h = 16$ heads is standard; diminishing returns beyond $\sim$32
+\end{itemize}
+\end{properties}
+
+\subsection{Cross-Attention}
+
+Cross-attention allows the model to attend to a \textbf{different} sequence from the one being generated. The queries come from one sequence, while keys and values come from another:
+\begin{equation}
+\text{Cross-Attention}(\mathbf{Q}_{\text{target}}, \mathbf{K}_{\text{source}}, \mathbf{V}_{\text{source}})
+\end{equation}
+
+This is the core mechanism in Encoder-Decoder architectures (e.g., machine translation):
+\begin{itemize}
+    \item \textbf{Encoder:} Processes source sequence via self-attention
+    \item \textbf{Decoder:} Uses cross-attention to query the encoder's representations
+    \item The decoder ``looks up'' relevant source tokens for each generated target token
+\end{itemize}
+
+\subsection{Positional Encoding}
+
+Since self-attention is permutation-equivariant, we must inject positional information explicitly.
+
+\subsubsection{Sinusoidal Positional Encoding}
+
+The original Transformer uses fixed sinusoidal encodings \cite{vaswani2017attention}:
+\begin{align}
+\text{PE}_{(pos, 2i)} &= \sin\left(\frac{pos}{10000^{2i/d}}\right) \\
+\text{PE}_{(pos, 2i+1)} &= \cos\left(\frac{pos}{10000^{2i/d}}\right)
+\end{align}
+
+\begin{properties}[Properties of Sinusoidal PE]
+\begin{itemize}
+    \item Each dimension corresponds to a sinusoid of different wavelength (from $2\pi$ to $10000 \cdot 2\pi$)
+    \item Allows the model to learn relative positions: $\text{PE}_{pos+k}$ can be expressed as a linear function of $\text{PE}_{pos}$
+    \item No learned parameters --- works across sequence lengths
+    \item Limited in extrapolating to longer sequences than seen during training
+\end{itemize}
+\end{properties}
+
+\subsubsection{Modern Alternatives}
+
+\begin{table}[ht]
+    \centering
+    \caption{Positional Encoding Methods}
+    \begin{tabular}{L{2.5cm} L{4cm} L{4.5cm}}
+        \toprule
+        \textbf{Method} & \textbf{Mechanism} & \textbf{Key Property} \\
+        \midrule
+        Learned PE & Trainable embeddings & Flexible, limited to max length \\
+        RoPE & Rotate Q, K by angle & Relative position via dot product \\
+        ALiBi & Add linear bias to scores & Extrapolates to unseen lengths \\
+        T5 Bias & Add bias to attention scores & Simple, effective \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{Rotary Position Embedding (RoPE)} \cite{su2021roformer} encodes position by rotating the query and key vectors:
+\begin{equation}
+\langle \mathbf{q}_m, \mathbf{k}_n \rangle_{\text{RoPE}} = \langle R_m \mathbf{q}, R_n \mathbf{k} \rangle = f(\mathbf{q}, \mathbf{k}, n - m)
+\end{equation}
+This naturally encodes \textbf{relative position} $n - m$ into the attention score. RoPE is the default in LLaMA and many modern LLMs.
+
+\textbf{ALiBi} \cite{press2022train} adds a fixed linear bias to attention scores based on relative distance:
+\begin{equation}
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}} + \mathbf{m} \cdot [-n+m]\right)\mathbf{V}
+\end{equation}
+where $\mathbf{m}$ is a non-learned slope vector. ALiBi's key advantage is \textbf{length extrapolation}: models trained on short sequences can process much longer ones at inference.
+
 \subsection{Squeeze-and-Excitation (SE) Attention}
 
-Channel attention mechanism:
+Channel attention mechanism \cite{hu2018squeeze}:
 \begin{enumerate}
     \item \textbf{Squeeze:} Global average pooling $\mathbf{z} = \frac{1}{H\times W}\sum_{i,j}\mathbf{X}_{:,i,j}$
     \item \textbf{Excitation:} FC-ReLU-FC-Sigmoid $\mathbf{s} = \sigma(W_2\delta(W_1\mathbf{z}))$
@@ -149,17 +320,137 @@ Channel attention mechanism:
 \begin{properties}[SE Block]
 \begin{itemize}
     \item \textbf{Modeling channel dependencies}
-    \item \textbf{Lightweight:} Minimal parameters
-    \item \textbf{Plug-and-play:} Can be added to existing architectures
+    \item \textbf{Lightweight:} Reduction ratio $r = 16$ means only $2C^2/r$ extra parameters
+    \item \textbf{Plug-and-play:} Can be added to any existing architecture
+    \item \textbf{Achieves $>$1\% top-1 improvement} on ImageNet with negligible overhead
 \end{itemize}
 \end{properties}
+
+\subsection{CBAM: Convolutional Block Attention Module}
+
+CBAM \cite{woo2018cbam} combines \textbf{channel attention} and \textbf{spatial attention} in sequence:
+
+\textbf{Channel Attention Module (CAM):}
+\begin{equation}
+\mathbf{M}_c(\mathbf{X}) = \sigma\bigl(\text{MLP}(\text{AvgPool}(\mathbf{X})) + \text{MLP}(\text{MaxPool}(\mathbf{X}))\bigr)
+\end{equation}
+
+\textbf{Spatial Attention Module (SAM):}
+\begin{equation}
+\mathbf{M}_s(\mathbf{X'}) = \sigma\bigl(f^{7 \times 7}([\text{AvgPool}(\mathbf{X'}); \text{MaxPool}(\mathbf{X'})])\bigr)
+\end{equation}
+
+The full process: $\mathbf{X}'' = \mathbf{M}_s(\mathbf{M}_c(\mathbf{X}) \odot \mathbf{X}) \odot \mathbf{X}$.
+
+By attending to both \emph{what} (channels) and \emph{where} (spatial locations), CBAM captures richer attention patterns than channel-only SE.
+
+\subsection{Window Attention (Swin Transformer)}
+
+To address the $O(n^2)$ complexity of global self-attention, the Swin Transformer \cite{liu2021swin} restricts attention to \textbf{local windows}:
+
+\begin{equation}
+\text{WindowAttention}(\mathbf{x}) = \text{softmax}\left(\frac{\mathbf{Q}_w \mathbf{K}_w^\top}{\sqrt{d}} + \mathbf{B}\right)\mathbf{V}_w
+\end{equation}
+
+where $\mathbf{B}$ is a \textbf{relative position bias} (learned), and the subscript $w$ denotes computation within a window of size $M \times M$.
+
+\begin{properties}[Window Attention vs Global Attention]
+\begin{itemize}
+    \item \textbf{Complexity:} $O(n \cdot M^2 \cdot d)$ vs $O(n^2 \cdot d)$ --- linear in image size when $M$ is fixed
+    \item \textbf{Cross-window connection:} Shifted window partitioning in alternating layers enables information flow between windows
+    \item \textbf{Local first:} Low-level features are inherently local; window attention is a natural inductive bias for vision
+\end{itemize}
+\end{properties}
+
+\subsection{Efficient Attention Variants}
+
+\begin{table}[ht]
+    \centering
+    \caption{Attention Complexity Comparison}
+    \begin{tabular}{L{3cm} L{3cm} L{3cm} L{3.5cm}}
+        \toprule
+        \textbf{Method} & \textbf{Complexity} & \textbf{Global?} & \textbf{Reference} \\
+        \midrule
+        Standard MHA & $O(n^2 d)$ & Yes & Vaswani 2017 \\
+        Linformer & $O(nk d)$ & Approx & Wang et al.\ 2020 \\
+        Performer & $O(n d)$ & Approx & Choromanski 2021 \\
+        Linear Attn & $O(n d^2)$ & Approx & Katharopoulos 2020 \\
+        Flash Attention & $O(n^2 d)$ & Yes & Dao et al.\ 2022 \\
+        Swin (window) & $O(n M^2 d)$ & Shifted & Liu et al.\ 2021 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{code}
+    \captionof{listing}{Multi-Head Self-Attention in PyTorch}
+    \label{code:mha_pytorch}
+\begin{lstlisting}[language=python]
+import torch
+import torch.nn as nn
+import math
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, n_heads, dropout=0.1):
+        super().__init__()
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+        self.dropout = nn.Dropout(dropout)
+    
+    def forward(self, x, mask=None):
+        B, N, D = x.shape
+        
+        # Project and reshape: (B, N, D) -> (B, H, N, d_k)
+        Q = self.W_q(x).view(B, N, self.n_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(x).view(B, N, self.n_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(x).view(B, N, self.n_heads, self.d_k).transpose(1, 2)
+        
+        # Scaled dot-product attention
+        scores = Q @ K.transpose(-2, -1) / math.sqrt(self.d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        attn = torch.softmax(scores, dim=-1)
+        attn = self.dropout(attn)
+        
+        # Concatenate heads
+        out = (attn @ V).transpose(1, 2).contiguous().view(B, N, D)
+        return self.W_o(out)
+\end{lstlisting}
+\end{code}
 
 \section{Chapter Summary}
 
 \begin{enumerate}
-    \item Skip connections enable deep networks by improving gradient flow
-    \item Residual connections are the most widely used skip connection
-    \item Attention mechanisms allow dynamic focus on relevant features
-    \item Self-attention is the foundation of Transformers
-    \item Channel attention (SE) provides efficient feature recalibration
+    \item Skip connections enable deep networks by providing gradient highways
+    \item Residual connections add identity shortcuts; the gradient always has a path of magnitude $\geq 1$
+    \item Pre-activation ResNet keeps the shortcut path ``clean'' for better gradient flow
+    \item ResNeXt shows that cardinality (grouped paths) is more effective than width
+    \item Stochastic Depth provides regularization by training an ensemble of sub-networks
+    \item Self-attention computes pairwise interactions in $O(n^2 d)$ time
+    \item Multi-head attention learns diverse attention patterns at the same computational cost
+    \item Cross-attention connects Encoder and Decoder in sequence-to-sequence models
+    \item Positional encoding (sinusoidal, RoPE, ALiBi) injects order information
+    \item Channel attention (SE, CBAM) and window attention (Swin) adapt attention to specific domains
+    \item Efficient attention variants aim to reduce the quadratic complexity
 \end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+    \item He, K. et al. (2016). Deep residual learning for image recognition. \textit{CVPR}.
+    \item He, K. et al. (2016). Identity mappings in deep residual networks. \textit{ECCV}.
+    \item Xie, S., Girshick, R., Dollar, P., Tu, Z., \& He, K. (2017). Aggregated residual transformations for deep neural networks. \textit{CVPR}.
+    \item Huang, G. et al. (2016). Deep networks with stochastic depth. \textit{ECCV}.
+    \item Huang, G. et al. (2017). Densely connected convolutional networks. \textit{CVPR}.
+    \item Vaswani, A. et al. (2017). Attention is all you need. \textit{NeurIPS}.
+    \item Su, J. et al. (2021). RoFormer: Enhanced transformer with rotary position embedding. \textit{arXiv:2104.09864}.
+    \item Press, O. et al. (2022). Train short, test long: Attention with linear biases enables input length extrapolation. \textit{ICLR}.
+    \item Hu, J., Shen, L., \& Sun, G. (2018). Squeeze-and-excitation networks. \textit{CVPR}.
+    \item Woo, S. et al. (2018). CBAM: Convolutional block attention module. \textit{ECCV}.
+    \item Liu, Z. et al. (2021). Swin transformer: Hierarchical vision transformer using shifted windows. \textit{ICCV}.
+\end{itemize}

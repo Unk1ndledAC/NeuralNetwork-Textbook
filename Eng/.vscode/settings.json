@@ -1,0 +1,54 @@
+{
+    // LaTeX Workshop configuration for NeuralNetwork-Textbook
+    // Enable shell escape for tikzexternalize
+    "latex-workshop.latex.tools": [
+        {
+            "name": "pdflatex",
+            "command": "pdflatex",
+            "args": [
+                "-halt-on-error",
+                "-interaction=batchmode",
+                "-shell-escape",
+                "-synctex=1",
+                "-jobname=%DOCFILE%",
+                "%DOC%"
+            ]
+        },
+        {
+            "name": "biber",
+            "command": "biber",
+            "args": [
+                "--output-safechars",
+                "%DOCFILE%"
+            ]
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "pdflatex -> biber -> pdflatex*2",
+            "tools": [
+                "pdflatex",
+                "biber",
+                "pdflatex",
+                "pdflatex"
+            ]
+        }
+    ],
+    "latex-workshop.latex.autoClean.run": "never",
+    "latex-workshop.latex.clean.fileTypes": [
+        "*.aux",
+        "*.bbl",
+        "*.blg",
+        "*.fdb_latexmk",
+        "*.fls",
+        "*.log",
+        "*.out",
+        "*.synctex.gz",
+        "*.toc",
+        "*.lof",
+        "*.lot",
+        "*.lol",
+        "*.ist"
+    ],
+    "latex-workshop.view.pdf.viewer": "tab"
+}

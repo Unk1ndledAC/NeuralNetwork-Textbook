@@ -214,19 +214,171 @@ Key innovations:
 
 Parameters: 65M (base) to 175B (GPT-3) and beyond
 
+\section{MobileNet (2017)}
+
+MobileNet introduced depthwise separable convolutions for efficient mobile inference (Howard et al., 2017).
+
+\begin{architecture}[MobileNet Building Block]
+\begin{enumerate}
+    \item Depthwise convolution: $K \times K$ conv, 1 filter per input channel
+    \item Pointwise convolution: $1 \times 1$ conv, $C_{out}$ filters
+\end{enumerate}
+FLOPs reduction vs standard convolution:
+\begin{equation}
+\frac{\text{Standard}}{\text{Separable}} = \frac{K^2 \cdot C_{in} \cdot C_{out}}{K^2 \cdot C_{in} + C_{in} \cdot C_{out}} \approx \frac{1}{\frac{1}{C_{out}} + \frac{1}{K^2}}
+\end{equation}
+For $K = 3$, $C_{out} = 256$: speedup $\approx 8$--$9\times$.
+\end{architecture}
+
+\begin{properties}[MobileNet Design Choices]
+\begin{itemize}
+    \item \textbf{Width multiplier} $\alpha$: Reduces channels uniformly ($\alpha \in \{0.25, 0.5, 0.75, 1.0\}$)
+    \item \textbf{Resolution multiplier} $\rho$: Reduces input resolution ($224, 192, 160, 128$)
+    \item MobileNetV1: 4.2M params, 0.575 GMACs for $\alpha = 1.0$
+    \item MobileNetV2: Adds inverted residuals and linear bottlenecks (3.4M params)
+    \item MobileNetV3: NAS-optimized, hardware-aware design (2.5M--5.4M params)
+\end{itemize}
+\end{properties}
+
+\section{SENet (2018)}
+
+Squeeze-and-Excitation Networks (Hu et al., 2018) introduce channel attention to adaptively recalibrate feature maps.
+
+\begin{architecture}[SE Block]
+\begin{enumerate}
+    \item \textbf{Squeeze}: Global average pooling $\rightarrow$ $1 \times 1 \times C$ descriptor
+    \item \textbf{Excitation}: Two FC layers with bottleneck (reduction ratio $r = 16$)
+    \begin{align}
+    \mathbf{z} &= \mathbf{W}_2 \cdot \delta(\mathbf{W}_1 \cdot \mathbf{s}) \\
+    \text{where}\quad \mathbf{s} &= \frac{1}{H \cdot W}\sum_{i,j} \mathbf{X}_{i,j} \quad \text{(squeeze)}
+    \end{align}
+    \item \textbf{Scale}: Channel-wise multiplication $\tilde{\mathbf{X}}_c = \mathbf{X}_c \cdot \sigma(\mathbf{z})_c$
+\end{enumerate}
+\end{architecture}
+
+Key insight: Different channels have different importance for different inputs. The SE block learns which channels to emphasize or suppress. Added overhead is minimal ($< 1\%$ of total FLOPs) but consistently improves accuracy by 1--2\%.
+
+\section{EfficientNet (2019)}
+
+EfficientNet (Tan \& Le, 2019) scales all three dimensions (depth, width, resolution) simultaneously using a compound scaling coefficient $\phi$:
+\begin{align}
+\text{depth:} \quad d &= \alpha^\phi \\
+\text{width:} \quad w &= \beta^\phi \\
+\text{resolution:} \quad r &= \gamma^\phi \\
+\text{subject to:} \quad \alpha \cdot \beta^2 \cdot \gamma^2 &\approx 2 \quad \text{(target FLOPs $\approx 2^\phi$)}
+\end{align}
+
+\begin{table}[ht]
+    \centering
+    \caption{EfficientNet Family}
+    \begin{tabular}{L{2cm} L{2cm} L{2cm} L{3cm} L{2.5cm}}
+        \toprule
+        \textbf{Variant} & \textbf{Params} & \textbf{FLOPs} & \textbf{Resolution} & \textbf{Top-1 Acc.} \\
+        \midrule
+        B0 & 5.3M & 0.39B & $224^2$ & 77.1\% \\
+        B1 & 7.8M & 0.70B & $240^2$ & 79.1\% \\
+        B2 & 9.2M & 1.0B & $260^2$ & 80.1\% \\
+        B3 & 12M & 1.8B & $300^2$ & 81.6\% \\
+        B4 & 19M & 4.2B & $380^2$ & 82.9\% \\
+        B7 & 66M & 37B & $600^2$ & 84.3\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+EfficientNet achieves state-of-the-art accuracy with significantly fewer parameters and FLOPs than previous architectures. The compound scaling principle has become a standard design guideline.
+
+\section{Vision Transformer (ViT) (2020)}
+
+Vision Transformer (Dosovitskiy et al., 2020) applies the transformer architecture directly to images, treating patches as tokens.
+
+\begin{architecture}[ViT Architecture]
+\begin{enumerate}
+    \item \textbf{Patch embedding}: Split $224 \times 224$ image into $16 \times 16$ patches ($196$ tokens), linearly project each
+    \item \textbf{[CLS] token}: Prepend a learnable class token
+    \item \textbf{Positional encoding}: Add learned position embeddings
+    \item \textbf{Transformer encoder}: $L$ layers of multi-head self-attention + MLP
+    \item \textbf{Classification head}: Use [CLS] token output for classification
+\end{enumerate}
+\end{architecture}
+
+\begin{properties}[ViT Key Insights]
+\begin{itemize}
+    \item \textbf{No inductive bias}: Unlike CNNs, ViT has no built-in translation equivariance or locality --- it must learn these from data
+    \item \textbf{Data hungry}: ViT requires large-scale pretraining (ImageNet-21k or JFT-300M) to outperform CNNs
+    \item \textbf{Scales well}: Performance improves consistently with more data and compute
+    \item \textbf{ViT-B/16}: 86M params, 17.6B FLOPs, 79.9\% Top-1 (ImageNet, from 21k pretrain)
+    \item \textbf{ViT-L/16}: 307M params, 61.6B FLOPs, 82.3\% Top-1
+    \item \textbf{DeiT}: Distillation enables ViT training from scratch on ImageNet-1k alone
+\end{itemize}
+\end{properties}
+
+\begin{note}[CNNs vs ViTs: The Current Landscape]
+As of 2024, the field has converged toward hybrid approaches:
+\begin{itemize}
+    \item \textbf{ConvNeXt}: Modern CNNs redesigned to match ViT scalability (Liu et al., 2022)
+    \item \textbf{Swin Transformer}: Hierarchical ViT with shifted windows for dense prediction
+    \item \textbf{Both paradigms achieve similar performance}; the choice often depends on downstream task and infrastructure
+\end{itemize}
+\end{note}
+
+\section{U-Net (2015)}
+
+U-Net (Ronneberger et al., 2015) is an encoder-decoder architecture designed for biomedical image segmentation. Its U-shaped structure gives it its name.
+
+\begin{architecture}[U-Net Architecture]
+\begin{enumerate}
+    \item \textbf{Contracting path (encoder)}: 4 blocks of $3\times3$ conv + ReLU + $2\times2$ max pool
+    \item \textbf{Bottleneck}: $3\times3$ conv at the lowest resolution
+    \item \textbf{Expansive path (decoder)}: Upsampling + concatenation with skip connections + $3\times3$ conv
+    \item Skip connections connect each encoder level to the corresponding decoder level
+\end{enumerate}
+\end{architecture}
+
+\begin{properties}[U-Net Design Principles]
+\begin{itemize}
+    \item \textbf{Skip connections}: Preserve fine-grained spatial detail lost during downsampling
+    \item \textbf{Symmetric design}: Encoder and decoder have matching resolutions
+    \item \textbf{Works with limited data}: Original paper achieved excellent results with only 30 training images
+    \item Widely extended: Attention U-Net, U-Net++, nnU-Net (automated configuration)
+    \item Foundation of modern segmentation: used in medical imaging, satellite analysis, and autonomous driving
+\end{itemize}
+\end{properties}
+
+\section{ShuffleNet (2018)}
+
+ShuffleNet (Zhang et al., 2018) introduces channel shuffling to enable efficient pointwise group convolutions.
+
+The key operation, \textbf{channel shuffle}, rearranges channels across groups before the next group convolution:
+\begin{equation}
+\text{Shuffle}(\mathbf{X})_{g, c, h, w} = \mathbf{X}_{\lfloor c / (C/G) \rfloor, \bigl(g + c \cdot G \bigr) \bmod C, h, w}
+\end{equation}
+
+Without shuffling, stacked group convolutions would only communicate within their group (blocking cross-group information flow). Channel shuffle provides an efficient alternative to the $1 \times 1$ convolution used in MobileNet.
+
+\begin{properties}[ShuffleNet vs MobileNet]
+\begin{itemize}
+    \item ShuffleNetV1: 1.5$\times$ faster than MobileNet on ARM devices
+    \item ShuffleNetV2: Introduces channel split and four guidelines for efficient design (equal channel width, balanced ops, minimize memory access, element-wise ops cheap)
+    \item ShuffleNetV2 ($1.5\times$): 3.5M params, 299M MACs, 73.3\% Top-1
+\end{itemize}
+\end{properties}
+
 \begin{table}[ht]
     \centering
     \caption{Architecture Comparison}
-    \begin{tabular}{L{2.5cm} L{2cm} L{2.5cm} L{2.5cm}}
+    \begin{tabular}{L{2.5cm} L{1.5cm} L{2cm} L{2.5cm} L{3cm}}
         \toprule
-        \textbf{Network} & \textbf{Year} & \textbf{Parameters} & \textbf{Top-1 Acc.} \\
+        \textbf{Network} & \textbf{Year} & \textbf{Parameters} & \textbf{Top-1 Acc.} & \textbf{Key Innovation} \\
         \midrule
-        AlexNet & 2012 & 60M & 62.5\% \\
-        VGG-16 & 2014 & 138M & 71.5\% \\
-        GoogLeNet & 2014 & 4M & 72.0\% \\
-        ResNet-50 & 2015 & 25M & 76.1\% \\
-        DenseNet-121 & 2017 & 8M & 74.4\% \\
-        ViT-B/16 & 2021 & 86M & 79.9\% \\
+        AlexNet & 2012 & 60M & 62.5\% & GPU training, ReLU \\
+        VGG-16 & 2014 & 138M & 71.5\% & $3\times3$ conv stack \\
+        GoogLeNet & 2014 & 4M & 72.0\% & Inception module \\
+        ResNet-50 & 2015 & 25M & 76.1\% & Skip connections \\
+        DenseNet-121 & 2017 & 8M & 74.4\% & Dense connections \\
+        MobileNetV2 & 2018 & 3.4M & 72.0\% & Depthwise separable \\
+        EfficientNet-B7 & 2019 & 66M & 84.3\% & Compound scaling \\
+        ViT-B/16 & 2021 & 86M & 79.9\% & Patch-based attention \\
+        ConvNeXt-L & 2022 & 350M & 85.1\% & Modernized CNN \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -235,9 +387,28 @@ Parameters: 65M (base) to 175B (GPT-3) and beyond
 
 \begin{enumerate}
     \item LeNet pioneered CNNs for digit recognition
-    \item AlexNet popularized deep learning with GPU training
-    \item VGG showed depth through $3\times3$ convolutions
-    \item Inception introduced multi-scale processing
+    \item AlexNet popularized deep learning with GPU training and ReLU
+    \item VGG showed the power of depth through $3\times3$ convolution stacks
+    \item Inception introduced multi-scale processing and dimensionality reduction
     \item ResNet enabled ultra-deep networks with skip connections
-    \item Transformer revolutionized NLP and later vision with attention
+    \item DenseNet improved parameter efficiency through feature reuse
+    \item MobileNet and ShuffleNet brought efficient inference to mobile devices
+    \item SENet introduced channel attention, later extended to CBAM
+    \item EfficientNet showed that compound scaling outperforms single-dimension scaling
+    \item ViT demonstrated that pure attention can match or exceed CNNs at scale
+    \item U-Net defined the encoder-decoder paradigm for segmentation
+    \item The field continues to converge: modern CNNs and ViTs achieve similar performance
 \end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+    \item Krizhevsky, A., Sutskever, I., \& Hinton, G. (2012). ImageNet classification with deep convolutional neural networks. \textit{NeurIPS}.
+    \item He, K., Zhang, X., Ren, S., \& Sun, J. (2016). Deep residual learning for image recognition. \textit{CVPR}.
+    \item Hu, J., Shen, L., \& Sun, G. (2018). Squeeze-and-excitation networks. \textit{CVPR}.
+    \item Howard, A. et al. (2017). MobileNets: Efficient convolutional neural networks for mobile vision applications. \textit{arXiv:1704.04861}.
+    \item Tan, M. \& Le, Q. (2019). EfficientNet: Rethinking model scaling for convolutional neural networks. \textit{ICML}.
+    \item Dosovitskiy, A. et al. (2021). An image is worth 16x16 words: Transformers for image recognition at scale. \textit{ICLR}.
+    \item Ronneberger, O., Fischer, P., \& Brox, T. (2015). U-Net: Convolutional networks for biomedical image segmentation. \textit{MICCAI}.
+    \item Liu, Z. et al. (2022). A convnet for the 2020s. \textit{CVPR}.
+\end{itemize}

@@ -25,6 +25,7 @@
 | 9 | Parameter & Computation Analysis |
 | 10 | Training & Frameworks |
 | 11 | Dataset Processing |
+| 12 | Transformer Architecture |
 
 ## Project Structure
 
@@ -35,7 +36,7 @@ NeuralNetwork-Textbook/
 ├── Eng/               
 │   ├── opening/            # Front matter (title page, abstract, acknowledgements, etc.)
 │   ├── text/
-│   │   ├── chapters/       # Main chapters (chapter-01 ~ chapter-11)
+│   │   ├── chapters/       # Main chapters (chapter-01 ~ chapter-12)
 │   │   └── appendix/       # Appendix
 │   ├── bibliography/       # References
 │   ├── glossary/           # Glossary
@@ -85,9 +86,9 @@ If you customize the LaTeX compilation process, modify `.vscode/settings.json` t
 - PDF updates in real-time in the VS Code viewer
 
 **Compile times:**
-- First compilation: ~40-60 seconds (includes bibliography processing)
-- Subsequent edits: ~15-20 seconds
-- Regular content changes: ~10-15 seconds
+- First compilation: ~60-90 seconds (includes bibliography processing and 12 chapters)
+- Subsequent edits: ~20-30 seconds
+- Regular content changes: ~15-20 seconds
 
 #### Option 2: Using Make (Command Line)
 

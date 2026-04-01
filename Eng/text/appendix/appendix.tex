@@ -10,10 +10,58 @@
 \subsection{Matrix Operations}
 
 \begin{itemize}
-    \item $\mathbf{AB} \neq \mathbf{BA}$ (non-commutative)
+    \item $\mathbf{AB} \neq \mathbf{BA}$ (non-commutative in general)
     \item $(\mathbf{AB})^\top = \mathbf{B}^\top\mathbf{A}^\top$
     \item $(\mathbf{AB})^{-1} = \mathbf{B}^{-1}\mathbf{A}^{-1}$
     \item $\det(\mathbf{AB}) = \det(\mathbf{A})\det(\mathbf{B})$
+    \item $\text{tr}(\mathbf{AB}) = \text{tr}(\mathbf{BA})$
+\end{itemize}
+
+\subsection{Norms}
+
+For a vector $\mathbf{x} \in \mathbb{R}^n$:
+\begin{align}
+\|\mathbf{x}\|_1 &= \sum_{i=1}^{n} |x_i| \quad \text{(L1 norm)} \\
+\|\mathbf{x}\|_2 &= \sqrt{\sum_{i=1}^{n} x_i^2} \quad \text{(L2 / Euclidean norm)} \\
+\|\mathbf{x}\|_p &= \left(\sum_{i=1}^{n} |x_i|^p\right)^{1/p} \quad \text{(L$p$ norm)} \\
+\|\mathbf{x}\|_\infty &= \max_i |x_i| \quad \text{(L$\infty$ norm)}
+\end{align}
+
+For a matrix $\mathbf{A}$:
+\begin{align}
+\|\mathbf{A}\|_F &= \sqrt{\sum_{i,j} A_{ij}^2} \quad \text{(Frobenius norm)} \\
+\|\mathbf{A}\|_2 &= \sigma_{\max}(\mathbf{A}) \quad \text{(Spectral norm = largest singular value)}
+\end{align}
+
+\subsection{Eigenvalue Decomposition}
+
+A square matrix $\mathbf{A} \in \mathbb{R}^{n \times n}$ can be decomposed (if diagonalizable):
+\begin{equation}
+\mathbf{A} = \mathbf{Q}\boldsymbol{\Lambda}\mathbf{Q}^{-1}
+\end{equation}
+where $\boldsymbol{\Lambda} = \text{diag}(\lambda_1, \ldots, \lambda_n)$ are eigenvalues and $\mathbf{Q}$ contains eigenvectors.
+
+\textbf{Properties:}
+\begin{itemize}
+    \item $\det(\mathbf{A}) = \prod_{i=1}^{n} \lambda_i$
+    \item $\text{tr}(\mathbf{A}) = \sum_{i=1}^{n} \lambda_i$
+    \item $\mathbf{A}$ is positive definite iff $\lambda_i > 0$ for all $i$
+    \item $\mathbf{A}^k = \mathbf{Q}\boldsymbol{\Lambda}^k\mathbf{Q}^{-1}$
+\end{itemize}
+
+\subsection{Singular Value Decomposition (SVD)}
+
+Any matrix $\mathbf{A} \in \mathbb{R}^{m \times n}$ can be decomposed:
+\begin{equation}
+\mathbf{A} = \mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^\top
+\end{equation}
+where $\mathbf{U} \in \mathbb{R}^{m \times m}$ (left singular vectors), $\boldsymbol{\Sigma} \in \mathbb{R}^{m \times n}$ (diagonal singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq 0$), $\mathbf{V} \in \mathbb{R}^{n \times n}$ (right singular vectors).
+
+\textbf{Applications in deep learning:}
+\begin{itemize}
+    \item Low-rank approximation: $\mathbf{A}_k = \mathbf{U}_k \boldsymbol{\Sigma}_k \mathbf{V}_k^\top$ (keep top $k$ singular values)
+    \item Principal Component Analysis (PCA)
+    \item Understanding weight matrices: $\sigma_{\max}(\mathbf{W})$ governs gradient flow through a layer
 \end{itemize}
 
 \section{Calculus}
@@ -25,7 +73,10 @@
 \frac{d}{dx}e^x &= e^x \\
 \frac{d}{dx}\log(x) &= \frac{1}{x} \\
 \frac{d}{dx}\sin(x) &= \cos(x) \\
-\frac{d}{dx}\cos(x) &= -\sin(x)
+\frac{d}{dx}\cos(x) &= -\sin(x) \\
+\frac{d}{dx}\sigma(x) &= \sigma(x)(1 - \sigma(x)) \quad \text{(sigmoid)} \\
+\frac{d}{dx}\text{ReLU}(x) &= \begin{cases} 1 & x > 0 \\ 0 & x \leq 0 \end{cases} \\
+\frac{d}{dx}\tanh(x) &= 1 - \tanh^2(x)
 \end{align}
 
 \subsection{Chain Rule}
@@ -35,13 +86,158 @@ For $y = f(g(x))$:
 \frac{dy}{dx} = f'(g(x)) \cdot g'(x)
 \end{equation}
 
-\section{Probability}
+For multivariable functions, the chain rule becomes:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}} = \frac{\partial \mathcal{L}}{\partial \mathbf{y}} \cdot \frac{\partial \mathbf{y}}{\partial \mathbf{x}}
+\end{equation}
+where $\frac{\partial \mathbf{y}}{\partial \mathbf{x}}$ is the \textbf{Jacobian matrix} with entries $J_{ij} = \frac{\partial y_i}{\partial x_j}$.
+
+\subsection{Jacobian and Hessian}
+
+\textbf{Jacobian} of $\mathbf{f}: \mathbb{R}^n \to \mathbb{R}^m$ at $\mathbf{x}$:
+\begin{equation}
+\mathbf{J}_f(\mathbf{x}) = \begin{bmatrix}
+\frac{\partial f_1}{\partial x_1} & \cdots & \frac{\partial f_1}{\partial x_n} \\
+\vdots & \ddots & \vdots \\
+\frac{\partial f_m}{\partial x_1} & \cdots & \frac{\partial f_m}{\partial x_n}
+\end{bmatrix} \in \mathbb{R}^{m \times n}
+\end{equation}
+
+\textbf{Hessian} of $f: \mathbb{R}^n \to \mathbb{R}$ at $\mathbf{x}$:
+\begin{equation}
+\mathbf{H}_f(\mathbf{x}) = \begin{bmatrix}
+\frac{\partial^2 f}{\partial x_1^2} & \cdots & \frac{\partial^2 f}{\partial x_1 \partial x_n} \\
+\vdots & \ddots & \vdots \\
+\frac{\partial^2 f}{\partial x_n \partial x_1} & \cdots & \frac{\partial^2 f}{\partial x_n^2}
+\end{bmatrix} \in \mathbb{R}^{n \times n}
+\end{equation}
+
+\textbf{Uses in deep learning:}
+\begin{itemize}
+    \item Jacobians describe gradient flow through layers (critical for RNN vanishing gradient analysis)
+    \item The Hessian's eigenvalues determine the loss landscape curvature (sharp vs flat minima)
+    \item Second-order methods (Newton's method) use $\mathbf{H}^{-1}$ for parameter updates
+\end{itemize}
+
+\subsection{Taylor Expansion}
+
+For a smooth function $f(\mathbf{x})$ around $\mathbf{x}_0$:
+\begin{equation}
+f(\mathbf{x}) = f(\mathbf{x}_0) + \nabla f(\mathbf{x}_0)^\top(\mathbf{x} - \mathbf{x}_0) + \frac{1}{2}(\mathbf{x} - \mathbf{x}_0)^\top \mathbf{H}(\mathbf{x}_0)(\mathbf{x} - \mathbf{x}_0) + \cdots
+\end{equation}
+
+\subsection{Lagrange Multipliers}
+
+For constrained optimization $\min_{\mathbf{x}} f(\mathbf{x})$ subject to $g(\mathbf{x}) = 0$:
+\begin{equation}
+\mathcal{L}(\mathbf{x}, \lambda) = f(\mathbf{x}) + \lambda \cdot g(\mathbf{x})
+\end{equation}
+Solution: $\nabla_\mathbf{x} \mathcal{L} = \mathbf{0}$, $\nabla_\lambda \mathcal{L} = 0$.
+
+\section{Probability and Statistics}
+
+\subsection{Bayes' Theorem}
+
+\begin{equation}
+P(A|B) = \frac{P(B|A)P(A)}{P(B)}
+\end{equation}
+
+\subsection{Distributions}
 
 \begin{align}
-P(A|B) &= \frac{P(B|A)P(A)}{P(B)} \\
-E[X] &= \sum_x x \cdot P(X=x) \\
-\text{Var}(X) &= E[X^2] - (E[X])^2
+\text{Gaussian:} \quad & p(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right) \\
+\text{Bernoulli:} \quad & P(X=k) = p^k(1-p)^{1-k}, \quad k \in \{0, 1\} \\
+\text{Categorical:} \quad & P(X=k) = p_k, \quad \sum_{k} p_k = 1
 \end{align}
+
+\subsection{Expectation and Variance}
+
+\begin{align}
+\mathbb{E}[X] &= \sum_x x \cdot P(X=x) \quad \text{(discrete)} \\
+\mathbb{E}[X] &= \int x \cdot p(x) \, dx \quad \text{(continuous)} \\
+\text{Var}(X) &= \mathbb{E}[X^2] - (\mathbb{E}[X])^2 \\
+\text{Var}(aX + b) &= a^2 \text{Var}(X) \\
+\mathbb{E}[XY] &= \mathbb{E}[X]\mathbb{E}[Y] \quad \text{if } X \perp Y
+\end{align}
+
+\subsection{KL Divergence and Cross-Entropy}
+
+\begin{align}
+\text{KL}(p \| q) &= \sum_x p(x)\log\frac{p(x)}{q(x)} \quad \text{(KL divergence, $\geq 0$)} \\
+H(p, q) &= -\sum_x p(x)\log q(x) \quad \text{(cross-entropy)} \\
+H(p, q) &= H(p) + \text{KL}(p \| q)
+\end{align}
+
+\subsection{Information Theory}
+
+\begin{align}
+H(X) &= -\sum_x P(X=x)\log P(X=x) \quad \text{(entropy)} \\
+I(X; Y) &= H(X) - H(X|Y) \quad \text{(mutual information)}
+\end{align}
+
+\chapter{Quick Reference Tables}
+
+\section{Activation Functions}
+
+\begin{table}[ht]
+    \centering
+    \caption{Activation Function Reference}
+    \begin{tabular}{L{2cm} L{4cm} L{3cm} L{3cm}}
+        \toprule
+        \textbf{Name} & \textbf{Formula} & \textbf{Range} & \textbf{Use Case} \\
+        \midrule
+        Sigmoid & $\sigma(x) = \frac{1}{1+e^{-x}}$ & $(0, 1)$ & Binary output \\
+        Tanh & $\tanh(x)$ & $(-1, 1)$ & RNN hidden \\
+        ReLU & $\max(0, x)$ & $[0, \infty)$ & Default (hidden) \\
+        Leaky ReLU & $\max(\alpha x, x)$ & $(-\infty, \infty)$ & Avoid dead neurons \\
+        GELU & $x\cdot\Phi(x)$ & $(-\infty, \infty)$ & Transformers \\
+        Swish & $x \cdot \sigma(\beta x)$ & $(-\infty, \infty)$ & Modern CNNs \\
+        Softmax & $\frac{e^{x_i}}{\sum_j e^{x_j}}$ & $(0, 1)$ & Classification output \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Loss Functions}
+
+\begin{table}[ht]
+    \centering
+    \caption{Loss Function Reference}
+    \begin{tabular}{L{2.5cm} L{5cm} L{4.5cm}}
+        \toprule
+        \textbf{Loss} & \textbf{Formula} & \textbf{Use Case} \\
+        \midrule
+        MSE & $\frac{1}{N}\sum_{i}(y_i - \hat{y}_i)^2$ & Regression \\
+        MAE & $\frac{1}{N}\sum_{i}|y_i - \hat{y}_i|$ & Regression (robust) \\
+        Cross-Entropy & $-\sum_c y_c \log\hat{y}_c$ & Classification \\
+        Binary CE & $-y\log\hat{y} - (1-y)\log(1-\hat{y})$ & Binary classif. \\
+        Huber & $\begin{cases}\frac{1}{2}(y-\hat{y})^2 & |y-\hat{y}| \leq \delta \\ \delta(|y-\hat{y}|-\frac{\delta}{2}) & \text{else}\end{cases}$ & Robust regression \\
+        Focal & $-(1-p_t)^\gamma \log p_t$ & Imbalanced data \\
+        KL Divergence & $\sum_c p_c \log\frac{p_c}{q_c}$ & Distribution matching \\
+        Triplet & $\max(0, d^+ - d^- + m)$ & Metric learning \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Common Datasets}
+
+\begin{table}[ht]
+    \centering
+    \caption{Benchmark Datasets}
+    \begin{tabular}{L{2cm} L{2cm} L{2cm} L{3cm} L{2.5cm}}
+        \toprule
+        \textbf{Dataset} & \textbf{Task} & \textbf{Size} & \textbf{Classes} & \textbf{Year} \\
+        \midrule
+        MNIST & Classification & 70K & 10 & 1998 \\
+        CIFAR-10 & Classification & 60K & 10 & 2009 \\
+        CIFAR-100 & Classification & 60K & 100 & 2009 \\
+        ImageNet-1K & Classification & 1.2M & 1000 & 2009 \\
+        COCO & Detection/Seg. & 330K & 80 & 2014 \\
+        SQuAD & QA & 150K & -- & 2016 \\
+        GLUE & NLP tasks & varies & varies & 2018 \\
+        LibriSpeech & ASR & 281H & -- & 2015 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \chapter{PyTorch Quick Reference}
 
@@ -49,54 +245,191 @@ E[X] &= \sum_x x \cdot P(X=x) \\
 
 \begin{lstlisting}[language=Python, caption={Common PyTorch tensor operations}]
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 # Creation
-x = torch.randn(3, 4)  # Random
+x = torch.randn(3, 4)  # Random normal
 x = torch.zeros(3, 4)  # Zeros
 x = torch.ones(3, 4)   # Ones
 x = torch.tensor([1, 2, 3])  # From data
+x = torch.arange(0, 10)  # 0, 1, ..., 9
 
-# Operations
-y = x.view(1, 12)  # Reshape
-y = x.sum(dim=0)   # Sum
-y = x.mean(dim=1)  # Mean
+# Shape operations
+y = x.view(1, 12)     # Reshape
+y = x.reshape(2, 6)   # Reshape (may copy)
+y = x.permute(1, 0, 2) # Transpose dimensions
+y = x.flatten()        # Flatten to 1D
+y = x.squeeze(0)       # Remove dim of size 1
+y = x.unsqueeze(0)     # Add dim at position 0
+
+# Math operations
+y = x.sum(dim=0)
+y = x.mean(dim=1)
+y = x.max(dim=1)       # Returns (values, indices)
+y = x.softmax(dim=-1)
+y = torch.argmax(x, dim=-1)
 
 # GPU
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+x = x.to(device)
 x = x.cuda()
 x = x.cpu()
-x = x.to('cuda:0')
 \end{lstlisting}
 
 \section{Model Creation}
 
-\begin{lstlisting}[language=Python, caption={PyTorch model definition example}]
-class MyModel(nn.Module):
-    def __init__(self):
+\begin{lstlisting}[language=Python, caption={PyTorch model definition patterns}]
+class ConvBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, stride=1):
         super().__init__()
-        self.fc1 = nn.Linear(784, 128)
-        self.fc2 = nn.Linear(128, 10)
-        self.dropout = nn.Dropout(0.2)
+        self.conv = nn.Conv2d(in_ch, out_ch, 3, stride, 1, bias=False)
+        self.bn = nn.BatchNorm2d(out_ch)
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.fc1(x))
-        x = self.dropout(x)
-        return self.fc2(x)
+        return self.relu(self.bn(self.conv(x)))
+
+class MyModel(nn.Module):
+    def __init__(self, num_classes=10):
+        super().__init__()
+        self.features = nn.Sequential(
+            ConvBlock(3, 64),
+            nn.MaxPool2d(2),
+            ConvBlock(64, 128),
+            nn.AdaptiveAvgPool2d(1)
+        )
+        self.classifier = nn.Linear(128, num_classes)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.flatten(1)
+        return self.classifier(x)
+\end{lstlisting}
+
+\section{Training Utilities}
+
+\begin{lstlisting}[language=Python, caption={Common training utilities}]
+# Gradient clipping
+torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+# Learning rate scheduler
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+    optimizer, T_max=100, eta_min=1e-6)
+scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    optimizer, max_lr=0.01, total_steps=10000)
+
+# Mixed precision
+scaler = torch.amp.GradScaler('cuda')
+with torch.amp.autocast('cuda'):
+    output = model(data)
+    loss = criterion(output, target)
+scaler.scale(loss).backward()
+scaler.step(optimizer)
+scaler.update()
+
+# Model summary
+from torchsummary import summary
+summary(model, (3, 224, 224))
+
+# Save and load
+torch.save(model.state_dict(), 'model.pth')
+model.load_state_dict(torch.load('model.pth'))
 \end{lstlisting}
 
 \chapter{Glossary}
 
-\begin{itemize}
-    \item \textbf{ANN:} Artificial Neural Network
-    \item \textbf{CNN:} Convolutional Neural Network
-    \item \textbf{RNN:} Recurrent Neural Network
-    \item \textbf{LSTM:} Long Short-Term Memory
-    \item \textbf{GAN:} Generative Adversarial Network
-    \item \textbf{VAE:} Variational Autoencoder
-    \item \textbf{GN:} Graph Neural Network
-    \item \textbf{FLOPs:} Floating Point Operations
-    \item \textbf{GFLOPs:} Giga FLOPs ($10^9$ FLOPs)
-    \item \textbf{BatchNorm:} Batch Normalization
-    \item \textbf{Dropout:} Regularization technique
-    \item \textbf{LR:} Learning Rate
-\end{itemize}
+\section{Architecture Terms}
+
+\begin{description}
+    \item[ANN] Artificial Neural Network --- the broadest class of neural networks
+    \item[CNN] Convolutional Neural Network --- specialized for grid-like data (images, audio spectrograms)
+    \item[RNN] Recurrent Neural Network --- processes sequential data with hidden state recurrence
+    \item[LSTM] Long Short-Term Memory --- gated RNN that solves the vanishing gradient problem
+    \item[GRU] Gated Recurrent Unit --- simplified LSTM with two gates (reset, update)
+    \item[Transformer] Attention-based architecture that processes sequences in parallel
+    \item[ViT] Vision Transformer --- applies the Transformer architecture to image patches
+    \item[GAN] Generative Adversarial Network --- generator-discriminator framework for generative modeling
+    \item[VAE] Variational Autoencoder --- probabilistic generative model with encoder-decoder structure
+    \item[Autoencoder] Self-supervised model that learns to compress and reconstruct data
+    \item[U-Net] Encoder-decoder architecture with skip connections for segmentation
+\end{description}
+
+\section{Training Terms}
+
+\begin{description}
+    \item[Epoch] One complete pass through the entire training dataset
+    \item[Batch] A subset of samples processed together in one forward/backward pass
+    \item[Batch Size] Number of samples per batch (e.g., 32, 64, 256)
+    \item[Backpropagation] Algorithm for computing gradients via reverse-mode automatic differentiation
+    \item[Learning Rate (LR)] Step size for parameter updates during optimization
+    \item[Loss Function] Objective function that the model minimizes during training
+    \item[Gradient] Partial derivative of the loss with respect to model parameters
+    \item[Convergence] State where the loss stops decreasing (model has learned the data)
+    \item[Overfitting] Model performs well on training data but poorly on unseen data
+    \item[Generalization] Model's ability to perform well on unseen data
+    \item[Regularization] Techniques to prevent overfitting (dropout, weight decay, etc.)
+    \item[Early Stopping] Stop training when validation performance degrades
+    \item[Fine-tuning] Adapting a pretrained model to a new task/dataset
+    \item[Pre-training] Training a model on a large dataset before task-specific adaptation
+    \item[Transfer Learning] Using knowledge from one task to improve another
+\end{description}
+
+\section{Layer and Operation Terms}
+
+\begin{description}
+    \item[Convolution] Operation that slides a kernel across input to extract local features
+    \item[Pooling] Spatial downsampling operation (max pooling, average pooling)
+    \item[Stride] Step size for the sliding window in convolution/pooling
+    \item[Padding] Adding zeros (or values) around input borders
+    \item[Kernel / Filter] Learnable weights applied in convolution
+    \item[Feature Map] Output of a convolutional layer
+    \item[Activation Function] Nonlinear function applied after linear transformation
+    \item[Dropout] Randomly zeroing activations during training for regularization
+    \item[BatchNorm] Batch Normalization --- normalizes features across the batch dimension
+    \item[LayerNorm] Layer Normalization --- normalizes features across the feature dimension
+    \item[Softmax] Converts logits to probability distribution (sums to 1)
+    \item[Embedding] Dense vector representation of discrete tokens (words, patches)
+    \item[Attention] Mechanism that computes weighted sums of values based on query-key similarity
+    \item[Self-Attention] Attention where queries, keys, and values come from the same sequence
+    \item[Cross-Attention] Attention where queries and keys/values come from different sequences
+    \item[Positional Encoding] Encoding of position information for sequence models
+    \item[Residual Connection] Skip connection that adds input to output ($\mathbf{y} = \mathbf{x} + \mathcal{F}(\mathbf{x})$)
+\end{description}
+
+\section{Performance Metrics}
+
+\begin{description}
+    \item[FLOPs] Floating Point Operations --- measure of computational cost
+    \item[MACs] Multiply-Accumulate operations ($\approx$ half of FLOPs)
+    \item[GFLOPs] Giga FLOPs ($10^9$ FLOPs)
+    \item[Top-1 Accuracy] Fraction of samples where the highest-confidence prediction is correct
+    \item[Top-5 Accuracy] Fraction of samples where the correct class is in the top 5 predictions
+    \item[mAP] Mean Average Precision --- standard metric for object detection
+    \item[IoU] Intersection over Union --- overlap measure for segmentation/detection
+    \item[BLEU] Bilingual Evaluation Understudy --- metric for text generation quality
+    \item[Perplexity] Exponential of cross-entropy; lower is better for language models
+    \item[Throughput] Number of samples processed per second (samples/sec)
+    \item[Latency] Time to process a single sample (ms)
+\end{description}
+
+\section{Other Common Abbreviations}
+
+\begin{description}
+    \item[SGD] Stochastic Gradient Descent
+    \item[Adam] Adaptive Moment Estimation optimizer
+    \item[AdamW] Adam with decoupled weight decay
+    \item[ReLu] Rectified Linear Unit activation function
+    \item[GELU] Gaussian Error Linear Unit activation function
+    \item[MSE] Mean Squared Error loss
+    \item[MAE] Mean Absolute Error loss
+    \item[KL] Kullback-Leibler divergence
+    \item[PCA] Principal Component Analysis
+    \item[SVD] Singular Value Decomposition
+    \item[AMP] Automatic Mixed Precision
+    \item[NAS] Neural Architecture Search
+    \item[TTA] Test-Time Augmentation
+    \item[QA] Question Answering
+    \item[NLP] Natural Language Processing
+    \item[CV] Computer Vision
+\end{description}

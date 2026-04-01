@@ -153,16 +153,93 @@ Decouples weight decay from gradient update:
     \item \textbf{Standard in transformers}
 \end{itemize}
 
+\subsection{AdaDelta}
+
+AdaDelta (Zeiler, 2012) addresses AdaGrad's monotonically decreasing learning rate by restricting the window of accumulated past gradients to a fixed size $w$ using an exponentially decaying average:
+\begin{align}
+\mathbf{r}_t &= \rho \mathbf{r}_{t-1} + (1 - \rho)\mathbf{g}_t^2 \\
+\Delta\boldsymbol{\theta}_t &= -\frac{\sqrt{\mathbf{s}_{t-1} + \epsilon}}{\sqrt{\mathbf{r}_t + \epsilon}}\mathbf{g}_t \\
+\mathbf{s}_t &= \rho \mathbf{s}_{t-1} + (1 - \rho)(\Delta\boldsymbol{\theta}_t)^2
+\end{align}
+where $\rho$ is a decay constant (typically 0.95).
+
+\begin{properties}[AdaDelta Properties]
+\begin{itemize}
+    \item \textbf{No manual learning rate setting}: The numerator $\sqrt{\mathbf{s}_{t-1} + \epsilon}$ replaces $\alpha$, making the method largely hyperparameter-free
+    \item \textbf{Robust to different gradient scales}: Adapts per-parameter using accumulated updates
+    \item \textbf{Rarely used today}: Superseded by Adam and its variants
+\end{itemize}
+\end{properties}
+
+\subsection{Unified View of Adaptive Methods}
+
+\begin{table}[ht]
+    \centering
+    \caption{Adaptive Optimizer Family}
+    \begin{tabular}{L{2cm} L{3cm} L{3cm} L{3.5cm}}
+        \toprule
+        \textbf{Method} & \textbf{1st moment} & \textbf{2nd moment} & \textbf{LR scaling} \\
+        \midrule
+        AdaGrad & No & $\mathbf{r}_t = \mathbf{r}_{t-1} + \mathbf{g}_t^2$ & $\alpha / \sqrt{\mathbf{r}_t}$ \\
+        RMSProp & No & $\mathbf{r}_t = \rho\mathbf{r}_{t-1} + (1-\rho)\mathbf{g}_t^2$ & $\alpha / \sqrt{\mathbf{r}_t}$ \\
+        AdaDelta & No & Same as RMSProp & $\sqrt{\mathbf{s}} / \sqrt{\mathbf{r}_t}$ \\
+        Adam & $\mathbf{m}_t$ (bias corr.) & $\mathbf{v}_t$ (bias corr.) & $\alpha \hat{\mathbf{m}}_t / \sqrt{\hat{\mathbf{v}}_t}$ \\
+        AdamW & Same as Adam & Same as Adam & + decoupled $\lambda\theta_t$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Convergence Rate Analysis}
+
+\begin{theorem}[SGD Convergence Rate]
+For a smooth ($L$-Lipschitz gradient) and $\mu$-strongly convex function $f$, gradient descent with learning rate $\alpha = 1/L$ satisfies:
+\begin{equation}
+f(\theta_t) - f(\theta^*) \leq \left(1 - \frac{\mu}{L}\right)^t \bigl(f(\theta_0) - f(\theta^*)\bigr)
+\end{equation}
+This is a \textbf{linear convergence rate} with rate $1 - \mu/L$.
+\end{theorem}
+
+\begin{properties}[Convergence Rates for Different Optimizers]
+\begin{itemize}
+    \item \textbf{Convex + smooth:} SGD achieves $O(1/T)$ rate; accelerated methods achieve $O(1/T^2)$
+    \item \textbf{Non-convex:} All methods converge at $O(1/\sqrt{T})$ to a stationary point
+    \item \textbf{Adam} is not guaranteed to converge in the non-convex setting without modification (Reddi et al., 2018); \textbf{AdamW} and \textbf{AMSGrad} fix this issue
+    \item In practice, Adam and AdamW converge faster initially but SGD+Momentum often achieves better final generalization
+\end{itemize}
+\end{properties}
+
 \section{Gradient Clipping}
 
-Prevents exploding gradients:
+Prevents exploding gradients. Two main strategies:
+
+\subsection{Value Clipping}
+
+Clip each gradient component individually:
 \begin{equation}
-\mathbf{g} = \text{clip}(\nabla_\theta \mathcal{L}, -\text{clip\_value}, \text{clip\_value})
+\tilde{g}_i = \text{clip}(g_i, -c, c) = \max(\min(g_i, c), -c)
 \end{equation}
+where $c$ is the clip value (typically 0.5--5.0).
 
-Common values: clip\_value = 1.0 to 5.0
+\subsection{Norm Clipping}
 
-Essential for RNNs and Transformers.
+Scale the entire gradient vector if its norm exceeds a threshold:
+\begin{equation}
+\tilde{\mathbf{g}} = \begin{cases}
+\mathbf{g} & \text{if } \|\mathbf{g}\| \leq c \\
+\frac{c}{\|\mathbf{g}\|} \mathbf{g} & \text{if } \|\mathbf{g}\| > c
+\end{cases}
+\end{equation}
+This preserves the gradient \textbf{direction} while capping its magnitude.
+
+\begin{properties}[When to Use Gradient Clipping]
+\begin{itemize}
+    \item \textbf{RNNs and Transformers:} Essential to prevent exploding gradients through long sequences
+    \item \textbf{Fine-tuning pretrained models:} Prevents destabilization from large gradient updates
+    \item \textbf{Norm clipping} is generally preferred over value clipping (preserves gradient direction)
+    \item Typical max norm: 1.0 (transformers) to 5.0 (RNNs)
+    \item In PyTorch: \texttt{torch.nn.utils.clip\_grad\_norm\_}(model.parameters(), max\_norm=1.0)
+\end{itemize}
+\end{properties}
 
 \section{Learning Rate Schedulers}
 
@@ -232,6 +309,51 @@ Gradually increase learning rate at the start:
     \item \textbf{Common: 500-10000 warmup steps}
 \end{itemize}
 
+\subsection{Warmup + Cosine Decay}
+
+The standard schedule for modern transformer training combines warmup with cosine annealing:
+\begin{equation}
+\alpha_t = \begin{cases}
+\alpha_{max} \cdot \frac{t}{T_{warmup}} & \text{if } t < T_{warmup} \\
+\alpha_{min} + \frac{1}{2}(\alpha_{max} - \alpha_{min})\left(1 + \cos\left(\frac{(t - T_{warmup})\pi}{T_{total} - T_{warmup}}\right)\right) & \text{otherwise}
+\end{cases}
+\end{equation}
+
+This is the default in most transformer training recipes (BERT, GPT, ViT).
+
+\subsection{ReduceLROnPlateau}
+
+Monitors a metric (typically validation loss) and reduces the learning rate when improvement stalls:
+\begin{equation}
+\alpha_t = \alpha_{t-1} \cdot \gamma \quad \text{if } \text{no improvement for } p \text{ epochs}
+\end{equation}
+where $\gamma$ is the decay factor (typically 0.1) and $p$ is the patience (typically 5--10 epochs).
+
+\begin{itemize}
+    \item \textbf{Adaptive}: No need to predefine the total number of epochs
+    \item \textbf{Useful when training time is unknown} (e.g., early stopping)
+    \item Common in training CNNs for image classification
+\end{itemize}
+
+\subsection{OneCycleLR}
+
+Proposed by Smith (2018), OneCycleLR uses a single cycle with three phases:
+\begin{enumerate}
+    \item \textbf{Increase} LR from $\alpha_{min}$ to $\alpha_{max}$ (first $\sim$30\% of steps)
+    \item \textbf{Decrease} LR from $\alpha_{max}$ to $\alpha_{min}$ (next $\sim$60\% of steps)
+    \item \textbf{Fine-tune}: Decrease LR further to $\alpha_{min}/100$ (final $\sim$10\% of steps)
+\end{enumerate}
+Optionally, the momentum follows an inverse pattern (high when LR is low).
+
+\begin{properties}[OneCycleLR Benefits]
+\begin{itemize}
+    \item \textbf{Faster convergence}: Often achieves the same accuracy in fewer epochs
+    \item \textbf{Regularization effect}: The high-to-low LR cycle acts as implicit regularization
+    \item \textbf{No warmup needed}: Built into the schedule
+    \item Popular in fastai and for transfer learning tasks
+\end{itemize}
+\end{properties}
+
 \section{Optimizer Selection}
 
 \begin{table}[ht]
@@ -254,8 +376,22 @@ Gradually increase learning rate at the start:
 \begin{enumerate}
     \item Gradient descent is the foundation of neural network optimization
     \item Momentum accelerates convergence by accumulating velocity
-    \item Adam combines momentum and adaptive learning rates
-    \item AdamW provides proper weight decay regularization
-    \item Learning rate schedulers improve convergence
+    \item Adaptive methods (AdaGrad, RMSProp, AdaDelta, Adam) adjust per-parameter learning rates
+    \item Adam combines momentum and adaptive learning rates; AdamW adds proper weight decay
+    \item Gradient clipping prevents exploding gradients (norm clipping preferred)
+    \item Learning rate schedulers (step, cosine, plateau, OneCycleLR) improve convergence
     \item Warmup is important for transformer training
+    \item SGD+Momentum often generalizes better; Adam converges faster
 \end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+    \item Kingma, D. \& Ba, J. (2015). Adam: A method for stochastic optimization. \textit{ICLR}.
+    \item Loshchilov, I. \& Hutter, F. (2019). Decoupled weight decay regularization. \textit{ICLR}.
+    \item Zeiler, M. (2012). ADADELTA: An adaptive learning rate method. \textit{arXiv:1212.5701}.
+    \item Reddi, S. et al. (2018). On the convergence of Adam and beyond. \textit{ICLR}.
+    \item Smith, L. (2018). A disciplined approach to neural network hyper-parameters. \textit{NeurIPS Workshop}.
+    \item Loshchilov, I. \& Hutter, F. (2017). SGDR: Stochastic gradient descent with warm restarts. \textit{ICLR}.
+    \item Paszke, A. et al. (2019). PyTorch: An imperative style, high-performance deep learning library. \textit{NeurIPS}.
+\end{itemize}

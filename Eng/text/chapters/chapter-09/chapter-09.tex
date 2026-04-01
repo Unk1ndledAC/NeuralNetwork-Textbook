@@ -167,12 +167,162 @@ Common strategies:
     \item \textbf{Extract features:} Use pretrained as feature extractor
 \end{enumerate}
 
+\section{Detailed Model Breakdown}
+
+\subsection{ResNet-50 Parameter Analysis}
+
+ResNet-50 consists of 4 stages with bottleneck blocks ($1 \times 1$, $3 \times 3$, $1 \times 1$ convolutions).
+
+\begin{table}[ht]
+    \centering
+    \caption{ResNet-50 Layer-by-Layer Parameter Count}
+    \begin{tabular}{L{3.5cm} L{3cm} L{2.5cm} L{2.5cm}}
+        \toprule
+        \textbf{Layer} & \textbf{Output Shape} & \textbf{Parameters} & \textbf{FLOPs} \\
+        \midrule
+        Conv1 ($7\times7$, 64, s2) & $112^2 \times 64$ & 9,408 & 118M \\
+        MaxPool $3\times3$, s2 & $56^2 \times 64$ & 0 & -- \\
+        \midrule
+        Stage 1 (3 blocks, 64) & $56^2 \times 256$ & 215,808 & 560M \\
+        Stage 2 (4 blocks, 128) & $28^2 \times 512$ & 1,167,616 & 1,180M \\
+        Stage 3 (6 blocks, 256) & $14^2 \times 1024$ & 4,715,776 & 2,360M \\
+        Stage 4 (3 blocks, 512) & $7^2 \times 2048$ & 7,095,552 & 2,360M \\
+        \midrule
+        Global AvgPool & $2048$ & 0 & -- \\
+        FC (1000 classes) & $1000$ & 2,049,000 & 4M \\
+        \midrule
+        \textbf{Total} & & \textbf{25,557,032} & \textbf{$\approx$4.1B} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{Key observations:}
+\begin{itemize}
+    \item Stage 3 and 4 contain 46\% of all parameters but 55\% of FLOPs (high channel counts at lower resolutions)
+    \item The final FC layer alone is 2M parameters (8\% of total) --- often replaced with GAP in modern variants
+    \item ResNet-50-D (with avgpool in downsampling) improves accuracy with zero extra parameters
+\end{itemize}
+
+\subsection{Transformer Model Scaling}
+
+For a transformer model with $L$ layers, $d_{model}$ hidden dimension, $h$ attention heads, and vocabulary size $V$:
+
+\begin{align}
+\text{Embedding params} &= V \times d_{model} \\
+\text{Per-layer params} &\approx 12 \cdot d_{model}^2 \quad \text{(attention: } 4d_{model}^2 \text{, FFN: } 8d_{model}^2) \\
+\text{Total params} &\approx V \cdot d_{model} + 12 L \cdot d_{model}^2
+\end{align}
+
+\begin{table}[ht]
+    \centering
+    \caption{Transformer Model Sizes}
+    \begin{tabular}{L{2.5cm} L{1.5cm} L{2cm} L{2cm} L{2cm}}
+        \toprule
+        \textbf{Model} & \textbf{Layers} & $d_{model}$ & \textbf{Params} & \textbf{FLOPs/token} \\
+        \midrule
+        BERT-Base & 12 & 768 & 110M & 22.5B \\
+        BERT-Large & 24 & 1024 & 340M & 84B \\
+        GPT-2 Small & 12 & 768 & 117M & -- \\
+        GPT-2 Medium & 24 & 1024 & 345M & -- \\
+        GPT-2 XL & 24 & 1600 & 774M & -- \\
+        GPT-3 & 96 & 12288 & 175B & -- \\
+        LLaMA-7B & 32 & 4096 & 6.7B & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{note}[The Scaling Laws]
+Kaplan et al. (2020) showed that transformer performance depends predictably on three factors:
+\begin{equation}
+\mathcal{L}(N, D, C) \approx \left(\frac{N_c}{N}\right)^{\alpha_N} + \left(\frac{D_c}{D}\right)^{\alpha_D}
+\end{equation}
+where $N$ = parameters, $D$ = data size, $C$ = compute, and $\alpha_N \approx 0.076$, $\alpha_D \approx 0.095$. This implies that to maintain efficiency, parameters, data, and compute should scale proportionally ($\approx \times 10$ each for each ``order of magnitude'' improvement).
+\end{note}
+
+\section{Activation Memory Analysis}
+
+During training, memory consumption is dominated by \textbf{activations} (intermediate feature maps stored for backpropagation), not parameters.
+
+\subsection{Activation Memory Formula}
+
+For a convolutional layer output of shape $(N, C, H, W)$ in FP32:
+\begin{equation}
+\text{Activation memory} = N \times C \times H \times W \times 4 \text{ bytes (FP32)}
+\end{equation}
+
+\begin{example}[ResNet-50 Activation Memory]
+For batch size $N = 32$, FP32:
+\begin{itemize}
+    \item Stage 1 output ($56^2 \times 256$): $32 \times 256 \times 56^2 \times 4 = 103$ MB
+    \item Stage 2 output ($28^2 \times 512$): $32 \times 512 \times 28^2 \times 4 = 51$ MB
+    \item Stage 3 output ($14^2 \times 1024$): $32 \times 1024 \times 14^2 \times 4 = 26$ MB
+    \item Total activations for all layers (including intermediates): $\approx 3$--$4$ GB
+\end{itemize}
+With mixed precision (FP16), activation memory is halved ($\approx 2$ GB).
+\end{example}
+
+\begin{properties}[Reducing Activation Memory]
+\begin{itemize}
+    \item \textbf{Gradient checkpointing}: Recompute activations during backward pass. Trades compute ($\sim$33\% overhead) for memory ($\sim$60\% reduction).
+    \item \textbf{Mixed precision (AMP)}: Store activations in FP16, master weights in FP32. Halves activation memory with minimal accuracy loss.
+    \item \textbf{Gradient accumulation}: Simulate large batch sizes without proportional memory increase.
+    \item \textbf{DeepSpeed ZeRO}: Partition optimizer states, gradients, and parameters across GPUs.
+\end{itemize}
+\end{properties}
+
+\section{Model Compression and Quantization}
+
+\subsection{Quantization}
+
+Quantization reduces the numerical precision of weights and activations:
+
+\begin{table}[ht]
+    \centering
+    \caption{Quantization Levels}
+    \begin{tabular}{L{2cm} L{2.5cm} L{2.5cm} L{2.5cm} L{2.5cm}}
+        \toprule
+        \textbf{Precision} & \textbf{Bytes/param} & \textbf{Range} & \textbf{Size (100M)} & \textbf{Speedup} \\
+        \midrule
+        FP32 & 4 & $\pm 3.4\times10^{38}$ & 400 MB & 1$\times$ \\
+        FP16 & 2 & $\pm 65504$ & 200 MB & 2$\times$ \\
+        BF16 & 2 & $\pm 3.4\times10^{38}$ & 200 MB & 2$\times$ \\
+        INT8 & 1 & $[-128, 127]$ & 100 MB & 2--4$\times$ \\
+        INT4 & 0.5 & $[-8, 7]$ & 50 MB & 4--8$\times$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{Post-training quantization (PTQ)} quantizes a trained model without retraining. \textbf{Quantization-aware training (QAT)} simulates quantization during training for higher accuracy.
+
+\subsection{Other Compression Techniques}
+
+\begin{itemize}
+    \item \textbf{Pruning}: Remove unimportant weights (magnitude-based or structured). Can reduce FLOPs by 2--3$\times$ with $<1\%$ accuracy loss.
+    \item \textbf{Knowledge distillation}: Train a smaller ``student'' model to mimic a larger ``teacher''. The student often exceeds a same-size model trained directly.
+    \item \textbf{Low-rank factorization}: Decompose weight matrices $\mathbf{W} = \mathbf{U}\mathbf{V}^\top$ where $\text{rank}(\mathbf{U}) = \text{rank}(\mathbf{V}) \ll \text{rank}(\mathbf{W})$.
+\end{itemize}
+
 \section{Chapter Summary}
 
 \begin{enumerate}
     \item Parameter count determines model size and memory requirements
-    \item FLOPs measure computational complexity
-    \item Efficient architectures like MobileNet reduce both
+    \item FLOPs measure computational complexity (1 MAC $\approx$ 2 FLOPs)
+    \item ResNet-50: 25.6M params, 4.1B FLOPs; transformer params scale as $12Ld^2$
+    \item Activation memory often exceeds parameter memory during training
+    \item Gradient checkpointing and mixed precision reduce memory with compute tradeoffs
+    \item Quantization (INT8, INT4) enables efficient deployment on edge devices
     \item Transfer learning leverages pretrained models efficiently
-    \item Understanding efficiency guides model selection
+    \item Scaling laws guide the design of large foundation models
 \end{enumerate}
+
+\section{Further Reading}
+
+\begin{itemize}
+    \item He, K. \& Sun, J. (2015). Convolutional neural networks at constrained time cost. \textit{CVPR}.
+    \item Kaplan, J. et al. (2020). Scaling laws for neural language models. \textit{arXiv:2001.08361}.
+    \item Han, S. et al. (2016). Deep compression: Compressing deep neural networks with pruning, trained quantization and Huffman coding. \textit{ICLR}.
+    \item Hinton, G., Vinyals, O., \& Dean, J. (2015). Distilling the knowledge in a neural network. \textit{NeurIPS Workshop}.
+    \item Micikevicius, P. et al. (2018). Mixed precision training. \textit{ICLR}.
+    \item Howard, A. et al. (2017). MobileNets: Efficient convolutional neural networks for mobile vision applications. \textit{arXiv:1704.04861}.
+    \item Chen, Y. et al. (2016). Training deep nets with sublinear memory cost. \textit{arXiv:1604.06174}.
+\end{itemize}
