@@ -71,7 +71,7 @@ The universal approximation theorem is an \textbf{existence} result, not a \text
 \begin{enumerate}
     \item \textbf{How many neurons are needed}---the bound is astronomically loose for high-dimensional functions.
     \item \textbf{Whether gradient descent can find it}---the optimization landscape may have bad local minima.
-    \item \textbf{Whether deeper networks are more efficient}---Cybenko's and Hornik's results apply to single hidden layers, but depth provides \emph{exponential} efficiency gains for compositional functions (see Montufar et al., 2014).
+    \item \textbf{Whether deeper networks are more efficient}---Cybenko's and Hornik's results apply to single hidden layers, but depth provides \emph{exponential} efficiency gains for compositional functions \cite{montufar2014number}.
 \end{enumerate}
 
 In practice, deep networks (many layers, moderate width) vastly outperform shallow, wide networks. The key insight is that depth enables \textbf{hierarchical feature composition}---each layer builds increasingly abstract representations.
@@ -549,7 +549,7 @@ where $\alpha > 0$ is a hyperparameter.
 \text{Swish}(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}}
 \end{equation}
 
-Proposed by Ramachandran et al. (2017), Swish often outperforms ReLU in deeper networks.
+Swish has become a widely used smooth alternative to ReLU in deeper networks \cite{ramachandran2017searching}.
 
 \begin{properties}[Properties of Swish]
 \begin{itemize}
@@ -583,7 +583,7 @@ Proposed by Ramachandran et al. (2017), Swish often outperforms ReLU in deeper n
 
 \subsection{Mish}
 
-Proposed by Misra (2019) \cite{misra2019mish}, Mish is a self-regularized, non-monotonic activation function:
+Mish \cite{misra2019mish} is a self-regularized, non-monotonic activation function:
 \begin{equation}
 \text{Mish}(x) = x \cdot \tanh(\text{softplus}(x)) = x \cdot \tanh(\ln(1 + e^x))
 \end{equation}
@@ -617,7 +617,7 @@ While the derivative is complex, the key insight is that Mish maintains a positi
 
 \subsection{StarReLU}
 
-Introduced by Maulik et al. (2024) \cite{maulik2024starrelu}, StarReLU is a self-gated activation function specifically designed for transformers:
+StarReLU, introduced in \cite{maulik2024starrelu}, is a self-gated activation function specifically designed for transformers:
 \begin{equation}
 \text{StarReLU}(x) = s \cdot \text{ReLU}(x)^2 + \beta
 \end{equation}
@@ -883,14 +883,14 @@ transformer_layer = nn.TransformerEncoderLayer(
 
 \begin{itemize}
     \item \cite{hornik1991approximation} - Universal Approximation Theorem: theoretical foundations
-    \item Ramachandran et al., ``Searching for Activation Functions'' (2017) - Systematic comparison of activation functions
-    \item Hendrycks and Gimpel, ``Gaussian Error Linear Units (GELU)'' (2016) - Introduction of GELU
-    \item \cite{clark2022unified} - Unified view of GELU activation and dropout
-    \item Clevert et al., ``Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)'' (2015)
-    \item \cite{misra2019mish} - Mish: A self-regularized non-monotonic neural activation function
-    \item \cite{maulik2024starrelu} - StarReLU: Efficient self-gated activation for transformers
-    \item Goodfellow et al., ``Deep Learning'' Chapter 6
+    \item \cite{clevert2015fast} - Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)
     \item \cite{he2015delving} - Delving deep into rectifiers: He initialization
+    \item \cite{hendrycks2016gelu} - Gaussian Error Linear Units (GELU)
+    \item \cite{ramachandran2017searching} - Systematic comparison of activation functions
+    \item \cite{misra2019mish} - Mish: A self-regularized non-monotonic neural activation function
+    \item \cite{clark2022unified} - Unified view of GELU activation and dropout
+    \item \cite{maulik2024starrelu} - StarReLU: Efficient self-gated activation for transformers
+    \item \cite{goodfellow2016deep} - Deep Learning, Chapter 6
 \end{itemize}
 
 \section{Exercises}

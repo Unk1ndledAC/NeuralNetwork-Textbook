@@ -17,15 +17,15 @@ Pre-training learns general representations from large unlabeled data:
 
 \begin{itemize}
     \item \textbf{Language Modeling (CLM):} Predict the next token given previous tokens
-    \item \textbf{Masked Language Modeling (MLM):} Predict randomly masked tokens (BERT-style)
+    \item \textbf{Masked Language Modeling (MLM):} Predict randomly masked tokens (BERT-style) \cite{devlin2018bert}
     \item \textbf{Denoising Autoencoder:} Reconstruct corrupted input
     \item \textbf{Next Sentence Prediction (NSP):} Predict sentence ordering
 \end{itemize}
 
 For vision:
 \begin{itemize}
-    \item \textbf{Contrastive Learning:} Maximize similarity between positive pairs
-    \item \textbf{Masked Autoencoding (MAE):} Reconstruct masked patches
+    \item \textbf{Contrastive Learning:} Maximize similarity between positive pairs \cite{chen2020simple}
+    \item \textbf{Masked Autoencoding (MAE):} Reconstruct masked patches \cite{he2022masked}
     \item \textbf{Self-distillation:} Student learns from teacher
 \end{itemize}
 
@@ -50,7 +50,7 @@ After pre-training, models are adapted to specific tasks:
 
 \section{LoRA: Low-Rank Adaptation}
 
-LoRA reduces trainable parameters by decomposing weight updates:
+LoRA \cite{hu2021lora} reduces trainable parameters by decomposing weight updates:
 
 \begin{equation}
 \mathbf{W} \leftarrow \mathbf{W} + \Delta\mathbf{W}, \quad \Delta\mathbf{W} = \mathbf{B}\mathbf{A}
@@ -168,7 +168,7 @@ Each task has its own parameters, with regularization encouraging similarity:
 Multi-task learning requires careful task weighting:
 \begin{itemize}
     \item \textbf{Equal weighting:} Simple but may not optimal
-    \item \textbf{Uncertainty weighting:} Weight by inverse task uncertainty (Kendall et al., 2018)
+    \item \textbf{Uncertainty weighting:} Weight by inverse task uncertainty \cite{kendall2018multi}
     \item \textbf{Gradient balancing:} Balance gradient magnitudes across tasks
     \item \textbf{Dynamic weighting:} Adjust weights during training
 \end{itemize}
@@ -183,7 +183,7 @@ Neural networks tend to forget previous tasks when trained on new ones. Mitigati
 
 \begin{enumerate}
     \item \textbf{Experience Replay:} Store samples from previous tasks and replay during new training
-    \item \textbf{Elastic Weight Consolidation (EWC):} Protect important weights with regularization
+    \item \textbf{Elastic Weight Consolidation (EWC):} Protect important weights with regularization \cite{kirkpatrick2017overcoming}
     \item \textbf{Progressive Networks:} Add new columns for new tasks while freezing old ones
     \item \textbf{Architectural Growth:} Expand network capacity for new tasks
 \end{enumerate}
@@ -261,7 +261,7 @@ When increasing batch size $B$, scale learning rate proportionally:
 \alpha_{\text{new}} = \alpha_{\text{old}} \times \frac{B_{\text{new}}}{B_{\text{old}}}
 \end{equation}
 
-Goyal et al. (2017) achieved 256-way data parallelism on ImageNet with 8K batch size.
+Goyal et al. \cite{goyal2017accurate} achieved 256-way data parallelism on ImageNet with 8K batch size.
 
 \subsection{Warmup and Scaling}
 
@@ -363,13 +363,30 @@ Proven recipes for common scenarios:
 
 \begin{itemize}
     \item \cite{hinton2015distilling} --- Distilling the Knowledge in a Neural Network
+    \item \cite{goyal2017accurate} --- Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour
+    \item \cite{kirkpatrick2017overcoming} --- Overcoming Catastrophic Forgetting in Neural Networks
     \item \cite{devlin2018bert} --- BERT: Pre-training of Deep Bidirectional Transformers
     \item \cite{kendall2018multi} --- Multi-Task Learning Using Uncertainty to Weigh Losses
-    \item \cite{kirkpatrick2017overcoming} --- Overcoming Catastrophic Forgetting in Neural Networks
-    \item \cite{hu2021lora} --- LoRA: Low-Rank Adaptation of Large Language Models
     \item \cite{chen2020simple} --- A Simple Framework for Contrastive Learning (SimCLR)
+    \item \cite{hu2021lora} --- LoRA: Low-Rank Adaptation of Large Language Models
     \item \cite{he2022masked} --- Masked Autoencoders Are Scalable Vision Learners (MAE)
-    \item \cite{goyal2017accurate} --- Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour
     \item \cite{rombach2022high} --- High-Resolution Image Synthesis with Latent Diffusion Models
     \item \cite{wei2022regard} --- Chain-of-Thought Prompting Elicits Reasoning in Large Language Models
 \end{itemize}
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{Fine-tuning Strategies:} Compare full fine-tuning, linear probing, and LoRA for a downstream task with limited labeled data and limited GPU memory.
+
+    \item \textbf{LoRA Parameter Count:} A linear layer has shape $4096 \times 4096$ and LoRA rank $r=8$. Compare the number of trainable parameters in full fine-tuning vs. LoRA.
+
+    \item \textbf{Multi-Task Weighting:} Why can equal weighting fail in multi-task learning? How does uncertainty-based weighting address this issue?
+
+    \item \textbf{Continual Learning:} Explain the intuition behind Elastic Weight Consolidation. What role does the Fisher information matrix play?
+
+    \item \textbf{Self-Supervised Learning:} Contrast contrastive learning with masked image modeling. What supervision signal does each method create from unlabeled data?
+
+    \item \textbf{Large-Batch Training:} If you increase batch size by a factor of 8, what does the linear scaling rule suggest for the learning rate, and why is warmup still needed?
+\end{enumerate}
+

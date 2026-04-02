@@ -4,11 +4,14 @@
 
 ## Features
 
-- Complete knowledge system from perceptrons to Transformers
-- Detailed mathematical derivations with intuitive explanations
-- Practical examples using the PyTorch framework
-- GPU acceleration and CUDA programming concepts
-- Real-world application cases and analysis
+- Comprehensive coverage from mathematical foundations to state-of-the-art architectures
+- Rigorous mathematical derivations with intuitive explanations and proofs
+- Chronological treatment of classic architectures — from LeNet (1998) to ViT (2020) and beyond
+- Practical PyTorch implementation examples throughout every chapter
+- In-depth treatment of the Transformer architecture and modern large language models
+- End-to-end coverage of the training pipeline: data processing, optimization, regularization, and deployment
+- Every chapter includes exercises for self-assessment and deeper exploration
+- Extensive, carefully verified bibliography with citations to seminal papers
 
 ## Table of Contents
 
@@ -17,15 +20,16 @@
 | 1 | Mathematical Foundations |
 | 2 | Activation Functions |
 | 3 | Loss Functions |
-| 4 | Neural Network Architectures |
-| 5 | Core Operations |
+| 4 | Neural Network Architectures (DNN, CNN, RNN) |
+| 5 | Core Operations (Convolution, Pooling, Normalization) |
 | 6 | Skip Connections & Attention Mechanisms |
 | 7 | Optimizers & Learning Rate Schedulers |
 | 8 | Classic Network Architectures |
 | 9 | Parameter & Computation Analysis |
-| 10 | Training & Frameworks |
+| 10 | Training Process & Frameworks |
 | 11 | Dataset Processing |
 | 12 | Transformer Architecture |
+| 13 | Modern Training Techniques |
 
 ## Project Structure
 
@@ -36,7 +40,7 @@ NeuralNetwork-Textbook/
 ├── Eng/               
 │   ├── opening/            # Front matter (title page, abstract, acknowledgements, etc.)
 │   ├── text/
-│   │   ├── chapters/       # Main chapters (chapter-01 ~ chapter-12)
+│   │   ├── chapters/       # Main chapters (chapter-01 ~ chapter-13)
 │   │   └── appendix/       # Appendix
 │   ├── bibliography/       # References
 │   ├── glossary/           # Glossary

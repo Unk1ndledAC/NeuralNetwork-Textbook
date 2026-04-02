@@ -198,7 +198,16 @@
 % BIBLIOGRAPHY
 
 \usepackage{csquotes}
-\usepackage[style=ieee, backend=biber]{biblatex}
+\usepackage[
+    backend=biber,
+    citestyle=authoryear,
+    bibstyle=numeric,
+    sorting=ynt,
+    defernumbers=true
+]{biblatex}
+\let\mkbibparens\mkbibbrackets
+\let\cite\parencite
+
 
 
 % ------------------------------------------------------------------------------

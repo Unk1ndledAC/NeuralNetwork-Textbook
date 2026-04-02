@@ -168,7 +168,7 @@ This matches a single $5 \times 5$ convolution's receptive field, but with fewer
 
 \subsubsection{Effective Receptive Field}
 
-While the \textbf{theoretical} receptive field covers the entire region above, the \textbf{effective} receptive field (the region that actually influences the output) has a Gaussian-like distribution centered on the receptive field center (Luo et al., 2016). Pixels near the boundary contribute significantly less to the output than those at the center.
+While the \textbf{theoretical} receptive field covers the entire region above, the \textbf{effective} receptive field (the region that actually influences the output) has a Gaussian-like distribution centered on the receptive field center \cite{luo2016understanding}. Pixels near the boundary contribute significantly less to the output than those at the center.
 
 This has important design implications:
 \begin{itemize}
@@ -177,7 +177,7 @@ This has important design implications:
     \item Deeper networks with small kernels are preferred over shallow networks with large kernels
 \end{itemize}
 
-\subsection{$1 \times 1$ Convolution: Cross-Channel Mixing}
+\subsection{\texorpdfstring{$1 \times 1$}{1x1} Convolution: Cross-Channel Mixing}
 
 The $1 \times 1$ convolution, also called a \textbf{pointwise convolution}, operates on each pixel independently but mixes information across channels. Despite its simplicity, it is one of the most versatile operations in modern architectures.
 
@@ -307,7 +307,7 @@ where $\gamma = \lambda_{\max}(\mathbf{W}_{hh})$. Therefore:
 
 \begin{properties}[Why This Matters in Practice]
 \begin{itemize}
-    \item Typical random initialization yields $\gamma \ll 1$ with high probability (Bengio et al., 1994)
+    \item Typical random initialization yields $\gamma \ll 1$ with high probability \cite{bengio1994learning}
     \item For a sequence of length $T = 100$ and $\gamma = 0.9$: gradient magnitude $\approx 0.9^{100} \approx 2.7 \times 10^{-5}$ --- effectively zero
     \item The eigenvalues of $\mathbf{W}_{hh}$ are clipped to $[-1, 1]$ by the $\tanh$ derivative, pushing toward vanishing
     \item This is fundamentally a \textbf{dynamical systems} problem: the RNN is a discrete-time dynamical system whose fixed points are either attractive ($\gamma < 1$) or repulsive ($\gamma > 1$)
@@ -316,7 +316,7 @@ where $\gamma = \lambda_{\max}(\mathbf{W}_{hh})$. Therefore:
 
 \section{Long Short-Term Memory (LSTM)}
 
-LSTM addresses the vanishing gradient problem with gating mechanisms.
+LSTM \cite{hochreiter1997long} addresses the vanishing gradient problem with gating mechanisms.
 
 \subsection{LSTM Gates}
 
@@ -429,7 +429,7 @@ When the forget gate $\mathbf{f}^{(t)} \approx \mathbf{1}$ (which the network ca
 
 \section{Gated Recurrent Unit (GRU)}
 
-GRU simplifies LSTM with fewer gates while maintaining performance.
+GRU \cite{cho2014properties} simplifies LSTM with fewer gates while maintaining performance.
 
 \subsection{GRU Equations}
 \begin{align}
@@ -480,9 +480,26 @@ Comparison with LSTM:
 \section{Further Reading}
 
 \begin{itemize}
-    \item Bengio, Y., Simard, P., \& Frasconi, P. (1994). Learning long-term dependencies with gradient descent is difficult. \textit{IEEE Transactions on Neural Networks}, 5(2), 157--166.
-    \item Hochreiter, S. \& Schmidhuber, J. (1997). Long short-term memory. \textit{Neural Computation}, 9(8), 1735--1780.
-    \item Cho, K. et al. (2014). Learning phrase representations using RNN encoder-decoder for statistical machine translation. \textit{EMNLP}.
-    \item Luo, W., Li, Y., Urtasun, R., \& Zemel, R. (2016). Understanding the effective receptive field in deep convolutional neural networks. \textit{NeurIPS}.
-    \item He, K., Zhang, X., Ren, S., \& Sun, J. (2016). Deep residual learning for image recognition. \textit{CVPR}.
+    \item \cite{bengio1994learning} --- Learning Long-Term Dependencies with Gradient Descent Is Difficult
+    \item \cite{hochreiter1997long} --- Long Short-Term Memory
+    \item \cite{cho2014properties} --- Learning Phrase Representations Using RNN Encoder--Decoder
+    \item \cite{luo2016understanding} --- Understanding the Effective Receptive Field in Deep CNNs
+    \item \cite{he2016deep} --- Deep Residual Learning for Image Recognition
 \end{itemize}
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{DNN Parameter Counting:} A fully connected network has layer widths $784 \rightarrow 256 \rightarrow 128 \rightarrow 10$. Compute the total number of trainable parameters including biases.
+
+    \item \textbf{Receptive Field Growth:} Compute the receptive field of three stacked $3\times3$ convolutions with stride 1. How does it compare with one $7\times7$ convolution in both receptive field and parameter count?
+
+    \item \textbf{$1\times1$ Convolution:} Show that a $1\times1$ convolution with $C_{in}$ input channels and $C_{out}$ output channels is equivalent to a position-wise fully connected layer. How many parameters does it use?
+
+    \item \textbf{RNN Gradient Decay:} If the recurrent Jacobian norm is bounded by $\gamma = 0.92$, estimate the gradient attenuation over 50 time steps. Why does this make long-horizon learning difficult?
+
+    \item \textbf{LSTM Gates:} Explain the role of the forget gate in maintaining long-term memory. What happens when $\mathbf{f}^{(t)} \approx 0$ and when $\mathbf{f}^{(t)} \approx 1$?
+
+    \item \textbf{Architecture Selection:} For each of the following tasks, choose a preferred architecture and justify it: image classification, machine translation, tabular credit scoring, and multivariate time-series forecasting.
+\end{enumerate}
+

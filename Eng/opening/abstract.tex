@@ -7,40 +7,43 @@
 
 \vspace{1cm}
 
-Neural networks have revolutionized the field of artificial intelligence, enabling breakthroughs in computer vision, natural language processing, speech recognition, and many other domains. This textbook provides a comprehensive introduction to neural networks, from fundamental concepts to state-of-the-art architectures.
+Neural networks have revolutionized the field of artificial intelligence, enabling breakthroughs in computer vision, natural language processing, speech recognition, and many other domains. This textbook provides a comprehensive introduction to neural networks, from fundamental mathematical concepts to state-of-the-art architectures and training techniques.
 
-The book is organized into twelve chapters, covering:
+The book is organized into thirteen chapters, covering:
 
 \begin{enumerate}
-    \item \textbf{Mathematical Foundations:} Linear algebra, calculus, and probability theory essentials for understanding neural networks.
+    \item \textbf{Mathematical Foundations:} Linear algebra (SVD, eigendecomposition, condition numbers), calculus (Taylor expansion, Hessians, convexity), probability theory (MLE, MAP estimation, information theory), and optimization theory.
     
-    \item \textbf{Activation Functions:} Comprehensive analysis of sigmoid, tanh, ReLU, and advanced activation functions with guidance on selection criteria.
+    \item \textbf{Activation Functions:} Comprehensive analysis of sigmoid, tanh, ReLU and its variants (Leaky ReLU, PReLU, ELU), Swish/SiLU, Mish, GELU, and StarReLU, with a proof of the Universal Approximation Theorem and guidance on selection criteria.
     
-    \item \textbf{Loss Functions:} Detailed exploration of cross-entropy, mean squared error, and task-specific loss functions.
+    \item \textbf{Loss Functions:} Detailed exploration of regression losses (MSE, Huber, MAE), classification losses (cross-entropy, focal loss, label smoothing), and task-specific objectives including contrastive and Dice losses.
     
-    \item \textbf{Neural Network Architectures:} Deep Neural Networks (DNN), Convolutional Neural Networks (CNN), and Recurrent Neural Networks (RNN).
+    \item \textbf{Neural Network Architectures:} Deep Neural Networks (DNN), Convolutional Neural Networks (CNN), and Recurrent Neural Networks (RNN/LSTM/GRU) with mathematical derivations and practical examples.
     
-    \item \textbf{Core Operations:} Convolution, pooling, and normalization operations with mathematical rigor.
+    \item \textbf{Core Operations:} Convolution (standard, dilated, depthwise separable, transposed), pooling, and normalization operations (Batch Norm, Layer Norm, Group Norm, Instance Norm) with mathematical rigor.
     
-    \item \textbf{Advanced Mechanisms:} Skip connections and channel attention mechanisms including residual learning.
+    \item \textbf{Advanced Mechanisms:} Skip connections (residual, dense), channel attention (SE blocks, CBAM), and spatial attention mechanisms including theoretical analysis of gradient flow.
     
-    \item \textbf{Optimization:} Gradient descent algorithms, optimizers (SGD, Adam, AdamW), and learning rate schedulers.
+    \item \textbf{Optimization:} Gradient descent variants (SGD, momentum, Nesterov), adaptive optimizers (AdaGrad, RMSProp, Adam, AdamW, AMSGrad), and learning rate schedulers (cosine annealing, cyclical, warm restarts).
     
-    \item \textbf{Classic Architectures:} From LeNet and AlexNet to ResNet, VGG, and modern architectures.
+    \item \textbf{Classic Architectures:} Chronological survey from LeNet-5 (1998) and AlexNet (2012) through VGGNet, GoogLeNet/Inception, ResNet, DenseNet, MobileNet, SENet, EfficientNet, to Vision Transformer (ViT, 2020), U-Net, and ConvNeXt.
     
-    \item \textbf{Computational Analysis:} Parameter counting and FLOPs computation for network efficiency analysis.
+    \item \textbf{Computational Analysis:} Parameter counting and FLOPs computation for fully connected, convolutional, attention, and normalization layers, with coverage of model compression and scaling laws.
     
-    \item \textbf{Training and Frameworks:} Practical training procedures, hyperparameter tuning, and PyTorch implementation with CUDA concepts.
+    \item \textbf{Training Process and Frameworks:} Practical training procedures, regularization techniques (dropout, weight decay, early stopping), hyperparameter tuning, mixed-precision training, and PyTorch implementation with CUDA concepts.
     
-    \item \textbf{Dataset Processing:} Data collection, annotation, augmentation, and splitting strategies.
+    \item \textbf{Dataset Processing:} Data collection, annotation, augmentation strategies (Mixup, CutMix, AutoAugment, RandAugment), splitting strategies, and data loading pipelines for images, text, and audio.
     
-    \item \textbf{Transformer Architecture:} Self-attention mechanism, multi-head attention, encoder-decoder architecture, and modern large language models.
+    \item \textbf{Transformer Architecture:} Self-attention mechanism, multi-head attention, positional encodings (sinusoidal, RoPE, ALiBi), encoder-decoder architecture, BERT, GPT, and an overview of modern large language models including LLaMA and scaling laws.
+    
+    \item \textbf{Modern Training Techniques:} Pre-training and fine-tuning paradigms, parameter-efficient fine-tuning (LoRA, adapters), contrastive learning (SimCLR, InfoNCE), masked autoencoding (MAE), and advanced topics in catastrophic forgetting and multi-task learning.
 \end{enumerate}
 
-Each chapter includes detailed mathematical derivations, practical examples, and references to seminal and recent research papers. Upon completing this textbook, readers will be equipped to design, implement, and train neural networks for various applications.
+Each chapter includes detailed mathematical derivations, intuitive explanations, PyTorch code examples, exercises for self-assessment, and references to seminal and recent research papers. Upon completing this textbook, readers will be equipped to design, implement, train, and analyze neural networks for a wide range of real-world applications.
 
 \vspace{2cm}
 
-\textbf{Keywords:} Neural Networks, Deep Learning, Machine Learning, CNN, RNN, Transformer, Attention, Self-Attention, Optimization, Backpropagation, PyTorch, Computer Vision, Natural Language Processing, Large Language Models
+\textbf{Keywords:} Neural Networks, Deep Learning, Machine Learning, CNN, RNN, LSTM, Transformer, Attention Mechanism, Self-Attention, Optimization, Backpropagation, PyTorch, Computer Vision, Natural Language Processing, Large Language Models, Transfer Learning, Fine-tuning
 
 \newpage
+

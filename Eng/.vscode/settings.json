@@ -30,6 +30,9 @@
                 "pdflatex",
                 "biber",
                 "pdflatex",
+                "pdflatex",
+                "biber",
+                "pdflatex",
                 "pdflatex"
             ]
         }

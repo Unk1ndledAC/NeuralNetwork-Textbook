@@ -82,7 +82,7 @@ If the optimal function for a layer is close to identity (which is often the cas
 
 \subsection{Pre-activation ResNet}
 
-He et al.\ (2016) proposed moving BatchNorm and ReLU before the convolutional layers (pre-activation) instead of after (post-activation):
+The pre-activation design in \cite{he2016identity} moves BatchNorm and ReLU before the convolutional layers instead of after them:
 \begin{align}
 \text{Post-activation:} \quad &\mathbf{y} = \text{ReLU}(\text{BN}(\mathcal{F}(\mathbf{x}) + \mathbf{x})) \\
 \text{Pre-activation:} \quad &\mathbf{y} = \mathcal{F}(\text{ReLU}(\text{BN}(\mathbf{x}))) + \mathbf{x}
@@ -197,7 +197,7 @@ where:
     \label{fig:self_attention}
 \end{figure}
 
-\subsubsection{Why Scale by $\sqrt{d_k}$?}
+\subsubsection{Why Scale by \texorpdfstring{$\sqrt{d_k}$}{sqrt(d_k)}?}
 
 Without scaling, when $d_k$ is large, the dot products $\mathbf{q}_i \cdot \mathbf{k}_j = \sum_{m=1}^{d_k} q_{im} k_{jm}$ grow in magnitude (variance $= d_k$ for unit-variance random vectors). This pushes the softmax into regions with extremely small gradients:
 \begin{equation}
@@ -442,15 +442,32 @@ class MultiHeadAttention(nn.Module):
 \section{Further Reading}
 
 \begin{itemize}
-    \item He, K. et al. (2016). Deep residual learning for image recognition. \textit{CVPR}.
-    \item He, K. et al. (2016). Identity mappings in deep residual networks. \textit{ECCV}.
-    \item Xie, S., Girshick, R., Dollar, P., Tu, Z., \& He, K. (2017). Aggregated residual transformations for deep neural networks. \textit{CVPR}.
-    \item Huang, G. et al. (2016). Deep networks with stochastic depth. \textit{ECCV}.
-    \item Huang, G. et al. (2017). Densely connected convolutional networks. \textit{CVPR}.
-    \item Vaswani, A. et al. (2017). Attention is all you need. \textit{NeurIPS}.
-    \item Su, J. et al. (2021). RoFormer: Enhanced transformer with rotary position embedding. \textit{arXiv:2104.09864}.
-    \item Press, O. et al. (2022). Train short, test long: Attention with linear biases enables input length extrapolation. \textit{ICLR}.
-    \item Hu, J., Shen, L., \& Sun, G. (2018). Squeeze-and-excitation networks. \textit{CVPR}.
-    \item Woo, S. et al. (2018). CBAM: Convolutional block attention module. \textit{ECCV}.
-    \item Liu, Z. et al. (2021). Swin transformer: Hierarchical vision transformer using shifted windows. \textit{ICCV}.
+    \item \cite{he2016deep} --- Deep Residual Learning for Image Recognition
+    \item \cite{huang2016deep} --- Deep Networks with Stochastic Depth
+    \item \cite{he2016identity} --- Identity Mappings in Deep Residual Networks
+    \item \cite{xie2017aggregated} --- Aggregated Residual Transformations for Deep Neural Networks
+    \item \cite{huang2017densely} --- Densely Connected Convolutional Networks
+    \item \cite{vaswani2017attention} --- Attention Is All You Need
+    \item \cite{hu2018squeeze} --- Squeeze-and-Excitation Networks
+    \item \cite{woo2018cbam} --- CBAM: Convolutional Block Attention Module
+    \item \cite{liu2021swin} --- Swin Transformer: Hierarchical Vision Transformer Using Shifted Windows
+    \item \cite{su2021roformer} --- RoFormer: Enhanced Transformer with Rotary Position Embedding
+    \item \cite{press2022train} --- Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation
 \end{itemize}
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{Residual Gradient Flow:} Starting from $\mathbf{y} = \mathcal{F}(\mathbf{x}) + \mathbf{x}$, derive $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}$ and explain why the identity term helps deep optimization.
+
+    \item \textbf{Cardinality vs. Width:} In ResNeXt, what changes when you increase cardinality while holding total FLOPs roughly fixed? Why can multiple grouped paths outperform simply widening a single path?
+
+    \item \textbf{Dense Connectivity:} A DenseNet block has 4 layers and growth rate $k=32$. If the input has 64 channels, how many channels are present before the final layer in the block?
+
+    \item \textbf{Attention Complexity:} Compare the time complexity of global self-attention with Swin window attention for a sequence of length $n$ and window size $M^2$. When is window attention more attractive?
+
+    \item \textbf{Positional Encoding:} Explain how RoPE differs from sinusoidal positional encoding. Why is RoPE often preferred in modern large language models?
+
+    \item \textbf{Channel vs. Spatial Attention:} Compare SE and CBAM. Which module can explicitly attend to spatial locations, and why might that matter for detection or segmentation tasks?
+\end{enumerate}
+

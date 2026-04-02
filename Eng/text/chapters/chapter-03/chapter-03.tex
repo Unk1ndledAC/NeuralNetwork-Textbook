@@ -87,7 +87,7 @@ The gradient is \textbf{linear in the error}---a double-edged sword:
     \item \textbf{Far from the optimum} or \textbf{outliers} ($|e_i| \gg 0$): Gradient is very large, causing overshooting and excessive sensitivity to outliers.
 \end{itemize}
 
-\subsubsection{Connection to Variance and $R^2$}
+\subsubsection{Connection to Variance and \texorpdfstring{$R^2$}{R^2}}
 
 For a model $\hat{y}_i = f(\mathbf{x}_i)$, the total variance decomposition holds:
 \begin{equation}
@@ -297,7 +297,7 @@ This prevents overflow/underflow in the exponential.
 
 \subsection{Focal Loss}
 
-Focal Loss, introduced by Lin et al.\ (2017) \cite{lin2017focal} for dense object detection (RetinaNet), addresses the fundamental problem of \textbf{class imbalance} in single-stage detectors. In object detection, the vast majority of proposed anchor boxes are background (easy negatives), so the standard cross-entropy loss is dominated by easily classified examples that provide little learning signal.
+Focal Loss \cite{lin2017focal} addresses the fundamental problem of \textbf{class imbalance} in single-stage detectors for dense object detection (RetinaNet). In object detection, the vast majority of proposed anchor boxes are background (easy negatives), so the standard cross-entropy loss is dominated by easily classified examples that provide little learning signal.
 
 \subsubsection{Motivation: The Class Imbalance Problem}
 
@@ -353,7 +353,7 @@ For different values of $p_t$ and $\gamma$:
 
 \begin{table}[ht]
     \centering
-    \caption{Focal Loss Modulating Factor $(1 - p_t)^\gamma$}
+    \caption[Focal Loss Modulating Factor]{Focal Loss Modulating Factor $(1 - p_t)^\gamma$}
     \begin{tabular}{L{2.5cm} c c c c}
         \toprule
         $p_t$ & $\gamma = 0$ & $\gamma = 1$ & $\gamma = 2$ & $\gamma = 5$ \\
@@ -393,7 +393,7 @@ The modulating factor $(1 - p_t)^\gamma$ naturally appears in the gradient, furt
 
 \subsection{Label Smoothing}
 
-Label smoothing \cite{szegedy2016rethinking}, introduced by Szegedy et al.\ (2016) as part of the Inception-v2 architecture, replaces hard one-hot labels with soft labels. Despite its simplicity, it has become a standard technique in modern deep learning, especially for large language models (GPT, BERT).
+Label smoothing \cite{szegedy2016rethinking}, introduced as part of the Inception-v2 architecture, replaces hard one-hot labels with soft labels. Despite its simplicity, it has become a standard technique in modern deep learning, especially for large language models (GPT, BERT).
 
 \subsubsection{The Mechanism}
 
@@ -418,7 +418,7 @@ Hard labels encourage the model to push logits to extreme values ($z_c \to +\inf
 \begin{itemize}
     \item \textbf{Large logit magnitudes}, increasing the softmax output gap.
     \item \textbf{Poor calibration}: The model's confidence does not match its accuracy.
-    \item \textbf{Reduced generalization}: Muller et al.\ (2019) showed that a neural network with cross-entropy on hard labels has a minimum where $\|\mathbf{w}_c\| \gg \|\mathbf{w}_{k \neq c}\|$, i.e., the weight vector for the correct class grows much larger than others.
+    \item \textbf{Reduced generalization}: \cite{muller2019when} showed that a neural network with cross-entropy on hard labels has a minimum where $\|\mathbf{w}_c\| \gg \|\mathbf{w}_{k \neq c}\|$, i.e., the weight vector for the correct class grows much larger than others.
 \end{itemize}
 
 Label smoothing prevents this by assigning non-zero probability to all classes, bounding the maximum achievable confidence at $1 - \epsilon + \epsilon/K$.
@@ -495,14 +495,14 @@ where $\tau > 0$ is a temperature hyperparameter.
 
 \subsubsection{Connection to Mutual Information}
 
-The remarkable theoretical result by Oord et al.\ (2018) \cite{oord2018representation} shows that InfoNCE provides a lower bound on mutual information:
+The remarkable theoretical result in \cite{oord2018representation} shows that InfoNCE provides a lower bound on mutual information:
 \begin{equation}
 I(\mathbf{x}; \mathbf{y}) \geq \log N - \mathcal{L}_{\text{InfoNCE}}
 \end{equation}
 
 This means minimizing InfoNCE maximizes the mutual information between the query and positive key, encouraging the encoder to capture all shared information between augmented views of the same image.
 
-\subsubsection{The Role of Temperature $\tau$}
+\subsubsection{The Role of Temperature \texorpdfstring{$\tau$}{tau}}
 
 The temperature parameter $\tau$ controls the ``sharpness'' of the distribution:
 \begin{itemize}
@@ -627,13 +627,30 @@ Loss functions are the bridge between the mathematical model and the learning ob
 \section{Further Reading}
 
 \begin{itemize}
-    \item Goodfellow et al., ``Deep Learning'' \cite{goodfellow2016deep} --- Chapter 5 (Machine Learning Basics) and Chapter 6 (Deep Feedforward Networks)
-    \item Bishop, ``Pattern Recognition and Machine Learning'' \cite{bishop2006pattern} --- Chapters 1--2 for probabilistic foundations
-    \item     \item \cite{lin2017focal} --- Focal Loss for Dense Object Detection (ICCV 2017)
-    \item \cite{szegedy2016rethinking} --- Rethinking the Inception Architecture (Label Smoothing)
     \item \cite{huber1964robust} --- Robust Estimation of a Location Parameter (Huber Loss)
+    \item \cite{bishop2006pattern} --- Chapters 1--2 for probabilistic foundations
+    \item \cite{goodfellow2016deep} --- Chapter 5 (Machine Learning Basics) and Chapter 6 (Deep Feedforward Networks)
     \item \cite{milletari2016v} --- V-Net: Dice Loss for segmentation
-    \item \cite{chen2020simple} --- SimCLR: Simple Framework for Contrastive Learning
+    \item \cite{szegedy2016rethinking} --- Rethinking the Inception Architecture (Label Smoothing)
+    \item \cite{lin2017focal} --- Focal Loss for Dense Object Detection
     \item \cite{oord2018representation} --- Contrastive Predictive Coding (InfoNCE)
+    \item \cite{chen2020simple} --- SimCLR: Simple Framework for Contrastive Learning
     \item \cite{he2020masked} --- Masked Autoencoders (MAE) for self-supervised vision
 \end{itemize}
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{Huber vs. MSE:} For residuals $r \in \{-3, -1, 0, 1, 3\}$ and Huber threshold $\delta = 1$, compute the Huber loss for each residual and compare it with MSE and MAE. Which loss penalizes large outliers most strongly?
+
+    \item \textbf{Softmax-Cross-Entropy Gradient:} Starting from $\mathcal{L} = -\sum_k y_k \log \hat{y}_k$ with $\hat{y}_k = \text{softmax}(z_k)$, derive the gradient $\frac{\partial \mathcal{L}}{\partial z_k} = \hat{y}_k - y_k$.
+
+    \item \textbf{Class Imbalance:} Consider a binary dataset with 95\% negatives and 5\% positives. Explain why standard BCE may underperform. How does focal loss change the contribution of easy negatives during training?
+
+    \item \textbf{Label Smoothing:} For a 5-class classification task with smoothing parameter $\varepsilon = 0.1$, write the smoothed target distribution for the correct class and explain why this can improve calibration.
+
+    \item \textbf{Contrastive Learning:} In InfoNCE with batch size $N$, each sample has one positive and $2N-2$ negatives. How does increasing batch size affect the denominator of the objective and the difficulty of the task?
+
+    \item \textbf{Segmentation Losses:} Show how Dice loss changes when the predicted mask over-segments the object compared with when it under-segments it. Why is Dice loss often combined with cross-entropy in practice?
+\end{enumerate}
+

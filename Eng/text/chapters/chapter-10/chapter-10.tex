@@ -117,7 +117,7 @@ Smith \cite{smith2017cyclical} proposed a simple but effective method for findin
         \node at (-0.3, 5) {\small High};
         \node at (-0.3, 0) {\small Low};
     \end{tikzpicture}
-    \caption{Learning rate range test. The steepest descent point $\alpha^*$ provides a good starting learning rate.}
+    \caption[Learning rate range test]{Learning rate range test. The steepest descent point $\alpha^*$ provides a good starting learning rate.}
     \label{fig:lr_range_test}
 \end{figure}
 
@@ -303,7 +303,7 @@ where $\epsilon$ is the smoothing coefficient (typically 0.1) and $K$ is the num
 \textbf{Why label smoothing works:} It prevents the model from becoming overconfident. A model that outputs $p(\text{correct}) = 0.999$ on training data is likely memorizing rather than learning. Label smoothing penalizes this by requiring the model to distribute some probability mass to incorrect classes, which:
 \begin{itemize}
     \item Improves calibration (predicted probabilities better reflect true accuracy)
-    \item Acts as implicit regularization (M\"uller et al., 2019 showed it is equivalent to adding KL divergence between the output distribution and a uniform prior)
+    \item Acts as implicit regularization; \cite{muller2019when} connects it to adding KL divergence between the output distribution and a uniform prior
     \item Improves BLEU scores in machine translation by 0.5--1.0
 \end{itemize}
 
@@ -513,7 +513,7 @@ FP16 has a limited dynamic range ($\approx 6 \times 10^{-5}$ to $65504$). Gradie
 \mathbf{g}_{\text{FP32}} &= \frac{1}{S} \cdot \nabla_{\theta_{\text{FP16}}} \hat{\mathcal{L}}
 \end{align}
 
-Dynamic loss scaling (Micikevicius et al., 2018) automatically adjusts $S$: increase $S$ by a factor of 2 every $N$ successful steps, and halve $S$ whenever gradients overflow (contain NaN/Inf).
+Dynamic loss scaling \cite{micikevicius2018mixed} automatically adjusts $S$: increase $S$ by a factor of 2 every $N$ successful steps, and halve $S$ whenever gradients overflow (contain NaN/Inf).
 
 \subsection{BF16: The Modern Alternative}
 
@@ -770,16 +770,33 @@ Monitoring gradient statistics helps diagnose training issues:
 \section{Further Reading}
 
 \begin{itemize}
-    \item Goodfellow et al., ``Deep Learning'' \cite{goodfellow2016deep} --- Chapter 7 (Regularization) and Chapter 8 (Optimization for Training Deep Models)
-    \item \cite{srivastava2014dropout} --- Dropout: A Simple Way to Prevent Neural Networks from Overfitting
-    \item \cite{gal2016dropout} --- Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning
-    \item \cite{loshchilov2019decoupled} --- Decoupled Weight Decay Regularization (AdamW)
-    \item \cite{smith2017cyclical} --- Cyclical Learning Rates for Training Neural Networks (LR range test)
-    \item \cite{keskar2017largebatch} --- On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima
-    \item \cite{goyal2017accurate} --- Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour
-    \item \cite{szegedy2016rethinking} --- Rethinking the Inception Architecture for Computer Vision (Label Smoothing)
-    \item \cite{huang2016deep} --- Deep Networks with Stochastic Depth (Stochastic Depth)
     \item \cite{pascanu2013difficulty} --- On the Difficulty of Training Recurrent Neural Networks (Gradient Clipping)
-    \item Micikevicius et al., ``Mixed Precision Training'' (ICLR 2018)
-    \item Rajbhandari et al., ``ZeRO: Memory Optimizations Toward Training Trillion Parameter Models'' (SC 2020)
+    \item \cite{srivastava2014dropout} --- Dropout: A Simple Way to Prevent Neural Networks from Overfitting
+    \item \cite{goodfellow2016deep} --- Chapter 7 (Regularization) and Chapter 8 (Optimization for Training Deep Models)
+    \item \cite{gal2016dropout} --- Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning
+    \item \cite{huang2016deep} --- Deep Networks with Stochastic Depth (Stochastic Depth)
+    \item \cite{szegedy2016rethinking} --- Rethinking the Inception Architecture for Computer Vision (Label Smoothing)
+    \item \cite{goyal2017accurate} --- Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour
+    \item \cite{keskar2017largebatch} --- On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima
+    \item \cite{smith2017cyclical} --- Cyclical Learning Rates for Training Neural Networks (LR range test)
+    \item \cite{micikevicius2018mixed} --- Mixed Precision Training
+    \item \cite{loshchilov2019decoupled} --- Decoupled Weight Decay Regularization (AdamW)
+    \item \cite{rajbhandari2020zero} --- ZeRO: Memory Optimizations Toward Training Trillion Parameter Models
 \end{itemize}
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{Learning-Rate Range Test:} Describe how you would run an LR range test and interpret the loss curve to choose an initial learning rate.
+
+    \item \textbf{Warmup Rationale:} Why is warmup especially important for large-batch training and Transformer optimization? What failure mode does it prevent?
+
+    \item \textbf{Weight Decay:} Compare L2 regularization and AdamW in the context of adaptive optimizers. Why can the two behave differently?
+
+    \item \textbf{Early Stopping:} Explain why early stopping can be viewed as a form of regularization. What validation pattern suggests that training should stop?
+
+    \item \textbf{Mixed Precision:} If FP16 halves activation memory, what secondary mechanism is typically added to keep gradients numerically stable?
+
+    \item \textbf{Gradient Accumulation:} Suppose you can fit batch size 16 on one GPU but want an effective batch size of 128. How many accumulation steps are required, and what should happen to the loss before calling backward?
+\end{enumerate}
+

@@ -129,7 +129,7 @@ For multi-label classification, stratification is more complex. One approach is 
 For robust evaluation with limited data, $K$-fold cross-validation provides more reliable estimates:
 
 \begin{algorithm}[H]
-\caption{$K$-Fold Cross-Validation}
+\caption[K-Fold Cross-Validation]{$K$-Fold Cross-Validation}
 \begin{enumerate}
     \item Shuffle data and split into $K$ equal folds
     \item For $i = 1, 2, \ldots, K$:
@@ -293,7 +293,7 @@ Rather than manually designing augmentations, automated methods search for optim
 \begin{itemize}
     \item \textbf{AutoAugment} \cite{cubuk2019autoaugment}: Learned policies from CIFAR-10/CIFAR-100. Discovered policies transfer well to other datasets but are computationally expensive.
     \item \textbf{RandAugment} \cite{cubuk2020randaugment}: Simplified search space with just two parameters (magnitude, number of operations). Nearly matches AutoAugment with much less computation.
-    \item \textbf{TrivialAugment Wide} \cite{muller2023 torchvision}: No search needed. Applies a randomly selected augmentation at a random magnitude. Surprisingly effective and simple.
+    \item \textbf{TrivialAugment Wide} \cite{muller2023torchvision}: No search needed. Applies a randomly selected augmentation at a random magnitude. Surprisingly effective and simple.
     \item \textbf{Test-Time Augmentation (TTA):} Apply augmentations at inference and average predictions. Provides free accuracy improvement (typically 1--2\%) at the cost of $K\times$ inference time.
 \end{itemize}
 
@@ -468,7 +468,7 @@ Common imbalance ratios:
     
     \item \textbf{Undersampling majority classes:} Randomly remove samples from majority classes to balance the dataset.
     
-    \item \textbf{Focal Loss} (Lin et al., 2017): Down-weights well-classified examples, focusing training on hard examples:
+    \item \textbf{Focal Loss} \cite{lin2017focal}: Down-weights well-classified examples, focusing training on hard examples:
     \begin{equation}
     \mathcal{L}_{\text{focal}} = -(1 - p_t)^\gamma \log p_t
     \end{equation}
@@ -566,12 +566,29 @@ Note: IoU and Dice are related: $\text{Dice} = \frac{2 \cdot \text{IoU}}{1 + \te
 
 \begin{itemize}
     \item \cite{goodfellow2016deep} --- Chapter on Deep Learning, Section on Data Processing
-    \item \cite{zhang2018mixup} --- mixup: Beyond Empirical Risk Minimization
-    \item \cite{yun2019cutmix} --- CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features
-    \item \cite{cubuk2019autoaugment} --- AutoAugment: Learning Augmentation Policies from Data
-    \item \cite{cubuk2020randaugment} --- RandAugment: Practical Automated Data Augmentation with a Reduced Search Space
     \item \cite{sennrich2016neural} --- Neural Machine Translation of Rare Words with Subword Units
     \item \cite{lin2017focal} --- Focal Loss for Dense Object Detection
-    \item Chollet, ``Deep Learning with Python'' --- Chapter 4 covers data preprocessing pipelines
+    \item \cite{chollet2017deep} --- Deep Learning with Python, Chapter 4 on preprocessing pipelines
+    \item \cite{zhang2018mixup} --- mixup: Beyond Empirical Risk Minimization
+    \item \cite{cubuk2019autoaugment} --- AutoAugment: Learning Augmentation Policies from Data
+    \item \cite{yun2019cutmix} --- CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features
+    \item \cite{cubuk2020randaugment} --- RandAugment: Practical Automated Data Augmentation with a Reduced Search Space
     \item DVC Documentation: \url{https://dvc.org/} --- Data Version Control for ML projects
 \end{itemize}
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{Data Leakage:} Give two examples of data leakage in image classification or tabular ML pipelines. Why can leakage make validation accuracy misleadingly high?
+
+    \item \textbf{Split Strategy:} You have 12,000 labeled examples and 5 classes with moderate imbalance. Design a train/validation/test split strategy and explain whether stratification is needed.
+
+    \item \textbf{Mixup Labels:} If two images with one-hot labels $y_a$ and $y_b$ are combined with $\lambda = 0.3$, write the new target label used for training.
+
+    \item \textbf{Augmentation Policies:} Compare AutoAugment, RandAugment, and TrivialAugment Wide. Which one is easiest to deploy when compute for policy search is limited?
+
+    \item \textbf{Tokenization:} Explain why subword tokenization (BPE/WordPiece) usually works better than pure word-level tokenization for open-vocabulary NLP.
+
+    \item \textbf{Input Pipeline Efficiency:} Why do multiple data-loader workers and pinned memory often improve GPU utilization? When might they fail to help?
+\end{enumerate}
+

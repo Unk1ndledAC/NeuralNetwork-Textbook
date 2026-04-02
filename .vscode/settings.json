@@ -1,11 +1,35 @@
 {
   "latex-workshop.latex.recipes": [
     {
-      "name": "pdfLatex + Biber + pdfLaTeX (Complete)",
-      "tools": ["pdflatex", "biber", "pdflatex", "pdflatex", "biber", "pdflatex", "pdflatex"]
+      "name": "latexmk (pdfLaTeX + biber auto)",
+      "tools": [
+        "latexmk"
+      ]
+    },
+    {
+      "name": "pdflatex -> biber -> pdflatex -> pdflatex",
+      "tools": [
+        "pdflatex",
+        "biber",
+        "pdflatex",
+        "pdflatex"
+      ]
     }
   ],
   "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk",
+      "command": "latexmk",
+      "args": [
+        "-pdf",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-outdir=%DIR%",
+        "%DOC%"
+      ],
+      "env": {}
+    },
     {
       "name": "pdflatex",
       "command": "pdflatex",
@@ -13,6 +37,7 @@
         "-synctex=1",
         "-interaction=nonstopmode",
         "-file-line-error",
+        "-output-directory=%DIR%",
         "%DOC%"
       ],
       "env": {}
@@ -21,7 +46,8 @@
       "name": "biber",
       "command": "biber",
       "args": [
-        "--output-safechars",
+        "--input-directory=%DIR%",
+        "--output-directory=%DIR%",
         "%DOCFILE%"
       ],
       "env": {}
@@ -38,6 +64,7 @@
   "latex-workshop.latex.clean.fileTypes": [
     "*.aux",
     "*.bbl",
+    "*.bcf",
     "*.blg",
     "*.idx",
     "*.ind",
@@ -55,6 +82,8 @@
     "*.fdb_latexmk",
     "*.dpth",
     "*.md5",
-    "*.auxlock"
+    "*.auxlock",
+    "*.run.xml",
+    "*.synctex.gz"
   ]
 }

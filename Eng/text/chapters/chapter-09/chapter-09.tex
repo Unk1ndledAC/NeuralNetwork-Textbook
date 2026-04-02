@@ -171,7 +171,7 @@ Common strategies:
 
 \subsection{ResNet-50 Parameter Analysis}
 
-ResNet-50 consists of 4 stages with bottleneck blocks ($1 \times 1$, $3 \times 3$, $1 \times 1$ convolutions).
+ResNet-50 \cite{he2016deep} consists of 4 stages with bottleneck blocks ($1 \times 1$, $3 \times 3$, $1 \times 1$ convolutions).
 
 \begin{table}[ht]
     \centering
@@ -232,7 +232,7 @@ For a transformer model with $L$ layers, $d_{model}$ hidden dimension, $h$ atten
 \end{table}
 
 \begin{note}[The Scaling Laws]
-Kaplan et al. (2020) showed that transformer performance depends predictably on three factors:
+The scaling-law analysis in \cite{kaplan2020scaling} showed that transformer performance depends predictably on three factors:
 \begin{equation}
 \mathcal{L}(N, D, C) \approx \left(\frac{N_c}{N}\right)^{\alpha_N} + \left(\frac{D_c}{D}\right)^{\alpha_D}
 \end{equation}
@@ -318,11 +318,30 @@ Quantization reduces the numerical precision of weights and activations:
 \section{Further Reading}
 
 \begin{itemize}
-    \item He, K. \& Sun, J. (2015). Convolutional neural networks at constrained time cost. \textit{CVPR}.
-    \item Kaplan, J. et al. (2020). Scaling laws for neural language models. \textit{arXiv:2001.08361}.
-    \item Han, S. et al. (2016). Deep compression: Compressing deep neural networks with pruning, trained quantization and Huffman coding. \textit{ICLR}.
-    \item Hinton, G., Vinyals, O., \& Dean, J. (2015). Distilling the knowledge in a neural network. \textit{NeurIPS Workshop}.
-    \item Micikevicius, P. et al. (2018). Mixed precision training. \textit{ICLR}.
-    \item Howard, A. et al. (2017). MobileNets: Efficient convolutional neural networks for mobile vision applications. \textit{arXiv:1704.04861}.
-    \item Chen, Y. et al. (2016). Training deep nets with sublinear memory cost. \textit{arXiv:1604.06174}.
+    \item \cite{lecun1998gradient} --- Gradient-Based Learning Applied to Document Recognition (LeNet-5)
+    \item \cite{krizhevsky2012imagenet} --- ImageNet Classification with Deep CNNs (AlexNet)
+    \item \cite{hinton2015distilling} --- Distilling the Knowledge in a Neural Network
+    \item \cite{chen2016training} --- Training Deep Nets with Sublinear Memory Cost
+    \item \cite{han2015deep} --- Deep Compression: Pruning, Quantization, and Huffman Coding
+    \item \cite{he2016deep} --- Deep Residual Learning for Image Recognition
+    \item \cite{howard2017mobilenets} --- MobileNets: Efficient CNNs for Mobile Vision Applications
+    \item \cite{micikevicius2018mixed} --- Mixed Precision Training
+    \item \cite{kaplan2020scaling} --- Scaling Laws for Neural Language Models
 \end{itemize}
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{FC Parameters:} Compute the parameters and FLOPs of a fully connected layer with input dimension 1024 and output dimension 256 for a batch size of 32.
+
+    \item \textbf{Conv FLOPs:} Derive the FLOPs of a $3\times3$ convolution with input channels 64, output channels 128, and output feature map size $28\times28$.
+
+    \item \textbf{ResNet-50 Breakdown:} Using the stage totals in the chapter, estimate what fraction of ResNet-50 parameters lies outside the final classification layer.
+
+    \item \textbf{Transformer Scaling:} For a Transformer with $L=24$, $d_{model}=1024$, and vocabulary size $V=50{,}000$, estimate the total parameter count using the approximation from the chapter.
+
+    \item \textbf{Activation Memory:} For a batch size of 16 and activation tensor shape $(16, 512, 28, 28)$ stored in FP16, compute the activation memory in MB.
+
+    \item \textbf{Compression Strategy:} You need to deploy a model on an edge device with tight memory but moderate compute. Would you prioritize pruning, quantization, distillation, or low-rank factorization first? Justify your choice.
+\end{enumerate}
+

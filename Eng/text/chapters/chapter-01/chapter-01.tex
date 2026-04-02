@@ -814,7 +814,7 @@ Entropy measures the ``uncertainty'' or ``information content'' of a distributio
 
 \textbf{Historical context:} Claude Shannon introduced entropy in his 1948 paper ``A Mathematical Theory of Communication'' \cite{shannon1948mathematical}, founding information theory. The key insight is that entropy provides the \emph{unique} (up to a constant) measure of uncertainty satisfying natural desiderata: continuity, monotonicity for equiprobable outcomes, and additivity for independent events.
 
-\subsubsection{Proof: $D_{KL}(p \| q) \geq 0$ via Jensen's Inequality}
+\subsubsection{Proof: \texorpdfstring{$D_{KL}(p \| q) \geq 0$}{D_KL(p || q) >= 0} via Jensen's Inequality}
 
 The non-negativity of KL divergence, one of the most important results in information theory, follows directly from Jensen's inequality.
 
@@ -977,14 +977,14 @@ These mathematical tools will be applied throughout the textbook as we explore a
 For deeper coverage of these topics:
 
 \begin{itemize}
-    \item \cite{goodfellow2016deep} - Chapter 2 covers mathematical foundations for deep learning
     \item \cite{bishop2006pattern} - Comprehensive treatment of linear algebra and probability
     \item \cite{strang2009introduction} - Excellent introduction to linear algebra
     \item \cite{cover2012elements} - Classic text on information theory
+    \item \cite{kingma2013auto} - Variational inference and the ELBO
     \item \cite{tishby2015deep} - Information bottleneck theory for deep learning
     \item \cite{choromanska2015loss} - Loss surface analysis of neural networks
-    \item \cite{kingma2013auto} - Variational inference and the ELBO
-    \item \cite{hu2021lora} - Low-rank adaptation via SVD
+    \item \cite{goodfellow2016deep} - Chapter 2 covers mathematical foundations for deep learning
+    \item \cite{hu2021lora} - Low-rank adaptation and low-rank structure in modern models
 \end{itemize}
 
 % ==============================================================================

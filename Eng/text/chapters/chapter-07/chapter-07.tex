@@ -99,7 +99,7 @@ Exponentially weighted moving average of squared gradients:
 
 \subsection{Adam (Adaptive Moment Estimation)}
 
-Combines momentum and RMSProp:
+Adam \cite{kingma2014adam} combines momentum and RMSProp:
 \begin{align}
 \mathbf{m}_t &= \beta_1 \mathbf{m}_{t-1} + (1-\beta_1)\mathbf{g}_t \quad \text{(first moment)} \\
 \mathbf{v}_t &= \beta_2 \mathbf{v}_{t-1} + (1-\beta_2)\mathbf{g}_t^2 \quad \text{(second moment)} \\
@@ -142,7 +142,7 @@ optimizer = optim.RMSprop(model.parameters(), lr=0.01, alpha=0.99)
 
 \subsection{AdamW (Adam with Weight Decay)}
 
-Decouples weight decay from gradient update:
+AdamW \cite{loshchilov2019decoupled} decouples weight decay from gradient update:
 \begin{equation}
 \theta_{t+1} = \theta_t - \alpha \frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t} + \epsilon} - \alpha \lambda \theta_t
 \end{equation}
@@ -155,7 +155,7 @@ Decouples weight decay from gradient update:
 
 \subsection{AdaDelta}
 
-AdaDelta (Zeiler, 2012) addresses AdaGrad's monotonically decreasing learning rate by restricting the window of accumulated past gradients to a fixed size $w$ using an exponentially decaying average:
+AdaDelta \cite{zeiler2012adadelta} addresses AdaGrad's monotonically decreasing learning rate by restricting the window of accumulated past gradients to a fixed size $w$ using an exponentially decaying average:
 \begin{align}
 \mathbf{r}_t &= \rho \mathbf{r}_{t-1} + (1 - \rho)\mathbf{g}_t^2 \\
 \Delta\boldsymbol{\theta}_t &= -\frac{\sqrt{\mathbf{s}_{t-1} + \epsilon}}{\sqrt{\mathbf{r}_t + \epsilon}}\mathbf{g}_t \\
@@ -203,7 +203,7 @@ This is a \textbf{linear convergence rate} with rate $1 - \mu/L$.
 \begin{itemize}
     \item \textbf{Convex + smooth:} SGD achieves $O(1/T)$ rate; accelerated methods achieve $O(1/T^2)$
     \item \textbf{Non-convex:} All methods converge at $O(1/\sqrt{T})$ to a stationary point
-    \item \textbf{Adam} is not guaranteed to converge in the non-convex setting without modification (Reddi et al., 2018); \textbf{AdamW} and \textbf{AMSGrad} fix this issue
+    \item \textbf{Adam} is not guaranteed to converge in the non-convex setting without modification \cite{reddi2018convergence}; \textbf{AdamW} and \textbf{AMSGrad} fix this issue
     \item In practice, Adam and AdamW converge faster initially but SGD+Momentum often achieves better final generalization
 \end{itemize}
 \end{properties}
@@ -319,7 +319,7 @@ The standard schedule for modern transformer training combines warmup with cosin
 \end{cases}
 \end{equation}
 
-This is the default in most transformer training recipes (BERT, GPT, ViT).
+This warmup-plus-cosine schedule is the default in many transformer training recipes; see \cite{loshchilov2016sgdr,goyal2017accurate}.
 
 \subsection{ReduceLROnPlateau}
 
@@ -337,7 +337,7 @@ where $\gamma$ is the decay factor (typically 0.1) and $p$ is the patience (typi
 
 \subsection{OneCycleLR}
 
-Proposed by Smith (2018), OneCycleLR uses a single cycle with three phases:
+Proposed by Smith \cite{smith2018disciplined}, OneCycleLR uses a single cycle with three phases:
 \begin{enumerate}
     \item \textbf{Increase} LR from $\alpha_{min}$ to $\alpha_{max}$ (first $\sim$30\% of steps)
     \item \textbf{Decrease} LR from $\alpha_{max}$ to $\alpha_{min}$ (next $\sim$60\% of steps)
@@ -387,11 +387,29 @@ Optionally, the momentum follows an inverse pattern (high when LR is low).
 \section{Further Reading}
 
 \begin{itemize}
-    \item Kingma, D. \& Ba, J. (2015). Adam: A method for stochastic optimization. \textit{ICLR}.
-    \item Loshchilov, I. \& Hutter, F. (2019). Decoupled weight decay regularization. \textit{ICLR}.
-    \item Zeiler, M. (2012). ADADELTA: An adaptive learning rate method. \textit{arXiv:1212.5701}.
-    \item Reddi, S. et al. (2018). On the convergence of Adam and beyond. \textit{ICLR}.
-    \item Smith, L. (2018). A disciplined approach to neural network hyper-parameters. \textit{NeurIPS Workshop}.
-    \item Loshchilov, I. \& Hutter, F. (2017). SGDR: Stochastic gradient descent with warm restarts. \textit{ICLR}.
-    \item Paszke, A. et al. (2019). PyTorch: An imperative style, high-performance deep learning library. \textit{NeurIPS}.
+    \item \cite{zeiler2012adadelta} --- ADADELTA: An Adaptive Learning Rate Method
+    \item \cite{pascanu2013difficulty} --- On the Difficulty of Training Recurrent Neural Networks
+    \item \cite{kingma2014adam} --- Adam: A Method for Stochastic Optimization
+    \item \cite{loshchilov2016sgdr} --- SGDR: Stochastic Gradient Descent with Warm Restarts
+    \item \cite{reddi2018convergence} --- On the Convergence of Adam and Beyond
+    \item \cite{smith2018disciplined} --- A Disciplined Approach to Neural Network Hyper-Parameters
+    \item \cite{loshchilov2019decoupled} --- Decoupled Weight Decay Regularization
+    \item \cite{paszke2019pytorch} --- PyTorch: An Imperative Style, High-Performance Deep Learning Library
 \end{itemize}
+
+\section{Exercises}
+
+\begin{enumerate}
+    \item \textbf{Momentum Update:} Starting from $\mathbf{v}_{t+1} = \beta \mathbf{v}_t + (1-\beta)\mathbf{g}_t$, explain how momentum smooths noisy gradients compared with plain SGD.
+
+    \item \textbf{Adam Bias Correction:} Why are the bias-corrected moments $\hat{\mathbf{m}}_t$ and $\hat{\mathbf{v}}_t$ needed in Adam? What happens in the first few iterations if they are omitted?
+
+    \item \textbf{AdamW vs. Adam:} Show how decoupled weight decay differs from adding an L2 penalty to the loss when using Adam. Why is AdamW usually preferred for Transformers?
+
+    \item \textbf{Gradient Clipping:} Suppose a gradient vector has norm 12 and the clipping threshold is 3. Write the clipped gradient under norm clipping and explain what property is preserved.
+
+    \item \textbf{Cosine Annealing:} Sketch the qualitative shape of cosine learning-rate decay over one training run. Why can a large initial learning rate help optimization?
+
+    \item \textbf{Scheduler Selection:} Choose a scheduler for each scenario and justify it: long pretraining run, unknown stopping time, and fast transfer-learning fine-tuning.
+\end{enumerate}
+
