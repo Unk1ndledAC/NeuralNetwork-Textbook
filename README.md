@@ -1,5 +1,5 @@
 <p align="center">
-<img src="Eng/cover.png" width="100%" />
+<img src="en/cover.png" width="100%" />
 </p>
 
 ## Features
