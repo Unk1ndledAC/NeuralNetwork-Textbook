@@ -1,0 +1,436 @@
+%
+% 附录
+%
+
+\appendix
+
+\chapter{数学参考}
+
+\section{线性代数}
+
+\subsection{矩阵运算}
+
+\begin{itemize}
+    \item $\mathbf{AB} \neq \mathbf{BA}$（一般来说不可交换）
+    \item $(\mathbf{AB})^\top = \mathbf{B}^\top\mathbf{A}^\top$
+    \item $(\mathbf{AB})^{-1} = \mathbf{B}^{-1}\mathbf{A}^{-1}$
+    \item $\det(\mathbf{AB}) = \det(\mathbf{A})\det(\mathbf{B})$
+    \item $\text{tr}(\mathbf{AB}) = \text{tr}(\mathbf{BA})$
+\end{itemize}
+
+\subsection{范数}
+
+对于向量 $\mathbf{x} \in \mathbb{R}^n$：
+\begin{align}
+\|\mathbf{x}\|_1 &= \sum_{i=1}^{n} |x_i| \quad \text{（L1 范数）} \\
+\|\mathbf{x}\|_2 &= \sqrt{\sum_{i=1}^{n} x_i^2} \quad \text{（L2 / 欧几里得范数）} \\
+\|\mathbf{x}\|_p &= \left(\sum_{i=1}^{n} |x_i|^p\right)^{1/p} \quad \text{（L$p$ 范数）} \\
+\|\mathbf{x}\|_\infty &= \max_i |x_i| \quad \text{（L$\infty$ 范数）}
+\end{align}
+
+对于矩阵 $\mathbf{A}$：
+\begin{align}
+\|\mathbf{A}\|_F &= \sqrt{\sum_{i,j} A_{ij}^2} \quad \text{（Frobenius 范数）} \\
+\|\mathbf{A}\|_2 &= \sigma_{\max}(\mathbf{A}) \quad \text{（谱范数 = 最大奇异值）}
+\end{align}
+
+\subsection{特征值分解}
+
+对于方阵 $\mathbf{A} \in \mathbb{R}^{n \times n}$，如果可对角化，可以分解为：
+\begin{equation}
+\mathbf{A} = \mathbf{Q}\boldsymbol{\Lambda}\mathbf{Q}^{-1}
+\end{equation}
+其中 $\boldsymbol{\Lambda} = \text{diag}(\lambda_1, \ldots, \lambda_n)$ 是特征值，$\mathbf{Q}$ 包含特征向量。
+
+\textbf{性质：}
+\begin{itemize}
+    \item $\det(\mathbf{A}) = \prod_{i=1}^{n} \lambda_i$
+    \item $\text{tr}(\mathbf{A}) = \sum_{i=1}^{n} \lambda_i$
+    \item 当且仅当所有 $\lambda_i > 0$ 时，$\mathbf{A}$ 是正定的
+    \item $\mathbf{A}^k = \mathbf{Q}\boldsymbol{\Lambda}^k\mathbf{Q}^{-1}$
+\end{itemize}
+
+\subsection{奇异值分解（SVD）}
+
+任意矩阵 $\mathbf{A} \in \mathbb{R}^{m \times n}$ 可以分解为：
+\begin{equation}
+\mathbf{A} = \mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^\top
+\end{equation}
+其中 $\mathbf{U} \in \mathbb{R}^{m \times m}$（左奇异向量），$\boldsymbol{\Sigma} \in \mathbb{R}^{m \times n}$（对角奇异值 $\sigma_1 \geq \sigma_2 \geq \cdots \geq 0$），$\mathbf{V} \in \mathbb{R}^{n \times n}$（右奇异向量）。
+
+\textbf{深度学习中的应用：}
+\begin{itemize}
+    \item 低秩近似：$\mathbf{A}_k = \mathbf{U}_k \boldsymbol{\Sigma}_k \mathbf{V}_k^\top$（保留前 $k$ 个奇异值）
+    \item 主成分分析（PCA）
+    \item 理解权重矩阵：$\sigma_{\max}(\mathbf{W})$ 控制通过一层的梯度流动
+\end{itemize}
+
+\section{微积分}
+
+\subsection{常用导数}
+
+\begin{align}
+\frac{d}{dx}x^n &= nx^{n-1} \\
+\frac{d}{dx}e^x &= e^x \\
+\frac{d}{dx}\log(x) &= \frac{1}{x} \\
+\frac{d}{dx}\sin(x) &= \cos(x) \\
+\frac{d}{dx}\cos(x) &= -\sin(x) \\
+\frac{d}{dx}\sigma(x) &= \sigma(x)(1 - \sigma(x)) \quad \text{（sigmoid）} \\
+\frac{d}{dx}\text{ReLU}(x) &= \begin{cases} 1 & x > 0 \\ 0 & x \leq 0 \end{cases} \\
+\frac{d}{dx}\tanh(x) &= 1 - \tanh^2(x)
+\end{align}
+
+\subsection{链式法则}
+
+对于 $y = f(g(x))$：
+\begin{equation}
+\frac{dy}{dx} = f'(g(x)) \cdot g'(x)
+\end{equation}
+
+对于多变量函数，链式法则变为：
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}} = \frac{\partial \mathcal{L}}{\partial \mathbf{y}} \cdot \frac{\partial \mathbf{y}}{\partial \mathbf{x}}
+\end{equation}
+其中 $\frac{\partial \mathbf{y}}{\partial \mathbf{x}}$ 是 \textbf{Jacobian 矩阵}，其元素为 $J_{ij} = \frac{\partial y_i}{\partial x_j}$。
+
+\subsection{Jacobian 和 Hessian}
+
+$\mathbf{f}: \mathbb{R}^n \to \mathbb{R}^m$ 在 $\mathbf{x}$ 处的 \textbf{Jacobian}：
+\begin{equation}
+\mathbf{J}_f(\mathbf{x}) = \begin{bmatrix}
+\frac{\partial f_1}{\partial x_1} & \cdots & \frac{\partial f_1}{\partial x_n} \\
+\vdots & \ddots & \vdots \\
+\frac{\partial f_m}{\partial x_1} & \cdots & \frac{\partial f_m}{\partial x_n}
+\end{bmatrix} \in \mathbb{R}^{m \times n}
+\end{equation}
+
+$f: \mathbb{R}^n \to \mathbb{R}$ 在 $\mathbf{x}$ 处的 \textbf{Hessian}：
+\begin{equation}
+\mathbf{H}_f(\mathbf{x}) = \begin{bmatrix}
+\frac{\partial^2 f}{\partial x_1^2} & \cdots & \frac{\partial^2 f}{\partial x_1 \partial x_n} \\
+\vdots & \ddots & \vdots \\
+\frac{\partial^2 f}{\partial x_n \partial x_1} & \cdots & \frac{\partial^2 f}{\partial x_n^2}
+\end{bmatrix} \in \mathbb{R}^{n \times n}
+\end{equation}
+
+\textbf{深度学习中的应用：}
+\begin{itemize}
+    \item Jacobian 描述梯度在层之间的流动（对于 RNN 梯度消失分析至关重要）
+    \item Hessian 的特征值决定了损失景观的曲率（尖锐 vs 平坦最小值）
+    \item 二阶方法（牛顿法）使用 $\mathbf{H}^{-1}$ 进行参数更新
+\end{itemize}
+
+\subsection{泰勒展开}
+
+对于 $f(\mathbf{x})$ 在 $\mathbf{x}_0$ 附近的光滑函数：
+\begin{equation}
+f(\mathbf{x}) = f(\mathbf{x}_0) + \nabla f(\mathbf{x}_0)^\top(\mathbf{x} - \mathbf{x}_0) + \frac{1}{2}(\mathbf{x} - \mathbf{x}_0)^\top \mathbf{H}(\mathbf{x}_0)(\mathbf{x} - \mathbf{x}_0) + \cdots
+\end{equation}
+
+\subsection{拉格朗日乘数法}
+
+对于约束优化问题 $\min_{\mathbf{x}} f(\mathbf{x})$，约束条件为 $g(\mathbf{x}) = 0$：
+\begin{equation}
+\mathcal{L}(\mathbf{x}, \lambda) = f(\mathbf{x}) + \lambda \cdot g(\mathbf{x})
+\end{equation}
+解为：$\nabla_\mathbf{x} \mathcal{L} = \mathbf{0}$，$\nabla_\lambda \mathcal{L} = 0$。
+
+\section{概率与统计}
+
+\subsection{贝叶斯定理}
+
+\begin{equation}
+P(A|B) = \frac{P(B|A)P(A)}{P(B)}
+\end{equation}
+
+\subsection{概率分布}
+
+\begin{align}
+\text{高斯分布：} \quad & p(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right) \\
+\text{伯努利分布：} \quad & P(X=k) = p^k(1-p)^{1-k}, \quad k \in \{0, 1\} \\
+\text{类别分布：} \quad & P(X=k) = p_k, \quad \sum_{k} p_k = 1
+\end{align}
+
+\subsection{期望与方差}
+
+\begin{align}
+\mathbb{E}[X] &= \sum_x x \cdot P(X=x) \quad \text{（离散）} \\
+\mathbb{E}[X] &= \int x \cdot p(x) \, dx \quad \text{（连续）} \\
+\text{Var}(X) &= \mathbb{E}[X^2] - (\mathbb{E}[X])^2 \\
+\text{Var}(aX + b) &= a^2 \text{Var}(X) \\
+\mathbb{E}[XY] &= \mathbb{E}[X]\mathbb{E}[Y] \quad \text{若 } X \perp Y
+\end{align}
+
+\subsection{KL 散度与交叉熵}
+
+\begin{align}
+\text{KL}(p \| q) &= \sum_x p(x)\log\frac{p(x)}{q(x)} \quad \text{（KL 散度，$\geq 0$）} \\
+H(p, q) &= -\sum_x p(x)\log q(x) \quad \text{（交叉熵）} \\
+H(p, q) &= H(p) + \text{KL}(p \| q)
+\end{align}
+
+\subsection{信息论}
+
+\begin{align}
+H(X) &= -\sum_x P(X=x)\log P(X=x) \quad \text{（熵）} \\
+I(X; Y) &= H(X) - H(X|Y) \quad \text{（互信息）}
+\end{align}
+
+\chapter{快速参考表}
+
+\section{激活函数}
+
+\begin{table}[ht]
+    \centering
+    \caption{激活函数参考}
+    \begin{tabular}{L{2cm} L{4cm} L{3cm} L{3cm}}
+        \toprule
+        \textbf{名称} & \textbf{公式} & \textbf{值域} & \textbf{应用场景} \\
+        \midrule
+        Sigmoid & $\sigma(x) = \frac{1}{1+e^{-x}}$ & $(0, 1)$ & 二分类输出 \\
+        Tanh & $\tanh(x)$ & $(-1, 1)$ & RNN 隐藏层 \\
+        ReLU & $\max(0, x)$ & $[0, \infty)$ & 默认（隐藏层） \\
+        Leaky ReLU & $\max(\alpha x, x)$ & $(-\infty, \infty)$ & 避免神经元死亡 \\
+        GELU & $x\cdot\Phi(x)$ & $(-\infty, \infty)$ & Transformer \\
+        Swish & $x \cdot \sigma(\beta x)$ & $(-\infty, \infty)$ & 现代 CNN \\
+        Softmax & $\frac{e^{x_i}}{\sum_j e^{x_j}}$ & $(0, 1)$ & 分类输出 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{损失函数}
+
+\begin{table}[ht]
+    \centering
+    \caption{损失函数参考}
+    \begin{tabular}{L{2.5cm} L{5cm} L{4.5cm}}
+        \toprule
+        \textbf{损失函数} & \textbf{公式} & \textbf{应用场景} \\
+        \midrule
+        MSE & $\frac{1}{N}\sum_{i}(y_i - \hat{y}_i)^2$ & 回归 \\
+        MAE & $\frac{1}{N}\sum_{i}|y_i - \hat{y}_i|$ & 鲁棒回归 \\
+        交叉熵 & $-\sum_c y_c \log\hat{y}_c$ & 分类 \\
+        二分类交叉熵 & $-y\log\hat{y} - (1-y)\log(1-\hat{y})$ & 二分类 \\
+        Huber & $\begin{cases}\frac{1}{2}(y-\hat{y})^2 & |y-\hat{y}| \leq \delta \\ \delta(|y-\hat{y}|-\frac{\delta}{2}) & \text{其他}\end{cases}$ & 鲁棒回归 \\
+        Focal & $-(1-p_t)^\gamma \log p_t$ & 数据不平衡 \\
+        KL 散度 & $\sum_c p_c \log\frac{p_c}{q_c}$ & 分布匹配 \\
+        Triplet & $\max(0, d^+ - d^- + m)$ & 度量学习 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{常用数据集}
+
+\begin{table}[ht]
+    \centering
+    \caption{基准数据集}
+    \begin{tabular}{L{2cm} L{2cm} L{2cm} L{3cm} L{2.5cm}}
+        \toprule
+        \textbf{数据集} & \textbf{任务} & \textbf{规模} & \textbf{类别数} & \textbf{年份} \\
+        \midrule
+        MNIST & 分类 & 70K & 10 & 1998 \\
+        CIFAR-10 & 分类 & 60K & 10 & 2009 \\
+        CIFAR-100 & 分类 & 60K & 100 & 2009 \\
+        ImageNet-1K & 分类 & 1.2M & 1000 & 2009 \\
+        COCO & 检测/分割 & 330K & 80 & 2014 \\
+        LibriSpeech & 语音识别 & 281H & -- & 2015 \\
+        SQuAD & 问答 & 150K & -- & 2016 \\
+        GLUE & NLP 任务 & 多样 & 多样 & 2018 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\chapter{PyTorch 快速参考}
+
+\section{常用操作}
+
+\begin{lstlisting}[language=Python, caption={PyTorch 张量常用操作}]
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# 创建张量
+x = torch.randn(3, 4)  # 随机正态分布
+x = torch.zeros(3, 4)  # 零矩阵
+x = torch.ones(3, 4)   # 全一矩阵
+x = torch.tensor([1, 2, 3])  # 从数据创建
+x = torch.arange(0, 10)  # 0, 1, ..., 9
+
+# 形状操作
+y = x.view(1, 12)     # 重塑
+y = x.reshape(2, 6)   # 重塑（可能复制）
+y = x.permute(1, 0, 2) # 转置维度
+y = x.flatten()        # 展平为一维
+y = x.squeeze(0)       # 移除大小为 1 的维度
+y = x.unsqueeze(0)     # 在位置 0 添加维度
+
+# 数学操作
+y = x.sum(dim=0)
+y = x.mean(dim=1)
+y = x.max(dim=1)       # 返回 (值, 索引)
+y = x.softmax(dim=-1)
+y = torch.argmax(x, dim=-1)
+
+# GPU 操作
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+x = x.to(device)
+x = x.cuda()
+x = x.cpu()
+\end{lstlisting}
+
+\section{模型定义}
+
+\begin{lstlisting}[language=Python, caption={PyTorch 模型定义模式}]
+class ConvBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, stride=1):
+        super().__init__()
+        self.conv = nn.Conv2d(in_ch, out_ch, 3, stride, 1, bias=False)
+        self.bn = nn.BatchNorm2d(out_ch)
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        return self.relu(self.bn(self.conv(x)))
+
+class MyModel(nn.Module):
+    def __init__(self, num_classes=10):
+        super().__init__()
+        self.features = nn.Sequential(
+            ConvBlock(3, 64),
+            nn.MaxPool2d(2),
+            ConvBlock(64, 128),
+            nn.AdaptiveAvgPool2d(1)
+        )
+        self.classifier = nn.Linear(128, num_classes)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.flatten(1)
+        return self.classifier(x)
+\end{lstlisting}
+
+\section{训练工具}
+
+\begin{lstlisting}[language=Python, caption={常用训练工具}]
+# 梯度裁剪
+torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+# 学习率调度器
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+    optimizer, T_max=100, eta_min=1e-6)
+scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    optimizer, max_lr=0.01, total_steps=10000)
+
+# 混合精度训练
+scaler = torch.amp.GradScaler('cuda')
+with torch.amp.autocast('cuda'):
+    output = model(data)
+    loss = criterion(output, target)
+scaler.scale(loss).backward()
+scaler.step(optimizer)
+scaler.update()
+
+# 模型摘要
+from torchsummary import summary
+summary(model, (3, 224, 224))
+
+# 保存和加载
+torch.save(model.state_dict(), 'model.pth')
+model.load_state_dict(torch.load('model.pth'))
+\end{lstlisting}
+
+\chapter{术语表}
+
+\section{架构术语}
+
+\begin{description}
+    \item[ANN] 人工神经网络 --- 最广泛的神经网络类别
+    \item[CNN] 卷积神经网络 --- 专门处理网格状数据（图像、音频频谱图）
+    \item[RNN] 循环神经网络 --- 通过隐藏状态循环处理序列数据
+    \item[LSTM] 长短期记忆网络 --- 解决梯度消失问题的门控 RNN
+    \item[GRU] 门控循环单元 --- 简化的 LSTM，包含两个门（重置门、更新门）
+    \item[Transformer] 基于注意力机制的架构，并行处理序列
+    \item[ViT] 视觉 Transformer --- 将 Transformer 架构应用于图像块
+    \item[GAN] 生成对抗网络 --- 用于生成建模的生成器-判别器框架
+    \item[VAE] 变分自编码器 --- 具有编码器-解码器结构的概率生成模型
+    \item[自编码器] 自监督模型，学习压缩和重建数据
+    \item[U-Net] 具有跳跃连接的编码器-解码器架构，用于图像分割
+\end{description}
+
+\section{训练术语}
+
+\begin{description}
+    \item[Epoch（轮次）] 对整个训练数据集进行一次完整遍历
+    \item[Batch（批次）] 在一次前向/反向传播中一起处理的一组样本
+    \item[Batch Size（批量大小）] 每个批次的样本数量（如 32、64、256）
+    \item[Backpropagation（反向传播）] 通过反向模式自动微分计算梯度的算法
+    \item[Learning Rate（学习率）] 优化过程中参数更新的步长
+    \item[Loss Function（损失函数）] 模型在训练期间最小化的目标函数
+    \item[Gradient（梯度）] 损失相对于模型参数的偏导数
+    \item[收敛] 损失停止下降的状态（模型已学习数据）
+    \item[过拟合] 模型在训练数据上表现良好，但在未见数据上表现差
+    \item[泛化] 模型在未见数据上表现良好的能力
+    \item[正则化] 防止过拟合的技术（dropout、权重衰减等）
+    \item[早停] 当验证性能下降时停止训练
+    \item[微调] 将预训练模型适配到新任务/数据集
+    \item[预训练] 在任务特定适配之前，在大数据集上训练模型
+    \item[迁移学习] 使用从一个任务获得的知识来改进另一个任务
+\end{description}
+
+\section{层与操作术语}
+
+\begin{description}
+    \item[卷积] 滑动卷积核提取局部特征的操作
+    \item[池化] 空间下采样操作（最大池化、平均池化）
+    \item[步长] 卷积/池化中滑动窗口的步长
+    \item[填充] 在输入边界周围添加零（或其他值）
+    \item[卷积核/滤波器] 卷积中应用的可学习权重
+    \item[特征图] 卷积层的输出
+    \item[激活函数] 在线形变换之后应用的非线性函数
+    \item[Dropout] 训练期间随机将激活置零以进行正则化
+    \item[BatchNorm] 批归一化 --- 在批次维度上归一化特征
+    \item[LayerNorm] 层归一化 --- 在特征维度上归一化
+    \item[Softmax] 将 logits 转换为概率分布（和为 1）
+    \item[Embedding（嵌入）] 离散标记（词、块）的密集向量表示
+    \item[注意力] 基于查询-键相似性计算值加权和的机制
+    \item[自注意力] 查询、键、值来自同一序列的注意力
+    \item[交叉注意力] 查询与键/值来自不同序列的注意力
+    \item[位置编码] 序列模型的位置信息编码
+    \item[残差连接] 将输入加到输出的跳跃连接（$\mathbf{y} = \mathbf{x} + \mathcal{F}(\mathbf{x})$）
+\end{description}
+
+\section{性能指标}
+
+\begin{description}
+    \item[FLOPs] 浮点运算次数 --- 计算成本的度量
+    \item[MACs] 乘加运算次数（$\approx$ FLOPs 的一半）
+    \item[GFLOPs] 十亿次 FLOPs（$10^9$ FLOPs）
+    \item[Top-1 准确率] 最高置信度预测正确的样本比例
+    \item[Top-5 准确率] 正确类别在前 5 个预测中的样本比例
+    \item[mAP] 平均精度均值 --- 目标检测的标准指标
+    \item[IoU] 交并比 --- 分割/检测的重叠度量
+    \item[BLEU] 双语评估辅助 --- 文本生成质量指标
+    \item[困惑度] 交叉熵的指数；语言模型越低越好
+    \item[吞吐量] 每秒处理的样本数（samples/sec）
+    \item[延迟] 处理单个样本的时间（ms）
+\end{description}
+
+\section{其他常用缩写}
+
+\begin{description}
+    \item[SGD] 随机梯度下降
+    \item[Adam] 自适应矩估计优化器
+    \item[AdamW] 带解耦权重衰减的 Adam
+    \item[ReLU] 线性整流单元激活函数
+    \item[GELU] 高斯误差线性单元激活函数
+    \item[MSE] 均方误差损失
+    \item[MAE] 平均绝对误差损失
+    \item[KL] Kullback-Leibler 散度
+    \item[PCA] 主成分分析
+    \item[SVD] 奇异值分解
+    \item[AMP] 自动混合精度
+    \item[NAS] 神经架构搜索
+    \item[TTA] 测试时增强
+    \item[QA] 问答
+    \item[NLP] 自然语言处理
+    \item[CV] 计算机视觉
+\end{description}

@@ -37,7 +37,7 @@
 NeuralNetwork-Textbook/
 ├── .vscode/                # VS Code configuration
 │   └── settings.json       # LaTeX Workshop compilation settings (see details below)
-├── Eng/               
+├── en/               
 │   ├── opening/            # Front matter (title page, abstract, acknowledgements, etc.)
 │   ├── text/
 │   │   ├── chapters/       # Main chapters (chapter-01 ~ chapter-13)
@@ -49,6 +49,7 @@ NeuralNetwork-Textbook/
 │   ├── main.pdf            # Downloadable textbook
 │   ├── main.tex            # Main compilation entry
 │   └── Makefile
+├── zh/                     # Chinese version, same structure as English version
 ├── LICENSE                 # License file
 └── README.md               # README
 
@@ -58,11 +59,9 @@ NeuralNetwork-Textbook/
 
 The `.vscode/settings.json` file configures **VS Code LaTeX Workshop** for optimal compilation:
 
-- **Compilation pipeline**: `pdflatex → biber → pdflatex → pdflatex → biber → pdflatex → pdflatex` (7 steps)
+- **Compilation pipeline**: `pdflatex → biber → pdflatex → pdflatex` (4 steps), `xelatex → biber → xelatex → xelatex` (4 steps) recommanded for Chinese version
   - This ensures complex bibliographic systems with cross-references converge completely
-- **Auto-compilation**: Files are compiled automatically when saved (with 1-second debounce)
 - **PDF viewer**: Built-in VS Code tab viewer with SyncTeX support for reverse search
-- **Special characters**: Biber's `--output-safechars` flag ensures proper handling of Unicode characters
 
 If you customize the LaTeX compilation process, modify `.vscode/settings.json` to adjust the tools and recipes.
 
@@ -72,27 +71,24 @@ If you customize the LaTeX compilation process, modify `.vscode/settings.json` t
 
 - **TeX Live 2024+**
 - **Biber** — for bibliography processing
-
+- **xeCJK** or **ctex** package — for Chinese version
 ### Compilation
 
 #### Option 1: Using VS Code LaTeX Workshop (Recommended)
 
 1. Open the project folder in VS Code
 2. Install the **LaTeX Workshop** extension (if not already installed)
-3. Open any `.tex` file in the `Eng/` directory
-4. The compilation will start automatically when you save the file
+3. Open `main.tex` file in the `Eng/` directory
+4. Press `Ctrl+Shift+P` to open the command palette
+5. Type `LaTeX Workshop: Build with recipe` and press Enter
+6. Wait for the compilation to complete
+7. The generated PDF will be opened in the VS Code tab panel
 5. View the generated PDF in the VS Code tab panel
 
 **How it works:**
-- The `.vscode/settings.json` configuration defines a 7-step compilation pipeline
-- Files are compiled automatically with a 1-second debounce after saving
+- The `.vscode/settings.json` configuration defines a 4-step compilation pipeline
 - Biber processes bibliography automatically as part of the pipeline
 - PDF updates in real-time in the VS Code viewer
-
-**Compile times:**
-- First compilation: ~60-90 seconds (includes bibliography processing and 12 chapters)
-- Subsequent edits: ~20-30 seconds
-- Regular content changes: ~15-20 seconds
 
 #### Option 2: Using Make (Command Line)
 

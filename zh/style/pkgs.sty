@@ -1,0 +1,325 @@
+% ------------------------------------------------------------------------------
+% DEBUG
+\usepackage{lipsum}
+
+
+% ------------------------------------------------------------------------------
+% BASE
+% Note: inputenc is NOT loaded — XeLaTeX/LuaLaTeX handle UTF-8 natively.
+
+\usepackage[english]{babel}
+
+% KOMA-Script \settocdepth/\setsecnumdepth 已替换为标准 LaTeX 命令（见 alcazar.sty）
+
+
+% ------------------------------------------------------------------------------
+% 中文支持 - XeLaTeX
+% 使用 xeCJK 处理中文
+
+\usepackage{xeCJK}
+
+% 设置中文字体（使用系统中存在的字体）
+% 可用字体：simsun.ttc, simhei.ttf, STKAITI.TTF, STFANGSO.TTF
+\setCJKmainfont{SimSun}
+\setCJKsansfont{SimHei}
+\setCJKmonofont{STFangsong}
+
+% 让 xeCJK 的等宽字体也回退用于 \texttt 中的中文
+\setCJKfamilyfont{zhsong}{SimSun}
+\xeCJKsetup{
+    CJKspace=true,
+    CJKmath=true,
+    AutoFakeBold=true,
+}
+
+
+% ------------------------------------------------------------------------------
+% TEXT AND FONTS
+%
+% Font strategy for XeLaTeX / LuaLaTeX:
+%   • fontspec          — loads OpenType/TrueType fonts natively
+%   • Libertinus-otf    — Libertinus Serif/Sans/Mono text fonts (OTF)
+%   • unicode-math      — Unicode math support; use LibertinusMath-Regular.otf
+%
+% This combination avoids ALL of the following known issues:
+%   ✗ "Can't use xelatex/lualatex" — caused by libertinus-type1 (pdfLaTeX only)
+%   ✗ "Missing character … in font cmr" — OTF fonts are natively supported
+%   ✗ "Command \eth already defined"   — unicode-math replaces amssymb cleanly
+%
+% Load order (MUST be followed):
+%   1. amsthm                        (before any math font — prevents \openbox conflict)
+%   2. mathtools                     (MUST precede unicode-math; unicode-math overwrites
+%                                    \dblcolon, \coloneqq, \Coloneqq, \eqqcolon)
+%   3. \PassOptionsToPackage{…}{unicode-math}  (MUST precede libertinus-otf)
+%   4. libertinus-otf                (loads fontspec + unicode-math + setmathfont internally)
+%   5. siunitx                       (units — must come after math packages)
+
+
+% ---- 1. Theorem environments (must precede math fonts) ----------------------
+\usepackage{amsthm}
+
+
+% ---- 2. Font loader (XeLaTeX/LuaLaTeX native) -------------------------------
+\usepackage{fontspec}
+
+% ---- 3. Math tools — loaded BEFORE libertinus-otf ----------------------------
+% mathtools must precede unicode-math so that amsmath/mathtools definitions
+% are in place before unicode-math tries to overwrite \dblcolon, \coloneqq,
+% \Coloneqq, \eqqcolon.  unicode-math will overwrite these — that is intentional.
+% amsthm is already loaded (line 36) before this section, so no \openbox conflict.
+\usepackage{mathtools}             % extends amsmath; loaded before unicode-math
+
+% ---- 4. Math fonts (Libertinus OTF) ------------------------------------------
+% libertinus-otf internally loads unicode-math and calls \setmathfont.
+% Passing unicode-math options via \PassOptionsToPackage BEFORE loading
+% libertinus-otf avoids the "Option clash for package unicode-math" error.
+% Do NOT load \usepackage{unicode-math} separately — libertinus-otf handles it.
+%
+% \symbf is unicode-math's correct bold math command (uses Mathematical Bold
+% Unicode block, rendered from LibertinusMath). We redefine \mathbf to use it
+% so that \mathbf{\Sigma}/\mathbf{\theta} route through the math font rather
+% than LibertinusSerif-Bold.
+% Wrapping in \mathord prevents LaTeX3 group markers (\__um_group_begin:) from
+% leaking into subscript contexts (e.g. _\mathbf{y}), which previously caused
+% "Missing {" and "can't use \eqno" errors.
+\PassOptionsToPackage{math-style=ISO, bold-style=ISO}{unicode-math}
+\usepackage{libertinus-otf}
+
+% ---- 4b. Bold math (bm — NOT compatible with unicode-math in XeLaTeX) -------
+% Note: bm is NOT loaded for XeLaTeX as it conflicts with unicode-math.
+% Bold Greek letters will render in their regular upright form.
+
+% ---- 5. Monospace -----------------------------------------------------------
+\usepackage[scale=0.85]{plex-mono}
+
+% ---- 6. Additional math tools -----------------------------------------------
+\usepackage[separate-uncertainty=true]{siunitx}
+
+% ---- 7. Misc text ------------------------------------------------------------
+\usepackage{eurosym}
+% morespace.sty 不存在，已移除
+\usepackage[singlespacing]{setspace}
+
+
+% ------------------------------------------------------------------------------
+% GRAPHICS AND ICONS
+
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.pdf,.png,.jpg,.gif}
+
+\usepackage{fontawesome5}
+
+\usepackage{pdfpages}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes, backgrounds, arrows.meta, positioning, calc, patterns}
+\tikzset{x=1cm, y=1cm}
+
+
+% ------------------------------------------------------------------------------
+% PAGE GEOMETRY AND STYLE
+
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{changepage}
+\usepackage{pdflscape}
+
+
+% ------------------------------------------------------------------------------
+% TITLE FORMATTING
+
+\usepackage{titlesec}
+
+
+% ------------------------------------------------------------------------------
+% URL, REF AND HYPERREF
+
+\usepackage{hyperref}
+\usepackage{hyperxmp}
+\usepackage{xurl}
+\usepackage{nameref}
+
+
+% ------------------------------------------------------------------------------
+% LICENSE
+
+\usepackage[
+    type={CC},
+    modifier={by-nc-sa},
+    version={4.0},
+]{doclicense}
+
+
+% ------------------------------------------------------------------------------
+% APPENDIX
+
+\usepackage{appendix}
+
+
+% ------------------------------------------------------------------------------
+% TABLES
+
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{booktabs}
+
+
+% ------------------------------------------------------------------------------
+% FIGURES
+
+\usepackage{float}
+\usepackage[labelsep=endash, font={sf, small}, format=plain, labelfont={bf, up}]{caption}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+
+% ------------------------------------------------------------------------------
+% ALGORITHMS
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+
+% ------------------------------------------------------------------------------
+% PLOTS
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+
+% ------------------------------------------------------------------------------
+% CODE LISTINGS
+
+\usepackage{listings}
+\usepackage{newfloat}
+\DeclareFloatingEnvironment[fileext=lol, listname=代码清单, name=代码]{listing}
+
+
+% ------------------------------------------------------------------------------
+% LISTS
+
+\usepackage{enumitem}
+
+
+% ------------------------------------------------------------------------------
+% BIBLIOGRAPHY
+
+\usepackage{csquotes}
+\usepackage[
+    backend=biber,
+    citestyle=authoryear,
+    bibstyle=numeric,
+    sorting=ynt,
+    defernumbers=true
+]{biblatex}
+\let\mkbibparens\mkbibbrackets
+\let\cite\parencite
+
+
+
+% ------------------------------------------------------------------------------
+% GLOSSARIES AND ACRONYMS
+
+\usepackage[toc, style=mcoltreehypergroup, stylemods=mcols, nonumberlist, automake=immediate]{glossaries-extra}
+
+\makeglossaries
+
+
+% ------------------------------------------------------------------------------
+% CUSTOM ENVIRONMENTS (Chinese)
+% 定理类环境
+\newtheorem{theorem}{定理}[chapter]
+\newtheorem{definition}{定义}[chapter]
+\newtheorem{example}{示例}[chapter]
+
+% theorem 的中文别名
+\newenvironment{定理}[1][]{\begin{theorem}[#1]}{\end{theorem}}
+% definition 的中文别名
+\newenvironment{定义}[1][]{\begin{definition}[#1]}{\end{definition}}
+% example 的中文别名（与英文 example 共享计数器）
+\newenvironment{示例}[1][]{\begin{example}[#1]}{\end{example}}
+
+% 非定理类环境（使用 tcolorbox 风格的简单实现）
+\usepackage[most]{tcolorbox}
+
+\newtcolorbox{properties}[1][]{
+    enhanced,
+    colback=blue-50,
+    colframe=blue-300,
+    fonttitle=\bfseries,
+    title={#1},
+    arc=1mm,
+    boxrule=0.5pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+
+\newtcolorbox{architecture}[1][]{
+    enhanced,
+    colback=gray-50,
+    colframe=gray-400,
+    fonttitle=\bfseries,
+    title={#1},
+    arc=1mm,
+    boxrule=0.5pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+
+\newtcolorbox{note}[1][]{
+    enhanced,
+    colback=green-50,
+    colframe=green-300,
+    fonttitle=\bfseries,
+    title={#1},
+    arc=1mm,
+    boxrule=0.5pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+
+% properties 的中文别名
+\newenvironment{性质}[1][]{\begin{properties}[#1]}{\end{properties}}
+
+% 证明环境
+\newtcolorbox{proofbox}[1][证明]{
+    enhanced,
+    colback=blue-50,
+    colframe=blue-500,
+    fonttitle=\bfseries,
+    title={#1},
+    arc=1mm,
+    boxrule=0.5pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+\newenvironment{证明}[1][]{\begin{proofbox}[#1]}{\end{proofbox}}
+
+% 问题环境
+\newtcolorbox{problembox}[1][]{
+    enhanced,
+    colback=orange-50,
+    colframe=activation-orange,
+    fonttitle=\bfseries,
+    title={#1},
+    arc=1mm,
+    boxrule=0.5pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+\newenvironment{问题}[1][]{\begin{problembox}[#1]}{\end{problembox}}
+
+% 优点/缺点环境（list-based）
+\newenvironment{advantages}{%
+    \begin{tcolorbox}[enhanced,colback=green-50,colframe=green-500,fonttitle=\bfseries,title=优点,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=2pt,bottom=2pt]%
+    \begin{itemize}%
+}{%
+    \end{itemize}%
+    \end{tcolorbox}%
+}
+
+\newenvironment{disadvantages}{%
+    \begin{tcolorbox}[enhanced,colback=red-50,colframe=activation-red,fonttitle=\bfseries,title=缺点,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=2pt,bottom=2pt]%
+    \begin{itemize}%
+}{%
+    \end{itemize}%
+    \end{tcolorbox}%
+}

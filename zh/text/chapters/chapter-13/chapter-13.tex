@@ -1,0 +1,391 @@
+\clearpage
+\cleardoublepage
+
+\chapter{现代训练技术}
+
+\section{引言}
+
+训练现代深度学习系统涉及的远不止梯度下降。本章涵盖使在大规模数据集上训练、在任务间传递知识、实现最先进性能的高级训练技术。这些技术对于任何从事当代神经网络工作的人都是必不可少的。
+
+\section{预训练与微调}
+
+构建强大模型的主导范式是预训练后接微调。
+
+\subsection{预训练目标}
+
+预训练从大型无标签数据学习通用表示：
+
+\begin{itemize}
+    \item \textbf{语言建模（CLM）：}给定前面的令牌预测下一个令牌
+    \item \textbf{掩码语言建模（MLM）：}预测随机掩码的令牌（BERT风格）\cite{devlin2018bert}
+    \item \textbf{去噪自编码器：}重构损坏的输入
+    \item \textbf{下一句预测（NSP）：}预测句子顺序
+\end{itemize}
+
+对于视觉：
+\begin{itemize}
+    \item \textbf{对比学习：}最大化正样本对之间的相似度 \cite{chen2020simple}
+    \item \textbf{掩码自编码（MAE）：}重构掩码块 \cite{he2022masked}
+    \item \textbf{自蒸馏：}学生从教师学习
+\end{itemize}
+
+\subsection{微调策略}
+
+预训练后，模型适应特定任务：
+
+\begin{enumerate}
+    \item \textbf{全量微调：}在目标任务数据上更新所有参数
+    \item \textbf{线性探测：}在冻结特征上仅训练线性分类器
+    \item \textbf{适配器方法：}在层之间添加小型可训练模块
+    \item \textbf{LoRA（低秩适应）：}优化权重矩阵的低秩分解
+\end{enumerate}
+
+\begin{note}[何时使用每种方法]
+\begin{itemize}
+    \item \textbf{丰富的任务数据：}全量微调通常最好
+    \item \textbf{有限的任务数据：}LoRA/适配器防止过拟合
+    \item \textbf{多任务：}适配器方法实现参数高效的多任务学习
+\end{itemize}
+\end{note}
+
+\section{LoRA：低秩适应}
+
+LoRA \cite{hu2021lora}通过分解权重更新来减少可训练参数：
+
+\begin{equation}
+\mathbf{W} \leftarrow \mathbf{W} + \Delta\mathbf{W}, \quad \Delta\mathbf{W} = \mathbf{B}\mathbf{A}
+\end{equation}
+
+其中$\mathbf{B} \in \mathbb{R}^{d \times r}$，$\mathbf{A} \in \mathbb{R}^{r \times k}$，$r \ll \min(d, k)$。
+
+前向传播时（输入$\mathbf{x}$）：
+\begin{equation}
+\mathbf{h} = \mathbf{W}\mathbf{x} + \frac{\alpha}{r}\mathbf{B}\mathbf{A}\mathbf{x}
+\end{equation}
+
+其中$\alpha$是缩放因子（通常等于秩$r$）。
+
+\begin{code}
+    \captionof{listing}{PyTorch中的LoRA实现}
+    \label{code:lora}
+\begin{lstlisting}[language=python]
+import torch
+import torch.nn as nn
+
+class LoRALinear(nn.Module):
+    def __init__(self, in_features, out_features, rank=4, alpha=4):
+        super().__init__()
+        self.rank = rank
+        self.alpha = alpha
+        self.scaling = alpha / rank
+        
+        # Original frozen weights
+        self.weight = nn.Parameter(
+            torch.randn(out_features, in_features), 
+            requires_grad=False
+        )
+        
+        # Trainable low-rank matrices
+        self.lora_A = nn.Parameter(torch.randn(rank, in_features))
+        self.lora_B = nn.Parameter(torch.zeros(out_features, rank))
+        
+        # Initialize A with random Gaussian, B with zeros
+        nn.init.normal_(self.lora_A, std=1.0 / rank)
+    
+    def forward(self, x):
+        # Original forward pass
+        h = F.linear(x, self.weight)
+        # LoRA update
+        h += self.scaling * (x @ self.lora_A.T @ self.lora_B.T)
+        return h
+
+# Usage in a model
+class LoRALinearLayer(nn.Module):
+    def __init__(self, linear_layer, rank=4, alpha=4):
+        super().__init__()
+        self.linear = linear_layer
+        self.lora = LoRALinear(
+            linear_layer.in_features,
+            linear_layer.out_features,
+            rank=rank,
+            alpha=alpha
+        )
+    
+    def forward(self, x):
+        return self.lora(x)
+\end{lstlisting}
+\end{code}
+
+可训练参数从$d \times k$减少到$r \times (d + k)$。
+
+\section{迁移学习}
+
+迁移学习利用相关任务的知识。
+
+\subsection{特征迁移}
+
+在一个领域学习的特征通常可以很好地迁移：
+
+\begin{itemize}
+    \item ImageNet特征迁移到医学成像、卫星图像
+    \item BERT特征跨NLP任务迁移
+    \item 关键洞察：较低层捕获通用特征；较高层捕获任务特定模式
+\end{itemize}
+
+\subsection{渐进式解冻}
+
+微调期间逐渐解冻层：
+\begin{enumerate}
+    \item 仅训练分类头（冻结骨干）
+    \item 解冻最后$n$层，微调
+    \item 可选：解冻剩余层
+\end{enumerate}
+
+这防止预训练特征的灾难性遗忘。
+
+\section{多任务学习}
+
+同时在多个任务上训练单个模型。
+
+\subsection{硬参数共享}
+
+跨任务共享编码器权重：
+\begin{equation}
+\mathcal{L}_{\text{total}} = \sum_{t=1}^{T} \lambda_t \mathcal{L}_t(\theta_{\text{shared}}, \theta_t)
+\end{equation}
+
+其中$\lambda_t$是任务权重，$\theta_t$是任务特定头。
+
+\subsection{软参数共享}
+
+每个任务有自己的参数，用正则化鼓励相似性：
+\begin{equation}
+\mathcal{L}_{\text{total}} = \sum_{t=1}^{T} \mathcal{L}_t(\theta_t) + \lambda \sum_{i,j} \|\theta_i^{(l)} - \theta_j^{(l)}\|^2
+\end{equation}
+
+\subsection{任务平衡}
+
+多任务学习需要仔细的任务加权：
+\begin{itemize}
+    \item \textbf{等权重：}简单但可能不是最优的
+    \item \textbf{不确定性加权：}按逆任务不确定性加权 \cite{kendall2018multi}
+    \item \textbf{梯度平衡：}跨任务平衡梯度大小
+    \item \textbf{动态加权：}训练期间调整权重
+\end{itemize}
+
+\section{持续学习}
+
+在新任务上顺序训练而不遗忘之前的任务。
+
+\subsection{灾难性遗忘}
+
+神经网络在训练新任务时倾向于遗忘之前的任务。缓解策略：
+
+\begin{enumerate}
+    \item \textbf{经验回放：}存储之前任务的样本并在训练新任务时重放
+    \item \textbf{弹性权重巩固（EWC）：}用正则化保护重要权重 \cite{kirkpatrick2017overcoming}
+    \item \textbf{渐进网络：}为新任务添加新列同时冻结旧的
+    \item \textbf{架构增长：}为新任务扩展网络容量
+\end{enumerate}
+
+\subsection{EWC正则化}
+
+\begin{equation}
+\mathcal{L}_{\text{EWC}} = \mathcal{L}_B(\theta) + \frac{\lambda}{2}\sum_i \mathcal{F}_i (\theta_i - \theta_{A,i}^*)^2
+\end{equation}
+
+其中$\mathcal{F}$是Fisher信息矩阵，捕获参数重要性。
+
+\section{自监督学习}
+
+使用前置任务从无标签数据学习表示。
+
+\subsection{对比学习}
+
+最大化同一图像的不同增强视图之间的一致性：
+
+\begin{equation}
+\mathcal{L} = -\log \frac{\exp(\text{sim}(\mathbf{z}_i, \mathbf{z}_j)/\tau)}{\sum_{k=1}^{2N} \mathbf{1}_{[k \neq i]} \exp(\text{sim}(\mathbf{z}_i, \mathbf{z}_k)/\tau)}
+\end{equation}
+
+其中$\tau$是温度，$\mathbf{z}$是归一化嵌入。
+
+流行的对比学习框架：
+\begin{itemize}
+    \item \textbf{SimCLR：}带强增强的简单框架
+    \item \textbf{MoCo：}动量对比以获得大型负样本
+    \item \textbf{SwAV：}用聚类分配代替成对比较
+\end{itemize}
+
+\subsection{掩码图像建模}
+
+图像的BERT风格掩码（MAE、BEiT）：
+\begin{itemize}
+    \item 掩码随机块（MAE为75\%）
+    \item 解码器从可见块重构掩码块
+    \item 编码器仅在可见块上操作（高度高效）
+\end{itemize}
+
+\section{蒸馏与压缩}
+
+从大型模型向小型模型传递知识。
+
+\subsection{知识蒸馏}
+
+较小的学生模型从较大的教师学习：
+\begin{equation}
+\mathcal{L}_{\text{distill}} = \alpha \cdot \text{CE}(y, \text{softmax}(z_s/T)) + (1-\alpha) \cdot \text{CE}(y, \text{softmax}(z_t/T))
+\end{equation}
+
+其中$z_s$和$z_t$是学生和教师logits，$T$是温度。
+
+关键洞察：来自教师的软目标包含比硬标签更多信息。
+
+\subsection{自蒸馏}
+
+模型将知识蒸馏到自己：
+\begin{itemize}
+    \item 训练模型A，然后用A的预测训练同大小的模型B
+    \item BYOL、SimSiam：带预测网络的两个视图
+    \item 抖出噪声并产生更锐利的预测
+\end{itemize}
+
+\section{大批量训练}
+
+扩展到数千个GPU需要仔细考虑批次大小。
+
+\subsection{线性缩放规则}
+
+当增加批次大小$B$时，按比例缩放学习率：
+\begin{equation}
+\alpha_{\text{new}} = \alpha_{\text{old}} \times \frac{B_{\text{new}}}{B_{\text{old}}}
+\end{equation}
+
+Goyal等人 \cite{goyal2017accurate}在8K批次大小下实现了ImageNet上256路数据并行。
+
+\subsection{预热与缩放}
+
+对于非常大的批次（$>$16K）：
+\begin{itemize}
+    \item 渐进式预热以防止早期不稳定
+    \item 分层学习率衰减（LLRD）：较低层用较低LR
+    \item 更长训练（相应调整调度）
+\end{itemize}
+
+\section{高效训练技术}
+
+\subsection{梯度检查点}
+
+通过在反向传播期间重新计算激活以计算换内存：
+\begin{itemize}
+    \item 仅在选定的检查点存储激活
+    \item 在反向期间重新计算前向传播段
+    \item 内存减少：$O(\sqrt{n})$，计算开销$O(n)$
+\end{itemize}
+
+\subsection{卸载}
+
+在CPU和GPU内存之间移动张量：
+\begin{itemize}
+    \item CPU卸载：参数保存在CPU上，每层加载到GPU
+    \item ZeRO（零冗余优化器）：跨GPU划分优化器状态
+    \item 激活卸载：流水线重新计算
+\end{itemize}
+
+\section{调试训练}
+
+\subsection{常见问题与解决方案}
+
+\begin{table}[ht]
+    \centering
+    \caption{常见训练问题与解决方案}
+    \begin{tabular}{L{3cm} L{4cm} L{4cm}}
+        \toprule
+        \textbf{症状} & \textbf{可能原因} & \textbf{解决方案} \\
+        \midrule
+        损失NaN & 大梯度 & 降低LR，梯度裁剪 \\
+        损失不下降 & 学习率错误 & LR范围测试，降低LR \\
+        过拟合 & 数据太少，参数太多 & 正则化，增强 \\
+        欠拟合 & 模型太简单 & 更大模型，更多特征 \\
+        灾难性遗忘 & 单任务训练 & EWC，回放，渐进式 \\
+        初始化时不稳定 & 初始化差 & Kaiming/He初始化，正确归一化 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{训练配方}
+
+经过验证的常见场景配方：
+
+\begin{algorithm}[H]
+\caption{视觉模型训练配方}
+\begin{enumerate}
+    \item 从小学习率开始（Adam为1e-4，SGD为0.1）
+    \item 使用LR范围测试找到最优LR
+    \item 应用带预热的余弦退火调度
+    \item 使用强增强（RandAugment、Mixup、CutMix）
+    \item 标签平滑（分类为0.1）
+    \item 权重衰减（AdamW为0.01）
+    \item 权重的指数移动平均（EMA，衰减=0.9999）
+    \item 在验证损失上早停
+\end{enumerate}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{LLM训练配方}
+\begin{enumerate}
+    \item 在大型语料库上预训练（GPT-3规模为万亿+令牌）
+    \item 使用混合精度（BF16）和梯度检查点
+    \item 应用梯度裁剪（1.0）
+    \item 使用学习率预热（2000-10000步）
+    \item 余弦衰减到小LR（通常为峰值的10\%）
+    \item 权重衰减（LLaMA-2为0.1）
+    \item 微调期间使用注意力dropout
+    \item LoRA用于下游任务的高效微调
+\end{enumerate}
+\end{algorithm}
+
+\section{章节小结}
+
+\begin{enumerate}
+    \item 在大型数据集上预训练后接微调是主导范式
+    \item LoRA通过分解权重更新实现参数高效微调
+    \item 迁移学习允许跨领域利用表示
+    \item 多任务学习需要仔细的任务平衡策略
+    \item 持续学习技术防止灾难性遗忘
+    \item 自监督学习（对比、掩码）从无标签数据学习
+    \item 知识蒸馏将能力从大型模型传递到小型模型
+    \item 大批量训练受益于线性学习率缩放和预热
+    \item 系统调试和经过验证的配方加速开发
+\end{enumerate}
+
+\section{延伸阅读}
+
+\begin{itemize}
+    \item \cite{hinton2015distilling} --- 蒸馏神经网络中的知识
+    \item \cite{goyal2017accurate} --- 准确的大批次SGD：一小时内训练ImageNet
+    \item \cite{kirkpatrick2017overcoming} --- 克服神经网络中的灾难性遗忘
+    \item \cite{devlin2018bert} --- BERT：深度双向Transformer的预训练
+    \item \cite{kendall2018multi} --- 使用不确定性权衡多任务学习的损失
+    \item \cite{chen2020simple} --- 对比学习的一个简单框架（SimCLR）
+    \item \cite{hu2021lora} --- LoRA：大型语言模型的低秩适应
+    \item \cite{he2022masked} --- 掩码自编码器是可扩展的视觉学习器（MAE）
+    \item \cite{rombach2022high} --- 带潜在扩散模型的高分辨率图像合成
+    \item \cite{wei2022regard} --- 链式思考提示引出大型语言模型的推理
+\end{itemize}
+
+\section{练习题}
+
+\begin{enumerate}
+    \item \textbf{微调策略：}对于下游任务数据有限且GPU内存有限的情况，比较全量微调、线性探测和LoRA。
+
+    \item \textbf{LoRA参数计数：}线性层形状为$4096 \times 4096$，LoRA秩$r=8$。比较全量微调与LoRA中可训练参数的数量。
+
+    \item \textbf{多任务加权：}为什么等权重在多任务学习中可能失败？不确定性加权如何解决这个问题？
+
+    \item \textbf{持续学习：}解释弹性权重巩固背后的直觉。Fisher信息矩阵扮演什么角色？
+
+    \item \textbf{自监督学习：}对比对比学习与掩码图像建模。每种方法从无标签数据创建什么监督信号？
+
+    \item \textbf{大批量训练：}如果您将批次大小增加8倍，线性缩放规则建议学习率怎么做，为什么仍然需要预热？
+\end{enumerate}

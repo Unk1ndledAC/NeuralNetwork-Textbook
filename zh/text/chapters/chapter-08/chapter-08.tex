@@ -1,0 +1,469 @@
+\clearpage
+\cleardoublepage
+
+\chapter{经典网络架构}
+
+\section{引言}
+
+本章综述了塑造现代深度学习的里程碑式卷积网络和视觉架构。我们按\textbf{时间顺序}呈现它们，以展示每一代网络如何在前代局限的基础上发展：从1998年开创性的LeNet-5 \cite{lecun1998gradient}到2020年的Vision Transformer \cite{dosovitskiy2020image}及更晚的架构。理解这一演进过程不仅能帮助我们理解这些架构本身，也能揭示持续指导当今研究的关键设计原则。
+
+\section{神经网络的发展历程}
+
+深度学习架构的历史揭示了一条清晰的演进路径：
+\begin{itemize}
+    \item \textbf{1958--1998年：}感知机和早期神经网络；由于梯度消失和硬件限制，网络深度受限。
+    \item \textbf{1998--2012年：}LeNet证明了CNN的可行性；在GPU加速的AlexNet出现之前，该领域在图像识别方面基本处于休眠状态。
+    \item \textbf{2012--2015年：}AlexNet点燃了深度学习革命；VGGNet、GoogLeNet/Inception和ResNet迅速推动了网络深度的增加。
+    \item \textbf{2015--2019年：}ResNet、DenseNet和MobileNet变体主导；效率变得至关重要；SE模块引入通道注意力机制。
+    \item \textbf{2019年至今：}EfficientNet、ViT、Swin Transformer和ConvNeXt模糊了CNN和注意力机制范式之间的界限。
+\end{itemize}
+
+% ============================================================
+\section{感知机与早期神经网络}
+% ============================================================
+
+\subsection{感知机（1958年）}
+
+Frank Rosenblatt引入的感知机 \cite{rosenblatt1958perceptron}是第一个可训练的线性分类器：
+\begin{equation}
+y = \begin{cases} 1 & \text{若 } \mathbf{w} \cdot \mathbf{x} + b > 0 \\ 0 & \text{其他情况} \end{cases}
+\end{equation}
+
+其根本局限——无法解决非线性可分问题如XOR——在 \cite{minsky1969perceptrons} 中被正式证明，并一度使神经网络研究停滞不前。
+
+% ============================================================
+\section{LeNet-5（1998年）}
+% ============================================================
+
+Yann LeCun及其同事引入LeNet-5 \cite{lecun1998gradient}作为第一个成功的深度卷积网络，通过端到端反向传播训练用于手写数字识别（MNIST）。
+
+\begin{architecture}[LeNet-5架构]
+\begin{enumerate}
+    \item 输入：$32\times32$灰度图像
+    \item C1：$6$个$5\times5$滤波器，步长1 $\rightarrow$ $28\times28\times6$
+    \item S2：$2\times2$平均池化，步长2 $\rightarrow$ $14\times14\times6$
+    \item C3：$16$个$5\times5$滤波器 $\rightarrow$ $10\times10\times16$
+    \item S4：$2\times2$平均池化 $\rightarrow$ $5\times5\times16$
+    \item C5：$120$个$5\times5$滤波器 $\rightarrow$ $120$
+    \item F6：全连接层，84个单元，tanh激活
+    \item 输出：10类（数字）
+\end{enumerate}
+\end{architecture}
+
+总参数量：$\sim$60{,}000
+
+关键创新：
+\begin{itemize}
+    \item \textbf{通过卷积实现权重共享：}与全连接网络相比大大减少了参数量。
+    \item \textbf{局部感受野：}利用图像的空间结构。
+    \item \textbf{空间二次采样（池化）：}实现平移不变性。
+    \item \textbf{端到端训练：}整个流水线（特征提取+分类）联合训练。
+\end{itemize}
+
+% ============================================================
+\section{AlexNet（2012年）}
+% ============================================================
+
+AlexNet \cite{krizhevsky2012imagenet}在ImageNet LSVRC-2012竞赛中获胜，前5名误差为15.3\%，而第二名 Entry为26.2\%。这一差距革新了计算机视觉领域，开启了现代深度学习时代。
+
+\begin{architecture}[AlexNet架构]
+\begin{enumerate}
+    \item 输入：$224\times224\times3$ RGB图像
+    \item Conv1：$96$个$11\times11$滤波器，步长4 $\rightarrow$ $55\times55\times96$
+    \item Pool1：$3\times3$最大池化，步长2 $\rightarrow$ $27\times27\times96$
+    \item Norm1：局部响应归一化（LRN）
+    \item Conv2：$256$个$5\times5$滤波器 $\rightarrow$ $27\times27\times256$
+    \item Pool2：$3\times3$最大池化 $\rightarrow$ $13\times13\times256$
+    \item Conv3：$384$个$3\times3$滤波器
+    \item Conv4：$384$个$3\times3$滤波器
+    \item Conv5：$256$个$3\times3$滤波器
+    \item Pool5：$3\times3$最大池化 $\rightarrow$ $6\times6\times256$
+    \item FC6：4096个神经元
+    \item FC7：4096个神经元
+    \item FC8：1000类（ImageNet）
+\end{enumerate}
+\end{architecture}
+
+参数量：$\sim$6000万
+
+关键创新：
+\begin{itemize}
+    \item \textbf{ReLU激活：}取代tanh/sigmoid，加快训练速度并缓解梯度消失问题。
+    \item \textbf{GPU训练：}在两块NVIDIA GTX 580 GPU上并行训练，耗时5-6天。
+    \item \textbf{数据增强：}随机裁剪、水平翻转和基于PCA的颜色抖动。
+    \item \textbf{Dropout正则化} \cite{srivastava2014dropout}：应用于全连接层以减少过拟合。
+    \item \textbf{局部响应归一化（LRN）：}批量归一化的前身。
+\end{itemize}
+
+% ============================================================
+\section{VGGNet（2014年）}
+% ============================================================
+
+Simonyan和Zisserman \cite{simonyan2014very}在牛津大学视觉几何组（Visual Geometry Group）表明，使用非常小（$3\times3$）的卷积核增加网络深度是实现高精度的重要因素。VGG-16和VGG-19在ILSVRC 2014中获得第二名。
+
+\begin{architecture}[VGG-16架构]
+\begin{enumerate}
+    \item 输入：$224\times224\times3$
+    \item 卷积块（均使用$3\times3$滤波器、ReLU，然后最大池化）：
+    \begin{itemize}
+        \item 块1：$2\times$卷积$64$，池化 $\rightarrow$ $112\times112\times64$
+        \item 块2：$2\times$卷积$128$，池化 $\rightarrow$ $56\times56\times128$
+        \item 块3：$3\times$卷积$256$，池化 $\rightarrow$ $28\times28\times256$
+        \item 块4：$3\times$卷积$512$，池化 $\rightarrow$ $14\times14\times512$
+        \item 块5：$3\times$卷积$512$，池化 $\rightarrow$ $7\times7\times512$
+    \end{itemize}
+    \item 全连接层：4096, 4096, 1000
+\end{enumerate}
+\end{architecture}
+
+关键洞察：两个$3\times3$卷积具有与一个$5\times5$卷积相同的有效感受野，但参数量更少，且多了一层非线性：
+\begin{itemize}
+    \item 一个$5\times5$卷积：$25C^2$个参数
+    \item 两个$3\times3$卷积：$2 \times 9C^2 = 18C^2$个参数（减少28\%）
+    \item 两个ReLU激活 vs 一个：更大的表示能力
+\end{itemize}
+
+参数量：$\sim$1.38亿（大部分在FC层；骨干网络仅$\sim$15M）
+
+% ============================================================
+\section{GoogLeNet / Inception（2014年）}
+% ============================================================
+
+Szegedy等人 \cite{szegedy2015going}引入GoogLeNet（Inception v1），以6.7\%的前5名误差赢得ILSVRC 2014。其关键创新是Inception模块，它并行应用多种卷积大小并拼接它们的输出。
+
+\begin{architecture}[Inception模块（朴素版）]
+不同尺度的并行操作：
+\begin{itemize}
+    \item $1\times1$卷积（通道压缩/瓶颈）
+    \item $3\times3$卷积（在$1\times1$瓶颈之后）
+    \item $5\times5$卷积（在$1\times1$瓶颈之后）
+    \item $3\times3$最大池化（在$1\times1$瓶颈之后）
+\end{itemize}
+所有输出沿通道维度拼接。
+\end{architecture}
+
+关键创新：
+\begin{itemize}
+    \item \textbf{多尺度特征提取：}同时捕获细粒度和粗粒度模式。
+    \item \textbf{$1\times1$卷积降维：}显著降低计算成本。
+    \item \textbf{全局平均池化（GAP）：}取代大型全连接层，大大减少参数量。
+    \item \textbf{辅助分类器：}两个中间softmax头在训练期间提供额外的梯度信号，对抗梯度消失。
+\end{itemize}
+
+参数量：$\sim$400万（比AlexNet少15倍，但精度更高）
+
+Inception架构在Inception v2/v3 \cite{szegedy2016rethinking}中进一步优化，将大卷积分解（如$5\times5 \rightarrow$两个$3\times3$，$n\times n \rightarrow 1\times n + n\times1$）以进一步提高效率。
+
+% ============================================================
+\section{ResNet（2015年）}
+% ============================================================
+
+He等人 \cite{he2016deep}引入残差网络（ResNet），解决了\textbf{退化问题}：反直觉地，简单地增加网络层数会使训练更加困难，即使在理论上。其解决方案是\textbf{残差（跳跃）连接}：
+\begin{equation}
+\mathbf{y} = \mathcal{F}(\mathbf{x}, \{W_i\}) + \mathbf{x}
+\end{equation}
+
+ResNet以3.57\%的前5名误差赢得ILSVRC 2015，超越了人类水平（$\sim$5.1\%）。
+
+\begin{architecture}[ResNet-50（瓶颈块）]
+\begin{enumerate}
+    \item Conv1：$7\times7$，64个滤波器，步长2 $\rightarrow$ $112\times112\times64$
+    \item 池化：$3\times3$最大池化，步长2 $\rightarrow$ $56\times56\times64$
+    \item 阶段1：3个瓶颈块，64/256通道
+    \item 阶段2：4个瓶颈块，128/512通道，步长2
+    \item 阶段3：6个瓶颈块，256/1024通道，步长2
+    \item 阶段4：3个瓶颈块，512/2048通道，步长2
+    \item 全局平均池化
+    \item FC：1000类
+\end{enumerate}
+每个瓶颈块：$1\times1$（压缩）$\rightarrow$ $3\times3$（卷积）$\rightarrow$ $1\times1$（扩展）+跳跃连接。
+\end{architecture}
+
+关键创新：
+\begin{itemize}
+    \item \textbf{残差/跳跃连接：}梯度可以直接从输出流向早期层。
+    \item \textbf{恒等快捷方式：}相同维度的快捷方式不增加额外参数。
+    \item \textbf{瓶颈设计}（$1\times1$, $3\times3$, $1\times1$）：使深度网络具有可控的计算量。
+    \item \textbf{可扩展性：}ResNet-18, 34, 50, 101, 152；后来扩展到ResNet-1001+ \cite{he2016identity}。
+\end{itemize}
+
+参数量：$\sim$2500万（ResNet-50）
+
+% ============================================================
+\section{U-Net（2015年）}
+% ============================================================
+
+Ronneberger、Fischer和Brox \cite{ronneberger2015u}为生物医学图像分割引入U-Net。其U形编码器-解码器结构，结合保留空间细节的跳跃连接，已成为密集预测任务的主导架构。
+
+\begin{architecture}[U-Net架构]
+\begin{enumerate}
+    \item \textbf{收缩路径（编码器）：}4个块，每个块包含两个$3\times3$卷积+ReLU，然后是$2\times2$最大池化；通道数：$1 \rightarrow 64 \rightarrow 128 \rightarrow 256 \rightarrow 512$
+    \item \textbf{瓶颈层：}在最低分辨率处的$3\times3$卷积（$1024$通道）
+    \item \textbf{扩展路径（解码器）：} $2\times2$转置卷积 $\rightarrow$ 与对应编码器特征图拼接 $\rightarrow$ 两个$3\times3$卷积+ReLU
+    \item \textbf{输出：} $1\times1$卷积映射到类别数
+\end{enumerate}
+跳跃连接直接将编码器特征图拼接到解码器输入。
+\end{architecture}
+
+关键设计原则：
+\begin{itemize}
+    \item \textbf{跳跃连接保留在下采样过程中丢失的空间细节。}
+    \item \textbf{数据效率：}原始论文仅用30张带标注的图像就取得了优异效果，使用了激进的数据增强。
+    \item \textbf{对称架构：}编码器和解码器相互镜像。
+    \item 广泛扩展：Attention U-Net、U-Net++、V-Net \cite{milletari2016v}、nnU-Net。
+    \item 用于医学成像、卫星分析、自动驾驶和图像生成（如Stable Diffusion \cite{rombach2022high}）。
+\end{itemize}
+
+% ============================================================
+\section{DenseNet（2017年）}
+% ============================================================
+
+Huang等人 \cite{huang2017densely}提出密集连接卷积网络（DenseNet），其中每一层接收同一密集块中\textbf{所有}前面层的拼接特征图：
+
+\begin{equation}
+\mathbf{x}_l = H_l\left([\mathbf{x}_0, \mathbf{x}_1, \ldots, \mathbf{x}_{l-1}]\right)
+\end{equation}
+
+其中$[\cdot]$表示通道维度拼接。对于有$L$层、增长率为$k$的块，第$l$层接收$k_0 + k(l-1)$个输入通道。
+
+关键创新：
+\begin{itemize}
+    \item \textbf{特征复用：}每层直接访问所有前面的特征，减少冗余。
+    \item \textbf{强梯度流：}密集连接充当隐式深度监督。
+    \item \textbf{更好的参数效率}：在ImageNet上，DenseNet-121（8M参数）与ResNet-50（25M参数）达到相当的精度。
+    \item \textbf{过渡层：}密集块之间的$1\times1$卷积+$2\times2$平均池化，控制特征图大小。
+\end{itemize}
+
+参数量：$\sim$800万（DenseNet-121）
+
+% ============================================================
+\section{MobileNet（2017年）}
+% ============================================================
+
+Howard等人 \cite{howard2017mobilenets}引入MobileNets，用\textbf{深度可分离卷积}替代标准卷积，以实现移动和嵌入式视觉应用的大幅降低计算成本。
+
+深度可分离卷积将标准$K\times K$卷积分解为：
+\begin{enumerate}
+    \item \textbf{深度卷积：} $K\times K$卷积独立应用于每个输入通道（$C_{in}$个深度为1的滤波器）。
+    \item \textbf{逐点卷积：} $1\times1$卷积组合通道输出（$C_{out}$个滤波器）。
+\end{enumerate}
+
+相对于标准卷积的FLOPs减少：
+\begin{equation}
+\frac{\text{深度可分离FLOPs}}{\text{标准FLOPs}} = \frac{1}{C_{out}} + \frac{1}{K^2}
+\end{equation}
+对于$K=3$, $C_{out}=256$：减少因子约为$8$--$9\times$。
+
+\begin{properties}[MobileNet系列]
+\begin{itemize}
+    \item \textbf{MobileNetV1} \cite{howard2017mobilenets}：深度可分离卷积；宽度乘数$\alpha$和分辨率乘数$\rho$实现精度-效率权衡。（$\sim$4.2M参数，$\sim$0.58 GMACs）
+    \item \textbf{MobileNetV2} \cite{sandler2018mobilenetv2}：添加倒残差块（扩展通道$\rightarrow$深度卷积$\rightarrow$压缩），具有线性瓶颈以防止信息破坏。（$\sim$3.4M参数）
+    \item \textbf{MobileNetV3}：神经架构搜索（NAS）优化，硬件感知激活（h-swish）；V3-Small：2.5M参数，77.7\% Top-1。
+\end{itemize}
+\end{properties}
+
+% ============================================================
+\section{ShuffleNet（2018年）}
+% ============================================================
+
+Zhang等人 \cite{zhang2018shufflenet}引入ShuffleNet以克服MobileNet昂贵的$1\times1$逐点卷积（占总计算量的93\%）的限制。
+
+ShuffleNet对深度卷积和逐点卷积步骤都使用\textbf{分组卷积}，并引入\textbf{通道重排}操作以允许跨组信息流动：
+\begin{equation}
+\text{Shuffle}(\mathbf{X})_{g,c,h,w} = \mathbf{X}_{\lfloor c/(C/G)\rfloor,\, (g + c \cdot G) \bmod C,\, h,\, w}
+\end{equation}
+
+没有重排，堆叠的分组卷积只能在组内通信。通道重排在不增加$1\times1$卷积成本的情况下提供了高效的组间混合。
+
+\begin{properties}[ShuffleNet变体]
+\begin{itemize}
+    \item ShuffleNetV1：在ARM设备上比MobileNet快1.5倍，精度相当。
+    \item ShuffleNetV2：引入通道分割和四个硬件效率准则：（1）相等的通道宽度最小化内存访问成本；（2）过多的分组卷积是有害的；（3）碎片化网络结构损害并行性；（4）逐元素操作不可忽视。ShuffleNetV2 $1.5\times$：3.5M参数，299M MACs，73.3\% Top-1。
+\end{itemize}
+\end{properties}
+
+% ============================================================
+\section{SENet（2018年）}
+% ============================================================
+
+Hu、Shen和Sun \cite{hu2018squeeze}引入压缩激励网络（SENet），以2.25\%的前5名误差赢得ILSVRC 2017。SE块向任何现有架构添加了轻量级通道注意力机制：
+
+\begin{architecture}[SE块]
+\begin{enumerate}
+    \item \textbf{压缩：}全局平均池化 $\rightarrow$ $1\times 1\times C$通道描述符
+    \begin{equation}
+    s_c = \frac{1}{H \cdot W}\sum_{i=1}^{H}\sum_{j=1}^{W} x_c(i,j)
+    \end{equation}
+    \item \textbf{激励：}两个具有瓶颈的全连接层（缩减比$r=16$）和sigmoid门控
+    \begin{equation}
+    \mathbf{e} = \sigma\!\left(\mathbf{W}_2 \,\delta\!\left(\mathbf{W}_1 \mathbf{s}\right)\right), \quad \mathbf{W}_1 \in \mathbb{R}^{(C/r)\times C},\; \mathbf{W}_2 \in \mathbb{R}^{C\times (C/r)}
+    \end{equation}
+    \item \textbf{缩放：}逐通道特征重新校准 $\tilde{x}_c = e_c \cdot x_c$
+\end{enumerate}
+\end{architecture}
+
+关键洞察：不同通道对不同输入携带不同的语义信息。SE块学习强调判别性通道并抑制不太有用的通道。增加的开销很小（$<$总FLOPs的1\%），但在ImageNet上始终能提高1-2\%的精度。SE块已被整合到ResNet（SE-ResNet）、MobileNet（SE-MobileNet）和许多其他架构中。同年引入的泛化版本——结合空间注意力的CBAM（卷积块注意力模块）\cite{woo2018cbam}——进一步扩展了这一思想。
+
+% ============================================================
+\section{EfficientNet（2019年）}
+% ============================================================
+
+Tan和Le \cite{tan2019efficientnet}提出EfficientNet，采用原则性的\textbf{复合缩放}方法，使用单一复合系数$\phi$同时缩放网络深度、宽度和输入分辨率：
+\begin{align}
+\text{深度：} \quad d &= \alpha^\phi \\
+\text{宽度：} \quad w &= \beta^\phi \\
+\text{分辨率：} \quad r &= \gamma^\phi \\
+\text{约束：} \quad \alpha \cdot \beta^2 \cdot \gamma^2 &\approx 2 \quad \text{（FLOPs按$2^\phi$缩放）}
+\end{align}
+其中$\alpha=1.2, \beta=1.1, \gamma=1.15$是通过在EfficientNet-B0上进行网格搜索得到的。
+
+\begin{table}[ht]
+    \centering
+    \caption{EfficientNet系列（ImageNet Top-1精度）}
+    \begin{tabular}{L{2cm} L{2cm} L{2cm} L{3cm} L{2.5cm}}
+        \toprule
+        \textbf{变体} & \textbf{参数} & \textbf{FLOPs} & \textbf{分辨率} & \textbf{Top-1} \\
+        \midrule
+        B0 & 5.3M & 0.39B & $224^2$ & 77.1\% \\
+        B1 & 7.8M & 0.70B & $240^2$ & 79.1\% \\
+        B2 & 9.2M & 1.0B & $260^2$ & 80.1\% \\
+        B3 & 12M & 1.8B & $300^2$ & 81.6\% \\
+        B4 & 19M & 4.2B & $380^2$ & 82.9\% \\
+        B7 & 66M & 37B & $600^2$ & 84.3\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+EfficientNet以显著更少的参数和FLOPs达到最先进的精度。复合缩放原则已成为架构缩放的标准指南。
+
+% ============================================================
+\section{Vision Transformer（ViT，2020年）}
+% ============================================================
+
+Dosovitskiy等人 \cite{dosovitskiy2020image}证明，当在大规模预训练时，直接应用于图像块序列的纯Transformer编码器——不包含任何卷积——可以在图像分类上达到具有竞争力的性能。
+
+\begin{architecture}[ViT架构]
+\begin{enumerate}
+    \item \textbf{块嵌入：}将$224\times224$图像分割为$16\times16$块（$196$个块）；将每个块展平为向量；应用线性投影得到$d$维嵌入。
+    \item \textbf{[CLS]令牌：}在块序列前添加一个可学习的分类令牌。
+    \item \textbf{位置编码：}向每个令牌添加学习到的1D位置嵌入。
+    \item \textbf{Transformer编码器：} $L$层的堆叠；每层包含多头自注意力（MHSA）+层归一化+MLP（GELU）+残差连接。
+    \item \textbf{分类头：}对最后一层的[CLS]令牌输出应用线性层。
+\end{enumerate}
+\end{architecture}
+
+\begin{properties}[ViT关键洞察]
+\begin{itemize}
+    \item \textbf{无归纳偏置：}与CNN不同，ViT没有内置的平移等变性或局部性。它必须从数据中学习这些，这需要大规模预训练。
+    \item \textbf{数据饥饿：}ViT仅在大数据集（ImageNet-21k、JFT-300M）上预训练时才能超越CNN。单独在ImageNet-1k上，它不如ResNet \cite{dosovitskiy2020image}。
+    \item \textbf{良好的可扩展性：}性能和更多数据与计算一致地改进；ViT-L/16在JFT-300M预训练下达到87.1\% Top-1。
+    \item \textbf{DeiT} \cite{touvron2021training}：使用教师（RegNet）蒸馏，使ViT能够仅在ImageNet-1k上从头开始训练，ViT-B/16达到85.2\%。
+\end{itemize}
+\end{properties}
+
+\begin{note}[CNN vs. ViT：当前格局（2022年至今）]
+截至2024年，该领域已收敛到混合和现代化方法：
+\begin{itemize}
+    \item \textbf{Swin Transformer} \cite{liu2021swin}：具有移动窗口的分层ViT，实现线性复杂度并支持密集预测。Swin-L：84.5\% Top-1。
+    \item \textbf{ConvNeXt} \cite{liu2022convnet}：纯CNN重新设计，纳入Transformer设计选择（大核、更少激活、层归一化）。ConvNeXt-L：85.1\% Top-1，在相似FLOPs下与Swin持平。
+    \item CNN和ViT之间的竞争推动了快速进展。现在的选择往往取决于下游任务、数据规模和部署硬件，而不是一种范式普遍优于另一种。
+\end{itemize}
+\end{note}
+
+% ============================================================
+\section{总结与比较}
+% ============================================================
+
+\begin{table}[ht]
+    \centering
+    \caption{按时间排序的架构比较（ImageNet Top-1精度）}
+    \begin{tabular}{L{2.8cm} L{1.3cm} L{2cm} L{2.5cm} L{4cm}}
+        \toprule
+        \textbf{网络} & \textbf{年份} & \textbf{参数} & \textbf{Top-1精度} & \textbf{关键创新} \\
+        \midrule
+        LeNet-5 & 1998 & 60K & N/A (MNIST) & CNN权重共享 \\
+        AlexNet & 2012 & 60M & 62.5\% & GPU + ReLU + Dropout \\
+        VGG-16 & 2014 & 138M & 71.5\% & 统一的$3\times3$卷积堆叠 \\
+        GoogLeNet & 2014 & 4M & 72.0\% & Inception多尺度 \\
+        ResNet-50 & 2015 & 25M & 76.1\% & 残差跳跃连接 \\
+        U-Net & 2015 & $\sim$31M & N/A (分割) & 编码器-解码器+跳跃 \\
+        DenseNet-121 & 2017 & 8M & 74.4\% & 密集特征复用 \\
+        MobileNetV2 & 2018 & 3.4M & 72.0\% & 倒残差+线性瓶颈 \\
+        SENet (SE-ResNet-50) & 2018 & 28M & 77.6\% & 通道注意力 \\
+        ShuffleNetV2 $1.5\times$ & 2018 & 3.5M & 73.3\% & 通道重排 \\
+        EfficientNet-B7 & 2019 & 66M & 84.3\% & 复合缩放 \\
+        ViT-B/16 & 2020 & 86M & 79.9\%$^*$ & 基于块的注意力 \\
+        Swin-L & 2021 & 197M & 84.5\% & 分层移动窗口注意力 \\
+        ConvNeXt-L & 2022 & 198M & 85.1\% & 现代化CNN \\
+        \bottomrule
+    \end{tabular}
+    \footnotesize{$^*$ ImageNet-21k预训练；仅ImageNet-1k为77.9\%。}
+\end{table}
+
+% ============================================================
+\section{章节小结}
+% ============================================================
+
+\begin{enumerate}
+    \item \textbf{LeNet-5}（1998年）开创了用于字符识别的端到端CNN训练。
+    \item \textbf{AlexNet}（2012年）证明，在GPU上使用ReLU和dropout训练的深度CNN可以大大优于手工特征，开启了现代深度学习时代。
+    \item \textbf{VGGNet}（2014年）展示了通过统一的$3\times3$卷积堆叠实现深度的重要性。
+    \item \textbf{GoogLeNet/Inception}（2014年）引入了多尺度特征提取和降维，以15倍的参数减少达到AlexNet精度。
+    \item \textbf{ResNet}（2015年）用残差连接解决了退化问题，使数百层成为可能，并超越了人类水平的ImageNet性能。
+    \item \textbf{U-Net}（2015年）为密集预测任务定义了带跳跃连接的编码器-解码器范式。
+    \item \textbf{DenseNet}（2017年）通过跨所有层的密集特征复用提高了参数效率。
+    \item \textbf{MobileNet}（2017年）引入了深度可分离卷积以实现高效的移动推理。
+    \item \textbf{ShuffleNet}（2018年）通过分组卷积和通道重排进一步提高了移动效率。
+    \item \textbf{SENet}（2018年）纳入通道注意力以自适应地重新校准特征响应。
+    \item \textbf{EfficientNet}（2019年）证明了复合缩放始终优于单维度缩放。
+    \item \textbf{ViT}（2020年）证明了纯注意力在足够规模下可以匹配或超越CNN。
+    \item 该领域继续收敛：现代CNN（ConvNeXt）和ViT（Swin）在相似计算预算下达到相似性能。
+\end{enumerate}
+
+% ============================================================
+\section{延伸阅读}
+% ============================================================
+
+以下参考文献按时间顺序排列。
+
+\begin{itemize}
+    \item \cite{lecun1998gradient} --- LeCun等（1998年）：LeNet-5和基于梯度的文档识别学习。
+    \item \cite{krizhevsky2012imagenet} --- Krizhevsky、Sutskever \& Hinton（2012年）：AlexNet和ImageNet突破。
+    \item \cite{simonyan2014very} --- Simonyan \& Zisserman（2014/2015年）：VGGNet深度研究。
+    \item \cite{ronneberger2015u} --- Ronneberger、Fischer \& Brox（2015年）：用于生物医学分割的U-Net。
+    \item \cite{szegedy2015going} --- Szegedy等（2015年）：GoogLeNet / Inception v1。
+    \item \cite{he2016deep} --- He等（2016年）：ResNet和深度残差学习。
+    \item \cite{he2016identity} --- He等（2016年）：深度残差网络中的恒等映射。
+    \item \cite{szegedy2016rethinking} --- Szegedy等（2016年）：Inception v3和标签平滑。
+    \item \cite{huang2017densely} --- Huang等（2017年）：DenseNet。
+    \item \cite{howard2017mobilenets} --- Howard等（2017年）：MobileNets。
+    \item \cite{sandler2018mobilenetv2} --- Sandler等（2018年）：MobileNetV2倒残差。
+    \item \cite{zhang2018shufflenet} --- Zhang等（2018年）：ShuffleNet。
+    \item \cite{hu2018squeeze} --- Hu、Shen \& Sun（2018年）：SENet。
+    \item \cite{woo2018cbam} --- Woo等（2018年）：CBAM通道和空间注意力。
+    \item \cite{tan2019efficientnet} --- Tan \& Le（2019年）：EfficientNet复合缩放。
+    \item \cite{dosovitskiy2020image} --- Dosovitskiy等（2020/2021年）：Vision Transformer（ViT）。
+    \item \cite{touvron2021training} --- Touvron等（2021年）：数据高效图像Transformer的DeiT。
+    \item \cite{liu2021swin} --- Liu等（2021年）：Swin Transformer。
+    \item \cite{liu2022convnet} --- Liu等（2022年）：ConvNeXt。
+\end{itemize}
+
+% ============================================================
+\section{练习题}
+% ============================================================
+
+\begin{enumerate}
+    \item \textbf{参数计数：}计算VGG-16中可训练参数的总数。识别哪个组件（卷积层vs.全连接层）占主导。ResNet-50如何用约5倍更少的参数达到相当的精度？
+
+    \item \textbf{感受野分析：}证明两个连续的$3\times3$卷积层在输入上具有$5\times5$的有效感受野。推广：$k$个堆叠的$3\times3$卷积的有效感受野是多少？
+
+    \item \textbf{残差学习：}假设一个块学习$\mathbf{y} = \mathcal{F}(\mathbf{x}) + \mathbf{x}$。如果$\mathcal{F}$可以表示任何函数，为什么这种公式比直接学习$\mathbf{y} = \mathcal{G}(\mathbf{x})$更容易优化？讨论恒等映射在梯度流中的作用。
+
+    \item \textbf{深度可分离卷积：}对于输入$H\times W\times 32$和产生$H\times W\times 64$输出的$3\times3$卷积，计算（a）标准卷积的FLOPs，（b）深度可分离卷积的FLOPs。加速比是多少？
+
+    \item \textbf{Inception模块：}在PyTorch中实现Inception v1模块。选择输入通道$C_{in}=256$，输出配置如原始论文（64 + 128 + 32 + 32 = 256输出通道）。比较使用和不使用$1\times1$瓶颈卷积的FLOPs。
+
+    \item \textbf{EfficientNet缩放：}给定基线EfficientNet-B0，参数$(\alpha, \beta, \gamma) = (1.2, 1.1, 1.15)$，计算$\phi = 3$（EfficientNet-B3）的深度、宽度和分辨率缩放因子。验证$\alpha\cdot\beta^2\cdot\gamma^2 \approx 2$。
+
+    \item \textbf{ViT令牌：}ViT-B/16通过将$224\times224$图像分割为$16\times16$块来处理。（a）有多少个块令牌？（b）包括[CLS]令牌，总序列长度是多少？（c）序列长度$N$的二次注意力复杂度是多少，与图像分辨率相比如何？
+\end{enumerate}

@@ -1,0 +1,415 @@
+\clearpage
+\cleardoublepage
+
+\chapter{优化器与学习率调度器}
+
+\section{梯度下降优化}
+
+训练神经网络通过在减少损失的方向上更新参数来最小化损失函数。
+
+\subsection{批量梯度下降}
+
+使用整个数据集的梯度更新参数：
+\begin{equation}
+\theta_{t+1} = \theta_t - \alpha \nabla_\theta \mathcal{L}(\theta_t)
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{优点：} 收敛稳定，梯度精确
+    \item \textbf{缺点：} 大数据集上慢，内存占用大
+\end{itemize}
+
+\subsection{随机梯度下降（SGD）}
+
+使用单个样本的梯度更新参数：
+\begin{equation}
+\theta_{t+1} = \theta_t - \alpha \nabla_\theta \mathcal{L}(\theta_t; \mathbf{x}^{(i_t)}, \mathbf{y}^{(i_t)})
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{优点：} 快，能跳出局部最小值，可在线学习
+    \item \textbf{缺点：} 梯度噪声大，需要较小的学习率
+\end{itemize}
+
+\subsection{小批量梯度下降}
+
+使用 $B$ 个样本的批次更新：
+\begin{equation}
+\theta_{t+1} = \theta_t - \alpha \frac{1}{B}\sum_{i=1}^{B}\nabla_\theta \mathcal{L}(\theta_t; \mathbf{x}^{(i)}, \mathbf{y}^{(i)})
+\end{equation}
+
+这是深度学习中的标准方法。
+
+\section{带动量的梯度下降}
+
+动量通过累积速度来加速收敛：
+\begin{align}
+\mathbf{v}_{t+1} &= \beta \mathbf{v}_t + (1-\beta)\nabla_\theta \mathcal{L}(\theta_t) \\
+\theta_{t+1} &= \theta_t - \alpha \mathbf{v}_{t+1}
+\end{align}
+
+\begin{itemize}
+    \item $\beta \in [0, 1)$ 是动量系数（通常为 0.9）
+    \item \textbf{减少}陡峭方向的振荡
+    \item \textbf{加速}平缓方向的收敛
+\end{itemize}
+
+\begin{note}[Nesterov 加速梯度]
+Nesterov 动量向前看：
+\begin{align}
+\mathbf{v}_{t+1} &= \beta \mathbf{v}_t - \alpha \nabla_\theta \mathcal{L}(\theta_t + \beta\mathbf{v}_t) \\
+\theta_{t+1} &= \theta_t + \mathbf{v}_{t+1}
+\end{align}
+这提供了更好的收敛保证，通常训练更快。
+\end{note}
+
+\section{自适应学习率方法}
+
+这些方法根据梯度历史调整每个参数的学习率。
+
+\subsection{AdaGrad}
+
+学习率与累积平方梯度成反比地调整：
+\begin{align}
+\mathbf{g}_t &= \nabla_\theta \mathcal{L}(\theta_t) \\
+\mathbf{r}_t &= \mathbf{r}_{t-1} + \mathbf{g}_t \odot \mathbf{g}_t \\
+\theta_{t+1} &= \theta_t - \frac{\alpha}{\sqrt{\mathbf{r}_t + \epsilon}} \odot \mathbf{g}_t
+\end{align}
+
+\begin{itemize}
+    \item \textbf{适合稀疏特征}
+    \item \textbf{学习率随时间递减}
+    \item \textbf{在深度学习中可能过早停止}
+\end{itemize}
+
+\subsection{RMSProp}
+
+使用平方梯度的指数加权移动平均：
+\begin{align}
+\mathbf{g}_t &= \nabla_\theta \mathcal{L}(\theta_t) \\
+\mathbf{r}_t &= \beta \mathbf{r}_{t-1} + (1-\beta)\mathbf{g}_t \odot \mathbf{g}_t \\
+\theta_{t+1} &= \theta_t - \frac{\alpha}{\sqrt{\mathbf{r}_t + \epsilon}} \odot \mathbf{g}_t
+\end{align}
+
+\begin{itemize}
+    \item \textbf{解决了 AdaGrad 学习率递减的问题}
+    \item \textbf{RNN 的常用默认值}
+    \item $\beta = 0.9$ 是典型值
+\end{itemize}
+
+\subsection{Adam（自适应矩估计）}
+
+Adam \cite{kingma2014adam} 结合了动量和 RMSProp：
+\begin{align}
+\mathbf{m}_t &= \beta_1 \mathbf{m}_{t-1} + (1-\beta_1)\mathbf{g}_t \quad \text{（一阶矩）} \\
+\mathbf{v}_t &= \beta_2 \mathbf{v}_{t-1} + (1-\beta_2)\mathbf{g}_t^2 \quad \text{（二阶矩）} \\
+\hat{\mathbf{m}}_t &= \frac{\mathbf{m}_t}{1-\beta_1^t} \quad \text{（偏差校正）} \\
+\hat{\mathbf{v}}_t &= \frac{\mathbf{v}_t}{1-\beta_2^t} \\
+\theta_{t+1} &= \theta_t - \frac{\alpha \hat{\mathbf{m}}_t}{\sqrt{\hat{\mathbf{v}}_t} + \epsilon}
+\end{align}
+
+\begin{properties}[Adam 的特性]
+\begin{itemize}
+    \item \textbf{大多数深度学习任务的默认优化器}
+    \item \textbf{对超参数鲁棒}
+    \item \textbf{默认参数：} $\alpha = 0.001, \beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8}$
+    \item \textbf{早期时间步的偏差校正}
+\end{itemize}
+\end{properties}
+
+\begin{code}
+    \captionof{listing}{PyTorch 中的优化器}
+    \label{code:optimizers}
+\begin{lstlisting}[language=python]
+import torch.optim as optim
+
+# 带动量的 SGD
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+
+# 带 Nesterov 动量的 SGD
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, nesterov=True)
+
+# Adam
+optimizer = optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999))
+
+# AdamW（解耦权重衰减）
+optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+
+# RMSProp
+optimizer = optim.RMSprop(model.parameters(), lr=0.01, alpha=0.99)
+\end{lstlisting}
+\end{code}
+
+\subsection{AdamW（带权重衰减的 Adam）}
+
+AdamW \cite{loshchilov2019decoupled} 将权重衰减与梯度更新解耦：
+\begin{equation}
+\theta_{t+1} = \theta_t - \alpha \frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t} + \epsilon} - \alpha \lambda \theta_t
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{与原始 Adam 不同的正确 L2 正则化}
+    \item \textbf{在许多任务中泛化更好}
+    \item \textbf{Transformer 的标准配置}
+\end{itemize}
+
+\subsection{AdaDelta}
+
+AdaDelta \cite{zeiler2012adadelta} 通过将累积过去梯度的窗口限制为固定大小 $w$ 来解决 AdaGrad 单调递减学习率的问题，使用指数衰减平均：
+\begin{align}
+\mathbf{r}_t &= \rho \mathbf{r}_{t-1} + (1 - \rho)\mathbf{g}_t^2 \\
+\Delta\boldsymbol{\theta}_t &= -\frac{\sqrt{\mathbf{s}_{t-1} + \epsilon}}{\sqrt{\mathbf{r}_t + \epsilon}}\mathbf{g}_t \\
+\mathbf{s}_t &= \rho \mathbf{s}_{t-1} + (1 - \rho)(\Delta\boldsymbol{\theta}_t)^2
+\end{align}
+其中 $\rho$ 是衰减常数（通常为 0.95）。
+
+\begin{properties}[AdaDelta 的特性]
+\begin{itemize}
+    \item \textbf{无需手动设置学习率：} 分子 $\sqrt{\mathbf{s}_{t-1} + \epsilon}$ 替代了 $\alpha$，使该方法基本无超参数
+    \item \textbf{对不同梯度尺度鲁棒：} 使用累积更新自适应调整每个参数
+    \item \textbf{现在很少使用：} 被 Adam 及其变体取代
+\end{itemize}
+\end{properties}
+
+\subsection{自适应方法的统一视角}
+
+\begin{table}[ht]
+    \centering
+    \caption{自适应优化器家族}
+    \begin{tabular}{L{2cm} L{3cm} L{3cm} L{3.5cm}}
+        \toprule
+        \textbf{方法} & \textbf{一阶矩} & \textbf{二阶矩} & \textbf{LR 缩放} \\
+        \midrule
+        AdaGrad & 无 & $\mathbf{r}_t = \mathbf{r}_{t-1} + \mathbf{g}_t^2$ & $\alpha / \sqrt{\mathbf{r}_t}$ \\
+        RMSProp & 无 & $\mathbf{r}_t = \rho\mathbf{r}_{t-1} + (1-\rho)\mathbf{g}_t^2$ & $\alpha / \sqrt{\mathbf{r}_t}$ \\
+        AdaDelta & 无 & 与 RMSProp 相同 & $\sqrt{\mathbf{s}} / \sqrt{\mathbf{r}_t}$ \\
+        Adam & $\mathbf{m}_t$（偏差校正） & $\mathbf{v}_t$（偏差校正） & $\alpha \hat{\mathbf{m}}_t / \sqrt{\hat{\mathbf{v}}_t}$ \\
+        AdamW & 与 Adam 相同 & 与 Adam 相同 & + 解耦 $\lambda\theta_t$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{收敛速率分析}
+
+\begin{theorem}[SGD 收敛速率]
+对于平滑（$L$-Lipschitz 梯度）和 $\mu$-强凸函数 $f$，学习率 $\alpha = 1/L$ 的梯度下降满足：
+\begin{equation}
+f(\theta_t) - f(\theta^*) \leq \left(1 - \frac{\mu}{L}\right)^t \bigl(f(\theta_0) - f(\theta^*)\bigr)
+\end{equation}
+这是速率 $1 - \mu/L$ 的\textbf{线性收敛速率}。
+\end{theorem}
+
+\begin{properties}[不同优化器的收敛速率]
+\begin{itemize}
+    \item \textbf{凸 + 平滑：} SGD 达到 $O(1/T)$ 速率；加速方法达到 $O(1/T^2)$
+    \item \textbf{非凸：} 所有方法收敛到 $O(1/\sqrt{T})$ 的驻点
+    \item \textbf{Adam} 在非凸设置下不能保证收敛 \cite{reddi2018convergence}；\textbf{AdamW} 和 \textbf{AMSGrad} 修复了这个问题
+    \item 在实践中，Adam 和 AdamW 初始收敛更快，但 SGD+动量通常能达到更好的最终泛化
+\end{itemize}
+\end{properties}
+
+\section{梯度裁剪}
+
+防止梯度爆炸。两种主要策略：
+
+\subsection{值裁剪}
+
+逐个裁剪每个梯度分量：
+\begin{equation}
+\tilde{g}_i = \text{clip}(g_i, -c, c) = \max(\min(g_i, c), -c)
+\end{equation}
+其中 $c$ 是裁剪值（通常为 0.5--5.0）。
+
+\subsection{范数裁剪}
+
+如果整个梯度向量的范数超过阈值，则按比例缩放：
+\begin{equation}
+\tilde{\mathbf{g}} = \begin{cases}
+\mathbf{g} & \text{如果 } \|\mathbf{g}\| \leq c \\
+\frac{c}{\|\mathbf{g}\|} \mathbf{g} & \text{如果 } \|\mathbf{g}\| > c
+\end{cases}
+\end{equation}
+这保留了梯度的\textbf{方向}，同时限制其幅度。
+
+\begin{properties}[何时使用梯度裁剪]
+\begin{itemize}
+    \item \textbf{RNN 和 Transformer：} 对于防止长序列中的梯度爆炸必不可少
+    \item \textbf{微调预训练模型：} 防止大梯度更新造成的失稳
+    \item \textbf{范数裁剪}通常优于值裁剪（保留梯度方向）
+    \item 典型最大范数：1.0（Transformer）到 5.0（RNN）
+    \item PyTorch 中：\texttt{torch.nn.utils.clip\_grad\_norm\_}(model.parameters(), max\_norm=1.0)
+\end{itemize}
+\end{properties}
+
+\section{学习率调度器}
+
+学习率调度器在训练过程中调整学习率。
+
+\subsection{步进衰减}
+
+\begin{equation}
+\alpha_t = \alpha_0 \cdot \gamma^{\lfloor t / T \rfloor}
+\end{equation}
+其中 $\gamma$ 是衰减因子（如 0.5），$T$ 是周期。
+
+\subsection{指数衰减}
+
+\begin{equation}
+\alpha_t = \alpha_0 \cdot e^{-\lambda t}
+\end{equation}
+
+\subsection{余弦退火}
+
+\begin{equation}
+\alpha_t = \alpha_{min} + \frac{1}{2}(\alpha_{max} - \alpha_{min})\left(1 + \cos\left(\frac{t\pi}{T}\right)\right)
+\end{equation}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[scale=0.8]
+        \begin{axis}[
+            xlabel=Epoch,
+            ylabel=学习率,
+            width=10cm,
+            height=5cm,
+            legend pos=north east
+        ]
+            % 步进衰减
+            \addplot[blue, const plot, mark=*] coordinates {
+                (0, 0.01)
+                (30, 0.005)
+                (60, 0.0025)
+                (90, 0.00125)
+            };
+            \addlegendentry{步进衰减}
+            
+            % 指数衰减
+            \addplot[red, smooth] {0.01 * exp(-0.02*x)};
+            \addlegendentry{指数衰减}
+            
+            % 余弦退火
+            \addplot[green, smooth] {(0.001 + 0.5*(0.01-0.001)*(1+cos(pi*x/100))};
+            \addlegendentry{余弦退火}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{学习率调度器}
+    \label{fig:lr_schedules}
+\end{figure}
+
+\subsection{预热}
+
+在开始时逐渐增加学习率：
+\begin{equation}
+\alpha_t = \alpha_{max} \cdot \frac{t}{T_{warmup}} \quad \text{当 } t < T_{warmup}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{防止开始时的大梯度}
+    \item \textbf{对 Transformer 很重要}
+    \item \textbf{常见：500-10000 预热步数}
+\end{itemize}
+
+\subsection{预热 + 余弦衰减}
+
+现代 Transformer 训练的标准调度结合了预热和余弦退火：
+\begin{equation}
+\alpha_t = \begin{cases}
+\alpha_{max} \cdot \frac{t}{T_{warmup}} & \text{如果 } t < T_{warmup} \\
+\alpha_{min} + \frac{1}{2}(\alpha_{max} - \alpha_{min})\left(1 + \cos\left(\frac{(t - T_{warmup})\pi}{T_{total} - T_{warmup}}\right)\right) & \text{否则}
+\end{cases}
+\end{equation}
+
+这种预热加余弦的调度是许多 Transformer 训练方法的默认配置；见 \cite{loshchilov2016sgdr,goyal2017accurate}。
+
+\subsection{ReduceLROnPlateau}
+
+监控指标（通常是验证损失），当改进停滞时降低学习率：
+\begin{equation}
+\alpha_t = \alpha_{t-1} \cdot \gamma \quad \text{如果 } \text{连续 } p \text{ 个 epoch 无改进}
+\end{equation}
+其中 $\gamma$ 是衰减因子（通常为 0.1），$p$ 是耐心值（通常为 5--10 个 epoch）。
+
+\begin{itemize}
+    \item \textbf{自适应：} 无需预先定义总 epoch 数
+    \item \textbf{当训练时间未知时有用}（如早停）
+    \item 常用于训练 CNN 进行图像分类
+\end{itemize}
+
+\subsection{OneCycleLR}
+
+Smith \cite{smith2018disciplined} 提出，OneCycleLR 使用单个周期，分三个阶段：
+\begin{enumerate}
+    \item \textbf{增加} LR 从 $\alpha_{min}$ 到 $\alpha_{max}$（约前 30\% 的步数）
+    \item \textbf{减少} LR 从 $\alpha_{max}$ 到 $\alpha_{min}$（约接下来 60\% 的步数）
+    \item \textbf{微调：} 进一步减少到 $\alpha_{min}/100$（最后约 10\% 的步数）
+\end{enumerate}
+可选地，动量遵循逆模式（LR 低时动量高）。
+
+\begin{properties}[OneCycleLR 的优势]
+\begin{itemize}
+    \item \textbf{收敛更快：} 通常用更少的 epoch 达到相同精度
+    \item \textbf{正则化效果：} 高到低的 LR 周期起到隐式正则化的作用
+    \item \textbf{无需预热：} 内置于调度中
+    \item 在 fastai 和迁移学习任务中很受欢迎
+\end{itemize}
+\end{properties}
+
+\section{优化器选择}
+
+\begin{table}[ht]
+    \centering
+    \caption{优化器选择指南}
+    \begin{tabular}{L{2.5cm} L{3cm} L{3.5cm}}
+        \toprule
+        \textbf{优化器} & \textbf{适用场景} & \textbf{备注} \\
+        \midrule
+        SGD + 动量 & 图像分类 & 泛化最好 \\
+        Adam & 通用 & 默认选择 \\
+        AdamW & Transformer、NLP & 微调最佳 \\
+        RMSProp & RNN & 循环模型适用 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{本章小结}
+
+\begin{enumerate}
+    \item 梯度下降是神经网络优化的基础
+    \item 动量通过累积速度加速收敛
+    \item 自适应方法（AdaGrad、RMSProp、AdaDelta、Adam）调整每个参数的学习率
+    \item Adam 结合动量和自适应学习率；AdamW 添加正确的权重衰减
+    \item 梯度裁剪防止梯度爆炸（优先使用范数裁剪）
+    \item 学习率调度器（步进、余弦、 plateau、OneCycleLR）改善收敛
+    \item 预热对 Transformer 训练很重要
+    \item SGD+动量通常泛化更好；Adam 收敛更快
+\end{enumerate}
+
+\section{扩展阅读}
+
+\begin{itemize}
+    \item \cite{zeiler2012adadelta} —— ADADELTA：一种自适应学习率方法
+    \item \cite{pascanu2013difficulty} —— 训练循环神经网络的困难
+    \item \cite{kingma2014adam} —— Adam：一种随机优化方法
+    \item \cite{loshchilov2016sgdr} —— 带热重启的随机梯度下降
+    \item \cite{reddi2018convergence} —— 关于 Adam 的收敛性及以后
+    \item \cite{smith2018disciplined} —— 神经网络超参数的有原则方法
+    \item \cite{loshchilov2019decoupled} —— 解耦权重衰减正则化
+    \item \cite{paszke2019pytorch} —— PyTorch：一种命令式风格的高性能深度学习库
+\end{itemize}
+
+\section{习题}
+
+\begin{enumerate}
+    \item \textbf{动量更新：} 从 $\mathbf{v}_{t+1} = \beta \mathbf{v}_t + (1-\beta)\mathbf{g}_t$ 开始，解释动量如何与普通 SGD 相比平滑噪声梯度。
+
+    \item \textbf{Adam 偏差校正：} 为什么 Adam 中需要偏差校正的矩估计 $\hat{\mathbf{m}}_t$ 和 $\hat{\mathbf{v}}_t$？如果省略它们，前几次迭代会发生什么？
+
+    \item \textbf{AdamW vs Adam：} 展示在使用 Adam 时，解耦权重衰减与在损失上添加 L2 惩罚有何不同。为什么 AdamW 通常更适合 Transformer？
+
+    \item \textbf{梯度裁剪：} 假设梯度向量的范数为 12，裁剪阈值为 3。写出范数裁剪后的梯度，并解释保留了什么特性。
+
+    \item \textbf{余弦退火：} 绘制在一个训练周期中余弦学习率衰减的定性形状。为什么大的初始学习率可以帮助优化？
+
+    \item \textbf{调度器选择：} 为以下场景选择调度器并说明理由：长期预训练运行、未知停止时间、快速迁移学习微调。
+\end{enumerate}
+

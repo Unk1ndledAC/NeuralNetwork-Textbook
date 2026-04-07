@@ -1,0 +1,193 @@
+\newglossaryentry{ANN}{
+    name={人工神经网络 (Artificial Neural Network, ANN)},
+    description={一种受生物神经网络启发的计算系统，由相互连接节点（神经元）组成，按层次组织}
+}
+
+\newglossaryentry{NN}{
+    name={神经网络 (Neural Network, NN)},
+    description={参见人工神经网络}
+}
+
+\newglossaryentry{DNN}{
+    name={深度神经网络 (Deep Neural Network, DNN)},
+    description={一种在输入层和输出层之间具有多个隐藏层的神经网络，能够学习复杂表示}
+}
+
+\newglossaryentry{CNN}{
+    name={卷积神经网络 (Convolutional Neural Network, CNN)},
+    description={一种专门为处理图像等结构化网格数据而设计的深度学习架构，使用卷积层}
+}
+
+\newglossaryentry{RNN}{
+    name={循环神经网络 (Recurrent Neural Network, RNN)},
+    description={一种为序列数据处理而设计的神经网络架构，节点之间的连接形成有向序列}
+}
+
+\newglossaryentry{LSTM}{
+    name={长短期记忆网络 (Long Short-Term Memory, LSTM)},
+    description={一种使用门控机制控制信息流的循环神经网络架构，用于解决梯度消失问题}
+}
+
+\newglossaryentry{GRU}{
+    name={门控循环单元 (Gated Recurrent Unit, GRU)},
+    description={一种比 LSTM 门数更少的循环神经网络架构，通常以更简单的结构达到相当的效果}
+}
+
+\newglossaryentry{MLP}{
+    name={多层感知机 (Multi-Layer Perceptron, MLP)},
+    description={一种全连接的前馈神经网络，由输入层、一个或多个隐藏层和输出层组成}
+}
+
+\newglossaryentry{BN}{
+    name={批归一化 (Batch Normalization, BN)},
+    description={一种通过对批次进行层输入归一化来稳定和加速神经网络训练的技术}
+}
+
+\newglossaryentry{Dropout}{
+    name={Dropout（随机失活）},
+    description={一种正则化技术，在训练期间随机将一部分神经元输出置零，以防止过拟合}
+}
+
+\newglossaryentry{FLOPs}{
+    name={浮点运算次数 (Floating Point Operations, FLOPs)},
+    description={衡量计算复杂度的指标，表示执行的浮点算术运算的数量}
+}
+
+\newglossaryentry{GPU}{
+    name={图形处理单元 (Graphics Processing Unit, GPU)},
+    description={一种专门设计用于加速图像渲染的电子电路，现已广泛用于深度学习中的并行计算}
+}
+
+\newglossaryentry{CUDA}{
+    name={统一计算设备架构 (Compute Unified Device Architecture, CUDA)},
+    description={由 NVIDIA 开发的并行计算平台和 API，用于在 GPU 上进行通用计算}
+}
+
+\newglossaryentry{backprop}{
+    name={反向传播 (Backpropagation)},
+    description={通过应用链式法则计算损失函数相对于网络权重的梯度的算法}
+}
+
+\newglossaryentry{SGD}{
+    name={随机梯度下降 (Stochastic Gradient Descent, SGD)},
+    description={一种使用随机子集（迷你批次）训练数据计算梯度并更新权重的优化算法}
+}
+
+\newglossaryentry{Adam}{
+    name={Adam 优化器},
+    description={一种自适应学习率优化算法，结合了动量和 RMSprop，为每个参数计算独立的学习率}
+}
+
+\newglossaryentry{epoch}{
+    name={轮次 (Epoch)},
+    description={神经网络训练过程中对整个训练数据集的一次完整遍历}
+}
+
+\newglossaryentry{batch}{
+    name={批次大小 (Batch Size)},
+    description={在更新模型参数之前处理的训练样本数量}
+}
+
+\newglossaryentry{learningrate}{
+    name={学习率 (Learning Rate)},
+    description={控制每次更新步骤中模型参数变化程度的超参数}
+}
+
+\newglossaryentry{overfitting}{
+    name={过拟合 (Overfitting)},
+    description={模型对训练数据学习得过好（包括噪声），导致对新数据的泛化能力差的现象}
+}
+
+\newglossaryentry{underfitting}{
+    name={欠拟合 (Underfitting)},
+    description={模型未能学习到训练数据中的底层模式，在训练集和测试集上表现都差的现象}
+}
+
+\newglossaryentry{regularization}{
+    name={正则化 (Regularization)},
+    description={通过向模型添加约束或修改训练目标来防止过拟合的技术}
+}
+
+\newglossaryentry{lossfunction}{
+    name={损失函数 (Loss Function)},
+    description={衡量预测值与实际值之间差异的函数，用于指导模型优化}
+}
+
+\newglossaryentry{activation}{
+    name={激活函数 (Activation Function)},
+    description={应用于神经元输出的数学函数，用于向网络引入非线性}
+}
+
+\newglossaryentry{attention}{
+    name={注意力机制 (Attention Mechanism)},
+    description={允许模型在处理序列时聚焦于输入的相关部分的技术}
+}
+
+\newglossaryentry{transformer}{
+    name={Transformer},
+    description={一种基于自注意力机制的神经网络架构，消除了对循环和卷积的依赖}
+}
+
+\newglossaryentry{ResNet}{
+    name={残差网络 (Residual Network, ResNet)},
+    description={使用跳跃连接使训练极深网络成为可能的卷积神经网络架构}
+}
+
+\newglossaryentry{VGG}{
+    name={VGG 网络},
+    description={以其简洁性著称的卷积神经网络架构，仅使用 $3\times3$ 卷积层但网络很深}
+}
+
+\newglossaryentry{AlexNet}{
+    name={AlexNet},
+    description={在2012年 ImageNet 竞赛中获胜的卷积神经网络架构，使深度学习在计算机视觉领域得到普及}
+}
+
+\newglossaryentry{BatchSize}{
+    name={批次大小 (Batch Size)},
+    description={在更新模型参数之前处理的样本数量}
+}
+
+\newglossaryentry{optimizer}{
+    name={优化器 (Optimizer)},
+    description={根据计算出的梯度更新模型参数的算法}
+}
+
+\newglossaryentry{gradient}{
+    name={梯度 (Gradient)},
+    description={表示函数最陡增加方向和速率的偏导数向量}
+}
+
+\newglossaryentry{maxpool}{
+    name={最大池化 (Max Pooling)},
+    description={从特征图的每个区块中取最大值的池化操作}
+}
+
+\newglossaryentry{avgpool}{
+    name={平均池化 (Average Pooling)},
+    description={计算特征图每个区块平均值的池化操作}
+}
+
+\newglossaryentry{convolution}{
+    name={卷积 (Convolution)},
+    description={将两个函数组合产生第三个函数的数学运算，是卷积神经网络的基础}
+}
+
+\newglossaryentry{featuremap}{
+    name={特征图 (Feature Map)},
+    description={卷积层的输出，表示在不同空间位置检测到的特征}
+}
+
+\newglossaryentry{receptivefield}{
+    name={感受野 (Receptive Field)},
+    description={影响网络中特定神经元的输入空间区域}
+}
+
+\clearpage
+\cleardoublepage
+\phantomsection
+
+{
+    \footnotesize
+    \printglossaries
+}

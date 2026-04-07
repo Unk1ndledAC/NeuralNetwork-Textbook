@@ -1,0 +1,473 @@
+\clearpage
+\cleardoublepage
+
+\chapter{跳跃连接与注意力机制}
+
+\section{引言}
+
+深度网络面临两个根本性挑战：(1) 梯度在传播过程中会消失或爆炸；(2) 模型需要能够选择性地关注输入中最相关的部分。跳跃连接通过提供梯度高速公路来解决第一个挑战，而注意力机制通过实现动态的、依赖于输入的加权来解决第二个挑战 Together, these techniques form the backbone of modern architectures from ResNet to the Transformer.
+
+\section{跳跃连接}
+
+跳跃连接（shortcuts）绕过层，从而实现深度网络中的梯度流动。
+
+\subsection{残差连接（ResNet）}
+
+残差学习框架 \cite{he2016deep}：
+\begin{equation}
+\mathbf{y} = \mathcal{F}(\mathbf{x}) + \mathbf{x}
+\end{equation}
+其中 $\mathcal{F}$ 是学习的残差映射。
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[scale=0.8]
+        % Main path
+        \node[draw, rectangle, minimum width=1.5cm, minimum height=1cm] (F) at (2, 0) {$\mathcal{F}$};
+        \node[above] at (2, 0.8) {主路径};
+        
+        % Skip connection
+        \draw[->, thick, blue] (-1, 0) -- (1.3, 0);
+        \node[above, blue] at (0, 0.6) {跳跃连接};
+        
+        % Input/Output
+        \node at (-1.5, 0) {$\mathbf{x}$};
+        \node at (3.5, 0) {$\mathbf{y}$};
+        
+        % Addition
+        \node[draw, circle] at (1.5, 0) {$+$};
+        \draw[->] (1.5, 0) -- (3.3, 0);
+    \end{tikzpicture}
+    \caption{残差连接}
+    \label{fig:residual}
+\end{figure}
+
+如果维度匹配：$\mathbf{y} = \mathcal{F}(\mathbf{x}, \{W_i\}) + \mathbf{x}$
+
+如果维度不匹配：$\mathbf{y} = \mathcal{F}(\mathbf{x}, \{W_i\}) + W_s\mathbf{x}$
+
+\subsection{为什么残差连接有效：理论分析}
+
+\subsubsection{梯度流视角}
+
+考虑一个具有 $L$ 个残差块的网络。损失 $\mathcal{L}$ 关于中间激活 $\mathbf{x}_l$ 的梯度为：
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}_l} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \left(1 + \frac{\partial}{\partial \mathbf{x}_l}\sum_{i=l}^{L-1} \mathcal{F}(\mathbf{x}_i, W_i)\right)
+\end{equation}
+
+关键洞察：梯度包含一个\textbf{恒等项}（``$1$''），它被加到残差梯度上。即使残差梯度 $\frac{\partial \mathcal{F}}{\partial \mathbf{x}}$ 消失，恒等项也能确保信息直接传播：
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}_l} \geq \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \cdot 1
+\end{equation}
+
+这与普通网络形成鲜明对比，后者涉及 $L - l$ 个雅可比矩阵的乘积：
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}_l}^{\text{plain}} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \prod_{i=l}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
+\end{equation}
+每个绝对值小于1的因子都会导致指数级衰减。
+
+\subsubsection{恒等映射假设}
+
+如果一层的最优函数接近恒等映射（对于深度网络通常如此），那么学习残差 $\mathcal{F}(\mathbf{x}) = \mathcal{H}(\mathbf{x}) - \mathbf{x}$ 比从头学习 $\mathcal{H}(\mathbf{x})$ 更容易。网络只需要将残差推向零，而不是通过非线性层学习近恒等变换。
+
+\begin{properties}[ResNet 的优势]
+\begin{itemize}
+    \item 使极深网络（100+层）的训练成为可能
+    \item 通过恒等快捷方式缓解梯度消失/爆炸问题
+    \item 减少退化问题（更深 ≠ 更高训练误差）
+    \item 易于实现，计算开销最小
+    \item 理论保证：普通网络可学习的任何函数，其残差版本也可学习
+\end{itemize}
+\end{properties}
+
+\subsection{预激活 ResNet}
+
+文献 \cite{he2016identity} 中的预激活设计将 BatchNorm 和 ReLU 移到卷积层之前而非之后：
+\begin{align}
+\text{后激活：} \quad &\mathbf{y} = \text{ReLU}(\text{BN}(\mathcal{F}(\mathbf{x}) + \mathbf{x})) \\
+\text{预激活：} \quad &\mathbf{y} = \mathcal{F}(\text{ReLU}(\text{BN}(\mathbf{x}))) + \mathbf{x}
+\end{align}
+
+预激活提供了更清晰的信号传播路径：恒等快捷路径完全是``干净''的（路径中没有非线性或 BN），这改善了梯度流动。
+
+\subsection{瓶颈架构}
+
+用于更深的 ResNet 以降低复杂度：
+\begin{itemize}
+    \item $1\times1$ 卷积降维
+    \item $3\times3$ 卷积（瓶颈）
+    \item $1\times1$ 卷积恢复维度
+\end{itemize}
+
+对于输入 $C$，瓶颈输出 $C$：
+\begin{enumerate}
+    \item $\text{Conv }1\times1, C \rightarrow C//4$
+    \item $\text{Conv }3\times3, C//4 \rightarrow C//4$
+    \item $\text{Conv }1\times1, C//4 \rightarrow C$
+\end{enumerate}
+
+\subsection{ResNeXt：残差块中的分组卷积}
+
+ResNeXt \cite{xie2017aggregated} 将分组卷积引入残差块。不是使用单个宽卷积，而是使用 $G$ 条并行的``基数''路径，每条路径宽度为 $d$：
+\begin{equation}
+\mathcal{F}(\mathbf{x}) = \sum_{i=1}^{G} \mathcal{T}_i(\mathbf{x})
+\end{equation}
+其中每个 $\mathcal{T}_i$ 是具有 $C/G$ 个通道的变换。
+
+\begin{properties}[ResNeXt 与 ResNet 的对比]
+\begin{itemize}
+    \item \textbf{相同的 FLOPs 和参数}，但精度更高
+    \item \textbf{增加 $G$ 可提高精度}，即使总宽度固定
+    \item 关键在于\textbf{基数}（路径数量）而非仅深度或宽度
+    \item $G = 32$，宽度 $d = 4$ 是常见配置
+\end{itemize}
+\end{properties}
+
+\subsection{随机深度（DropPath）}
+
+随机深度 \cite{huang2016deep} 在训练期间随机丢弃整个残差块。对于线性增加的丢弃率 $p_l = 1 - \frac{l}{L}(1 - p_L)$：
+\begin{equation}
+\mathbf{y}_l = \begin{cases} \mathbf{x}_l & \text{概率 } p_l \text{（跳过块）} \\ \mathcal{F}_l(\mathbf{x}_l) + \mathbf{x}_l & \text{概率 } 1 - p_l \text{（保留块）} \end{cases}
+\end{equation}
+
+这通过训练不同深度网络集合来提供正则化，无需额外参数。它现在是 EfficientNet 和 Vision Transformer 等现代架构的标准组件。
+
+\subsection{密集连接（DenseNet）}
+
+每一层接收所有前面层的特征图 \cite{huang2017densely}：
+\begin{equation}
+\mathbf{x}_l = H_l([\mathbf{x}_0, \mathbf{x}_1, \ldots, \mathbf{x}_{l-1}])
+\end{equation}
+
+\begin{properties}[DenseNet 的特性]
+\begin{itemize}
+    \item \textbf{特征复用：} 每一层可访问所有前面的特征
+    \item \textbf{强梯度流：} 从任意层到损失的直接连接
+    \item \textbf{参数效率：} 在相当精度下比 ResNet 参数更少
+    \item \textbf{内存成本：} 由于拼接导致更高（通过小增长率 $k$ 的密集连接来缓解）
+    \item \textbf{DenseNet 块中的总参数：} $\mathcal{O}(k \times k \times (l-1) \times K^2)$，其中 $k$ 是增长率
+\end{itemize}
+\end{properties}
+
+\section{注意力机制}
+
+注意力允许模型关注输入的相关部分。
+
+\subsection{自注意力（缩放点积）}
+
+缩放点积注意力函数 \cite{vaswani2017attention}：
+\begin{equation}
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)\mathbf{V}
+\end{equation}
+
+其中：
+\begin{itemize}
+    \item $\mathbf{Q} = \mathbf{X}\mathbf{W}_Q$（查询），$\mathbf{Q} \in \mathbb{R}^{n \times d_k}$
+    \item $\mathbf{K} = \mathbf{X}\mathbf{W}_K$（键），$\mathbf{K} \in \mathbb{R}^{n \times d_k}$
+    \item $\mathbf{V} = \mathbf{X}\mathbf{W}_V$（值），$\mathbf{V} \in \mathbb{R}^{n \times d_v}$
+    \item $\mathbf{X} \in \mathbb{R}^{n \times d_{\text{model}}}$ 是输入序列
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[scale=0.7]
+        % Q, K, V
+        \node[draw, rectangle] (Q) at (-2, 2) {$\mathbf{Q}$};
+        \node[draw, rectangle] (K) at (-2, 0) {$\mathbf{K}$};
+        \node[draw, rectangle] (V) at (-2, -2) {$\mathbf{V}$};
+        
+        % Attention
+        \node[draw, circle, minimum size=1.5cm] (attn) at (1, 0) {注意力};
+        
+        % Output
+        \node[draw, rectangle] (out) at (4, 0) {输出};
+        
+        % Connections
+        \draw[->] (Q) -- (attn);
+        \draw[->] (K) -- (attn);
+        \draw[->] (V) -- (attn);
+        \draw[->] (attn) -- (out);
+        
+        % Labels
+        \node at (-3.5, 2) {查询};
+        \node at (-3.5, 0) {键};
+        \node at (-3.5, -2) {值};
+    \end{tikzpicture}
+    \caption{自注意力机制}
+    \label{fig:self_attention}
+\end{figure}
+
+\subsubsection{为什么要按 \texorpdfstring{$\sqrt{d_k}$}{sqrt(d_k)} 缩放？}
+
+如果不缩放，当 $d_k$ 很大时，点积 $\mathbf{q}_i \cdot \mathbf{k}_j = \sum_{m=1}^{d_k} q_{im} k_{jm}$ 的幅度会增长（单位方差随机向量的方差为 $d_k$）。这会将 softmax 推到梯度极小的区域：
+\begin{equation}
+\text{如果 } d_k = 64: \quad \text{softmax}\begin{pmatrix} 8.0 \\ 8.1 \end{pmatrix} \approx \begin{pmatrix} 0.475 \\ 0.525 \end{pmatrix}, \quad \text{softmax}\begin{pmatrix} 800 \\ 810 \end{pmatrix} \approx \begin{pmatrix} 0.000 \\ 1.000 \end{pmatrix}
+\end{equation}
+按 $\sqrt{d_k}$ 缩放可确保点积具有单位方差，使 softmax 保持在其``敏感''区域。
+
+\subsubsection{计算复杂度}
+
+对于序列长度 $n$、模型维度 $d$：
+\begin{align}
+\text{Q、K、V 投影：} \quad &\mathcal{O}(n \cdot d^2) \\
+\text{注意力分数 } \mathbf{Q}\mathbf{K}^\top：\quad &\mathcal{O}(n^2 \cdot d) \\
+\text{输出 softmax}(\cdot)\mathbf{V}：\quad &\mathcal{O}(n^2 \cdot d) \\
+\textbf{总计：} \quad &\mathcal{O}(n^2 \cdot d + n \cdot d^2)
+\end{align}
+当 $n > d$ 时，主导项是 $\mathcal{O}(n^2 \cdot d)$，使得自注意力的序列长度呈二次方——这是长序列的关键瓶颈。
+
+\begin{properties}[自注意力的特性]
+\begin{itemize}
+    \item \textbf{全局感受野：} 在一层中每个 token 都可以关注所有其他 token
+    \item \textbf{计算复杂度 $O(n^2 d)$：} 序列长度的二次方
+    \item \textbf{可解释：} 注意力权重显示成对相关性
+    \item \textbf{排列等变：} 自注意力默认是顺序不变的（位置编码添加顺序信息）
+\end{itemize}
+\end{properties}
+
+\subsection{多头注意力}
+
+多头注意力（MHA）不是使用单一注意力函数，而是并行运行 $h$ 个具有不同学习投影的注意力函数 \cite{vaswani2017attention}：
+\begin{align}
+\text{head}_i &= \text{Attention}(\mathbf{Q}\mathbf{W}_i^Q, \mathbf{K}\mathbf{W}_i^K, \mathbf{V}\mathbf{W}_i^V) \\
+\text{MHA}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)\mathbf{W}^O
+\end{align}
+
+其中每个 $\mathbf{W}_i^Q, \mathbf{W}_i^K \in \mathbb{R}^{d \times d_k}$，$\mathbf{W}_i^V \in \mathbb{R}^{d \times d_v}$，$\mathbf{W}^O \in \mathbb{R}^{hd_v \times d}$。通常 $d_k = d_v = d/h$。
+
+\begin{properties}[为什么要用多个头？]
+\begin{itemize}
+    \item \textbf{多样化表示：} 每个头可以学习不同的注意力模式（句法、语义、位置）
+    \item \textbf{相同总成本：} $h \times \mathcal{O}(n^2 \cdot d_k) = \mathcal{O}(n^2 \cdot d)$ —— 与单头相同
+    \item \textbf{线性投影：} 输出投影 $\mathbf{W}^O$ 混合来自所有头的信息
+    \item \textbf{经验：} $h = 8$ 或 $h = 16$ 是标准；在 $\sim$32 以上收益递减
+\end{itemize}
+\end{properties}
+
+\subsection{交叉注意力}
+
+交叉注意力允许模型关注与正在生成的序列\textbf{不同}的序列。查询来自一个序列，而键和值来自另一个序列：
+\begin{equation}
+\text{Cross-Attention}(\mathbf{Q}_{\text{target}}, \mathbf{K}_{\text{source}}, \mathbf{V}_{\text{source}})
+\end{equation}
+
+这是编码器-解码器架构（如机器翻译）的核心机制：
+\begin{itemize}
+    \item \textbf{编码器：} 通过自注意力处理源序列
+    \item \textbf{解码器：} 使用交叉注意力查询编码器的表示
+    \item 解码器``查找''每个生成目标 token 的相关源 token
+\end{itemize}
+
+\subsection{位置编码}
+
+由于自注意力是排列等变的，我们必须显式注入位置信息。
+
+\subsubsection{正弦位置编码}
+
+原始 Transformer 使用固定正弦编码 \cite{vaswani2017attention}：
+\begin{align}
+\text{PE}_{(pos, 2i)} &= \sin\left(\frac{pos}{10000^{2i/d}}\right) \\
+\text{PE}_{(pos, 2i+1)} &= \cos\left(\frac{pos}{10000^{2i/d}}\right)
+\end{align}
+
+\begin{properties}[正弦 PE 的特性]
+\begin{itemize}
+    \item 每个维度对应不同波长（从 $2\pi$ 到 $10000 \cdot 2\pi$）的正弦波
+    \item 允许模型学习相对位置：$\text{PE}_{pos+k}$ 可以表示为 $\text{PE}_{pos}$ 的线性函数
+    \item 无需学习参数——适用于各种序列长度
+    \item 在外推到比训练中看到的更长序列时有限制
+\end{itemize}
+\end{properties}
+
+\subsubsection{现代替代方案}
+
+\begin{table}[ht]
+    \centering
+    \caption{位置编码方法对比}
+    \begin{tabular}{L{2.5cm} L{4cm} L{4.5cm}}
+        \toprule
+        \textbf{方法} & \textbf{机制} & \textbf{关键特性} \\
+        \midrule
+        可学习 PE & 可训练嵌入 & 灵活，受限于最大长度 \\
+        RoPE & 旋转 Q、K 角度 & 通过点积实现相对位置 \\
+        ALiBi & 在分数上添加线性偏置 & 外推到未见过的长度 \\
+        T5 Bias & 在注意力分数上添加偏置 & 简单有效 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{旋转位置嵌入（RoPE）} \cite{su2021roformer} 通过旋转查询和键向量来编码位置：
+\begin{equation}
+\langle \mathbf{q}_m, \mathbf{k}_n \rangle_{\text{RoPE}} = \langle R_m \mathbf{q}, R_n \mathbf{k} \rangle = f(\mathbf{q}, \mathbf{k}, n - m)
+\end{equation}
+这自然地将\textbf{相对位置} $n - m$ 编码到注意力分数中。RoPE 是 LLaMA 和许多现代 LLM 的默认选择。
+
+\textbf{ALiBi} \cite{press2022train} 根据相对距离在注意力分数上添加固定线性偏置：
+\begin{equation}
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}} + \mathbf{m} \cdot [-n+m]\right)\mathbf{V}
+\end{equation}
+其中 $\mathbf{m}$ 是一个非学习斜率向量。ALiBi 的关键优势是\textbf{长度外推}：在短序列上训练的模型可以在推理时处理更长的序列。
+
+\subsection{压缩激励（SE）注意力}
+
+通道注意力机制 \cite{hu2018squeeze}：
+\begin{enumerate}
+    \item \textbf{压缩：} 全局平均池化 $\mathbf{z} = \frac{1}{H\times W}\sum_{i,j}\mathbf{X}_{:,i,j}$
+    \item \textbf{激励：} FC-ReLU-FC-Sigmoid $\mathbf{s} = \sigma(W_2\delta(W_1\mathbf{z}))$
+    \item \textbf{缩放：} $\tilde{\mathbf{X}} = \mathbf{s} \cdot \mathbf{X}$
+\end{enumerate}
+
+\begin{properties}[SE 块]
+\begin{itemize}
+    \item \textbf{建模通道依赖关系}
+    \item \textbf{轻量：} 压缩比 $r = 16$ 意味着仅增加 $2C^2/r$ 个额外参数
+    \item \textbf{即插即用：} 可添加到任何现有架构
+    \item \textbf{在 ImageNet 上实现超过 1\% 的 Top-1 改进}，开销可忽略
+\end{itemize}
+\end{properties}
+
+\subsection{CBAM：卷积块注意力模块}
+
+CBAM \cite{woo2018cbam} 将\textbf{通道注意力}和\textbf{空间注意力}按顺序组合：
+
+\textbf{通道注意力模块（CAM）：}
+\begin{equation}
+\mathbf{M}_c(\mathbf{X}) = \sigma\bigl(\text{MLP}(\text{AvgPool}(\mathbf{X})) + \text{MLP}(\text{MaxPool}(\mathbf{X}))\bigr)
+\end{equation}
+
+\textbf{空间注意力模块（SAM）：}
+\begin{equation}
+\mathbf{M}_s(\mathbf{X'}) = \sigma\bigl(f^{7 \times 7}([\text{AvgPool}(\mathbf{X'}); \text{MaxPool}(\mathbf{X'})])\bigr)
+\end{equation}
+
+完整过程：$\mathbf{X}'' = \mathbf{M}_s(\mathbf{M}_c(\mathbf{X}) \odot \mathbf{X}) \odot \mathbf{X}$。
+
+通过同时关注\textbf{什么}（通道）和\textbf{哪里}（空间位置），CBAM 捕获比仅通道 SE 更丰富的注意力模式。
+
+\subsection{窗口注意力（Swin Transformer）}
+
+为了解决全局自注意力的 $O(n^2)$ 复杂度问题，Swin Transformer \cite{liu2021swin} 将注意力限制在\textbf{局部窗口}内：
+
+\begin{equation}
+\text{WindowAttention}(\mathbf{x}) = \text{softmax}\left(\frac{\mathbf{Q}_w \mathbf{K}_w^\top}{\sqrt{d}} + \mathbf{B}\right)\mathbf{V}_w
+\end{equation}
+
+其中 $\mathbf{B}$ 是\textbf{相对位置偏置}（可学习），下标 $w$ 表示在大小为 $M \times M$ 的窗口内计算。
+
+\begin{properties}[窗口注意力 vs 全局注意力]
+\begin{itemize}
+    \item \textbf{复杂度：} $O(n \cdot M^2 \cdot d)$ vs $O(n^2 \cdot d)$ —— 当 $M$ 固定时对图像大小是线性的
+    \item \textbf{跨窗口连接：} 交替层中的移位窗口划分使信息能在窗口间流动
+    \item \textbf{先局部：} 低层特征本质上是局部的；窗口注意力是视觉的自然归纳偏置
+\end{itemize}
+\end{properties}
+
+\subsection{高效注意力变体}
+
+\begin{table}[ht]
+    \centering
+    \caption{注意力复杂度对比}
+    \begin{tabular}{L{3cm} L{3cm} L{3cm} L{3.5cm}}
+        \toprule
+        \textbf{方法} & \textbf{复杂度} & \textbf{全局？} & \textbf{参考文献} \\
+        \midrule
+        标准 MHA & $O(n^2 d)$ & 是 & Vaswani 2017 \\
+        Linformer & $O(nk d)$ & 近似 & Wang et al.\ 2020 \\
+        Linear Attn & $O(n d^2)$ & 近似 & Katharopoulos 2020 \\
+        Performer & $O(n d)$ & 近似 & Choromanski 2021 \\
+        Swin（窗口） & $O(n M^2 d)$ & 移位 & Liu et al.\ 2021 \\
+        Flash Attention & $O(n^2 d)$ & 是 & Dao et al.\ 2022 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{code}
+    \captionof{listing}{PyTorch 多头自注意力实现}
+    \label{code:mha_pytorch}
+\begin{lstlisting}[language=python]
+import torch
+import torch.nn as nn
+import math
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, n_heads, dropout=0.1):
+        super().__init__()
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+        self.dropout = nn.Dropout(dropout)
+    
+    def forward(self, x, mask=None):
+        B, N, D = x.shape
+        
+        # 投影并重塑：(B, N, D) -> (B, H, N, d_k)
+        Q = self.W_q(x).view(B, N, self.n_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(x).view(B, N, self.n_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(x).view(B, N, self.n_heads, self.d_k).transpose(1, 2)
+        
+        # 缩放点积注意力
+        scores = Q @ K.transpose(-2, -1) / math.sqrt(self.d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        attn = torch.softmax(scores, dim=-1)
+        attn = self.dropout(attn)
+        
+        # 拼接多头
+        out = (attn @ V).transpose(1, 2).contiguous().view(B, N, D)
+        return self.W_o(out)
+\end{lstlisting}
+\end{code}
+
+\section{本章小结}
+
+\begin{enumerate}
+    \item 跳跃连接通过提供梯度高速公路使深度网络成为可能
+    \item 残差连接添加恒等快捷方式；梯度始终有一条幅度 $\geq 1$ 的路径
+    \item 预激活 ResNet 保持快捷路径``干净''以获得更好的梯度流
+    \item ResNeXt 表明基数（分组路径）比宽度更有效
+    \item 随机深度通过训练子网络集合提供正则化
+    \item 自注意力以 $O(n^2 d)$ 时间计算成对交互
+    \item 多头注意力以相同的计算成本学习多样化的注意力模式
+    \item 交叉注意力连接序列到序列模型中的编码器和解码器
+    \item 位置编码（正弦、RoPE、ALiBi）注入顺序信息
+    \item 通道注意力（SE、CBAM）和窗口注意力（Swin）使注意力适应特定领域
+    \item 高效注意力变体旨在降低二次复杂度
+\end{enumerate}
+
+\section{扩展阅读}
+
+\begin{itemize}
+    \item \cite{he2016deep} —— 图像识别的深度残差学习
+    \item \cite{huang2016deep} —— 带随机深度的深度网络
+    \item \cite{he2016identity} —— 深度残差网络中的恒等映射
+    \item \cite{xie2017aggregated} —— 用于深度神经网络的聚合残差变换
+    \item \cite{huang2017densely} —— 密集连接的卷积网络
+    \item \cite{vaswani2017attention} —— 注意力就是你所需要的一切
+    \item \cite{hu2018squeeze} —— 压缩激励网络
+    \item \cite{woo2018cbam} —— CBAM：卷积块注意力模块
+    \item \cite{liu2021swin} —— Swin Transformer：使用移位窗口的分层视觉 Transformer
+    \item \cite{su2021roformer} —— RoFormer：带旋转位置嵌入的增强型 Transformer
+    \item \cite{press2022train} —— 短训练、长测试：线性偏置注意力实现输入长度外推
+\end{itemize}
+
+\section{习题}
+
+\begin{enumerate}
+    \item \textbf{残差梯度流：} 从 $\mathbf{y} = \mathcal{F}(\mathbf{x}) + \mathbf{x}$ 开始，推导 $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}$ 并解释恒等项如何帮助深度优化。
+
+    \item \textbf{基数 vs 宽度：} 在 ResNeXt 中，当保持总 FLOPs 大致固定时增加基数会发生什么变化？为什么多个分组路径可以胜过简单地加宽单一路径？
+
+    \item \textbf{密集连接：} 一个 DenseNet 块有 4 层，增长率 $k=32$。如果输入有 64 个通道，块中最后一层之前有多少个通道？
+
+    \item \textbf{注意力复杂度：} 比较全局自注意力与 Swin 窗口注意力对于序列长度 $n$ 和窗口大小 $M^2$ 的时间复杂度。何时窗口注意力更有吸引力？
+
+    \item \textbf{位置编码：} 解释 RoPE 与正弦位置编码有何不同。为什么 RoPE 在现代大语言模型中更受青睐？
+
+    \item \textbf{通道 vs 空间注意力：} 比较 SE 和 CBAM。哪个模块可以显式关注空间位置，为什么这对于检测或分割任务很重要？
+\end{enumerate}
+

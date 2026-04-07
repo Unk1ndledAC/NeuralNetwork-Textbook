@@ -1,0 +1,346 @@
+\clearpage
+\cleardoublepage
+
+\chapter{参数与计算分析}
+
+\section{模型效率的重要性}
+
+理解模型效率对于以下方面至关重要：
+\begin{itemize}
+    \item 在资源受限设备上部署
+    \item 训练成本估算
+    \item 模型选择与架构设计
+    \item 基准测试与比较
+\end{itemize}
+
+关键指标：
+\begin{itemize}
+    \item \textbf{参数：}模型大小与内存占用
+    \item \textbf{FLOPs：}计算复杂度
+    \item \textbf{延迟：}推理时间
+    \item \textbf{吞吐量：}每秒处理的样本数
+\end{itemize}
+
+\section{参数计数}
+
+参数是网络中可学习的权重和偏置。
+
+\subsection{全连接层}
+
+对于输入维度$d_{in}$和输出维度$d_{out}$：
+\begin{align}
+\text{权重} &= d_{in} \times d_{out} \\
+\text{偏置} &= d_{out} \\
+\text{总计} &= d_{in} \times d_{out} + d_{out}
+\end{align}
+
+示例：从784到256的全连接层：
+\begin{equation}
+784 \times 256 + 256 = 200,704 + 256 = 200,960 \text{ 个参数}
+\end{equation}
+
+\subsection{卷积层}
+
+对于输入通道$C_{in}$、输出通道$C_{out}$、卷积核大小$K$：
+\begin{align}
+\text{权重} &= K \times K \times C_{in} \times C_{out} \\
+\text{偏置} &= C_{out} \quad \text{（通常）} \\
+\text{总计} &= K^2 \times C_{in} \times C_{out} + C_{out}
+\end{align}
+
+示例：$3\times3$卷积，64输入，128输出：
+\begin{equation}
+3 \times 3 \times 64 \times 128 + 128 = 73,728 + 128 = 73,856 \text{ 个参数}
+\end{equation}
+
+\subsection{批量归一化}
+
+对于$C$个通道：
+\begin{align}
+\gamma \text{（缩放）} &= C \\
+\beta \text{（平移）} &= C \\
+\mu \text{（运行均值）} &= C \quad \text{（仅推理）} \\
+\sigma \text{（运行方差）} &= C \quad \text{（仅推理）} \\
+\text{可训练参数总计} &= 2C
+\end{align}
+
+注意：在训练期间，每个通道的BN有2个可训练和2个不可训练参数。
+
+\section{FLOPs（浮点运算）}
+
+FLOPs衡量前向传播的计算成本。
+
+\subsection{全连接层的FLOPs}
+
+对于矩阵乘法$\mathbf{Y} = \mathbf{W}\mathbf{X} + \mathbf{b}$：
+\begin{align}
+\text{乘法} &= d_{out} \times d_{in} \quad \text{（每样本）} \\
+\text{加法} &= d_{out} \times (d_{in} - 1) \quad \text{（近似于 } d_{out} \times d_{in}\text{）} \\
+\text{FLOPs} &\approx 2 \times d_{out} \times d_{in} \quad \text{（将乘加计为2 FLOPs）}
+\end{align}
+
+对于批次大小$N$：FLOPs $= 2 \times N \times d_{out} \times d_{in}$
+
+\subsection{卷积层的FLOPs}
+
+对于输出特征图$H_{out} \times W_{out}$：
+\begin{align}
+\text{每输出像素FLOPs} &= K^2 \times C_{in} \times C_{out} \quad \text{（乘-加对）} \times 2 \\
+\text{总FLOPs} &= H_{out} \times W_{out} \times K^2 \times C_{in} \times C_{out} \times 2
+\end{align}
+
+示例：$224\times224$输入，$3\times3$卷积，64输入，128输出：
+\begin{align}
+H_{out} \times W_{out} &= 224 \times 224 = 50,176 \\
+\text{FLOPs} &= 50,176 \times 3 \times 3 \times 64 \times 128 \times 2 \approx 1.17 \text{ GFLOPs}
+\end{align}
+
+\begin{note}[MACs vs FLOPs]
+有时FLOPs被报告为乘累加（MAC）操作：
+\begin{equation}
+\text{MAC} = \sum_{i} a_i \cdot b_i
+\end{equation}
+每个MAC通常计为1次操作（如果分别计算乘法和加法，则为2 FLOPs）。
+
+1 MAC $\approx$ 2 FLOPs（对于基本算术）。
+\end{note}
+
+\section{实际示例}
+
+\subsection{LeNet-5参数计数}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{L{2.5cm} L{2cm} L{2cm} L{2cm}}
+        \toprule
+        \textbf{层} & \textbf{输入} & \textbf{权重} & \textbf{FLOPs} \\
+        \midrule
+        卷积1 & $1\times32\times32$ & $150$ & $2.7M$ \\
+        卷积2 & $6\times14\times14$ & $2,400$ & $4.2M$ \\
+        全连接1 & 400 & $240K$ & $480K$ \\
+        全连接2 & 120 & $48K$ & $48K$ \\
+        \midrule
+        总计 & - & $\sim$60K & $\sim$7M \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{AlexNet参数计数}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{L{2cm} L{2.5cm} L{2cm} L{2cm}}
+        \toprule
+        \textbf{层} & \textbf{输出} & \textbf{参数} & \textbf{FLOPs} \\
+        \midrule
+        卷积1 & $96\times55\times55$ & 35K & 105M \\
+        卷积2 & $256\times27\times27$ & 614K & 448M \\
+        卷积3 & $384\times13\times13$ & 885K & 149M \\
+        卷积4 & $384\times13\times13$ & 1.3M & 224M \\
+        卷积5 & $256\times13\times13$ & 884K & 149M \\
+        全连接6 & 4096 & 37.7M & 37.7M \\
+        全连接7 & 4096 & 16.8M & 16.8M \\
+        全连接8 & 1000 & 4.1M & 4.1M \\
+        \midrule
+        总计 & - & $\sim$60M & $\sim$1.1B \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{迁移学习与效率}
+
+迁移学习可以显著减少所需的数据和训练成本。
+
+\begin{properties}[迁移学习的优势]
+\begin{itemize}
+    \item 更低的训练成本（无需从头训练）
+    \item 可以使用更小的数据集
+    \item 收敛更快
+    \item 通常最终性能更好
+\end{itemize}
+\end{properties}
+
+常见策略：
+\begin{enumerate}
+    \item \textbf{冻结：}保持预训练权重固定
+    \item \textbf{微调：}用小学习率调整所有/部分层
+    \item \textbf{特征提取：}使用预训练模型作为特征提取器
+\end{enumerate}
+
+\section{详细模型分解}
+
+\subsection{ResNet-50参数分析}
+
+ResNet-50 \cite{he2016deep}由4个阶段组成，使用瓶颈块（$1 \times 1$, $3 \times 3$, $1 \times 1$卷积）。
+
+\begin{table}[ht]
+    \centering
+    \caption{ResNet-50逐层参数计数}
+    \begin{tabular}{L{3.5cm} L{3cm} L{2.5cm} L{2.5cm}}
+        \toprule
+        \textbf{层} & \textbf{输出形状} & \textbf{参数} & \textbf{FLOPs} \\
+        \midrule
+        卷积1 ($7\times7$, 64, s2) & $112^2 \times 64$ & 9,408 & 118M \\
+        最大池化 $3\times3$, s2 & $56^2 \times 64$ & 0 & -- \\
+        \midrule
+        阶段1 (3个块, 64) & $56^2 \times 256$ & 215,808 & 560M \\
+        阶段2 (4个块, 128) & $28^2 \times 512$ & 1,167,616 & 1,180M \\
+        阶段3 (6个块, 256) & $14^2 \times 1024$ & 4,715,776 & 2,360M \\
+        阶段4 (3个块, 512) & $7^2 \times 2048$ & 7,095,552 & 2,360M \\
+        \midrule
+        全局平均池化 & $2048$ & 0 & -- \\
+        FC（1000类） & $1000$ & 2,049,000 & 4M \\
+        \midrule
+        \textbf{总计} & & \textbf{25,557,032} & \textbf{$\approx$4.1B} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{关键观察：}
+\begin{itemize}
+    \item 阶段3和4包含46\%的参数量，但占55\%的FLOPs（低分辨率下高通道数）
+    \item 仅最终全连接层就有2M参数（占总数的8\%）——在现代变体中常被GAP取代
+    \item ResNet-50-D（在下采样中使用平均池化）以零额外参数提高精度
+\end{itemize}
+
+\subsection{Transformer模型缩放}
+
+对于具有$L$层、隐藏维度$d_{model}$、$h$个注意力头和词表大小$V$的Transformer模型：
+
+\begin{align}
+\text{嵌入参数} &= V \times d_{model} \\
+\text{每层参数} &\approx 12 \cdot d_{model}^2 \quad \text{（注意力：} 4d_{model}^2 \text{，FFN：} 8d_{model}^2\text{）} \\
+\text{总参数} &\approx V \cdot d_{model} + 12 L \cdot d_{model}^2
+\end{align}
+
+\begin{table}[ht]
+    \centering
+    \caption{Transformer模型规模}
+    \begin{tabular}{L{2.5cm} L{1.5cm} L{2cm} L{2cm} L{2cm}}
+        \toprule
+        \textbf{模型} & \textbf{层数} & $d_{model}$ & \textbf{参数} & \textbf{FLOPs/token} \\
+        \midrule
+        BERT-Base & 12 & 768 & 110M & 22.5B \\
+        BERT-Large & 24 & 1024 & 340M & 84B \\
+        GPT-2 Small & 12 & 768 & 117M & -- \\
+        GPT-2 Medium & 24 & 1024 & 345M & -- \\
+        GPT-2 XL & 24 & 1600 & 774M & -- \\
+        GPT-3 & 96 & 12288 & 175B & -- \\
+        LLaMA-7B & 32 & 4096 & 6.7B & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{note}[缩放定律]
+\cite{kaplan2020scaling}中的缩放定律分析表明，Transformer性能可预测地取决于三个因素：
+\begin{equation}
+\mathcal{L}(N, D, C) \approx \left(\frac{N_c}{N}\right)^{\alpha_N} + \left(\frac{D_c}{D}\right)^{\alpha_D}
+\end{equation}
+其中$N$ = 参数，$D$ = 数据量，$C$ = 计算量，$\alpha_N \approx 0.076$，$\alpha_D \approx 0.095$。这意味着，为了保持效率，参数、数据和计算应该成比例缩放（每个"数量级"改进约需要$\times$10）。
+\end{note}
+
+\section{激活内存分析}
+
+在训练期间，内存消耗主要由\textbf{激活}（为反向传播存储的中间特征图）决定，而非参数。
+
+\subsection{激活内存公式}
+
+对于形状为$(N, C, H, W)$的卷积层输出（FP32）：
+\begin{equation}
+\text{激活内存} = N \times C \times H \times W \times 4 \text{ 字节（FP32）}
+\end{equation}
+
+\begin{example}[ResNet-50激活内存]
+对于批次大小$N = 32$，FP32：
+\begin{itemize}
+    \item 阶段1输出（$56^2 \times 256$）：$32 \times 256 \times 56^2 \times 4 = 103$ MB
+    \item 阶段2输出（$28^2 \times 512$）：$32 \times 512 \times 28^2 \times 4 = 51$ MB
+    \item 阶段3输出（$14^2 \times 1024$）：$32 \times 1024 \times 14^2 \times 4 = 26$ MB
+    \item 所有层（包括中间层）的激活总计：$\approx 3$--$4$ GB
+\end{itemize}
+使用混合精度（FP16），激活内存减半（$\approx 2$ GB）。
+\end{example}
+
+\begin{properties}[减少激活内存的方法]
+\begin{itemize}
+    \item \textbf{梯度检查点：}在反向传播期间重新计算激活。以计算换内存（$\sim$33\%开销）换取内存（$\sim$60\%减少）。
+    \item \textbf{混合精度（AMP）：}以FP16存储激活，以FP32存储主权重。以最小精度损失减半激活内存。
+    \item \textbf{梯度累积：}模拟大批量而不成比例增加内存。
+    \item \textbf{DeepSpeed ZeRO：}跨GPU划分优化器状态、梯度和参数。
+\end{itemize}
+\end{properties}
+
+\section{模型压缩与量化}
+
+\subsection{量化}
+
+量化降低权重和激活的数值精度：
+
+\begin{table}[ht]
+    \centering
+    \caption{量化级别}
+    \begin{tabular}{L{2cm} L{2.5cm} L{2.5cm} L{2.5cm} L{2.5cm}}
+        \toprule
+        \textbf{精度} & \textbf{字节/参数} & \textbf{范围} & \textbf{大小（100M）} & \textbf{加速比} \\
+        \midrule
+        FP32 & 4 & $\pm 3.4\times10^{38}$ & 400 MB & 1$\times$ \\
+        FP16 & 2 & $\pm 65504$ & 200 MB & 2$\times$ \\
+        BF16 & 2 & $\pm 3.4\times10^{38}$ & 200 MB & 2$\times$ \\
+        INT8 & 1 & $[-128, 127]$ & 100 MB & 2--4$\times$ \\
+        INT4 & 0.5 & $[-8, 7]$ & 50 MB & 4--8$\times$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{训练后量化（PTQ）}在不重新训练的情况下量化已训练模型。\textbf{量化感知训练（QAT）}在训练期间模拟量化以获得更高精度。
+
+\subsection{其他压缩技术}
+
+\begin{itemize}
+    \item \textbf{剪枝：}移除不重要的权重（基于幅值或结构化）。可以在精度损失$<$1\%的情况下减少2--3倍FLOPs。
+    \item \textbf{知识蒸馏：}训练较小的"学生"模型来模仿较大的"教师"模型。学生通常超越直接训练的同等大小模型。
+    \item \textbf{低秩分解：}将权重矩阵分解为$\mathbf{W} = \mathbf{U}\mathbf{V}^\top$，其中$\text{rank}(\mathbf{U}) = \text{rank}(\mathbf{V}) \ll \text{rank}(\mathbf{W})$。
+\end{itemize}
+
+\section{章节小结}
+
+\begin{enumerate}
+    \item 参数计数决定模型大小和内存需求
+    \item FLOPs衡量计算复杂度（1 MAC $\approx$ 2 FLOPs）
+    \item ResNet-50：25.6M参数，4.1B FLOPs；Transformer参数按$12Ld^2$缩放
+    \item 训练期间激活内存常超过参数内存
+    \item 梯度检查点和混合精度以计算换内存
+    \item 量化（INT8、INT4）实现边缘设备高效部署
+    \item 迁移学习高效利用预训练模型
+    \item 缩放定律指导大型基础模型的设计
+\end{enumerate}
+
+\section{延伸阅读}
+
+\begin{itemize}
+    \item \cite{lecun1998gradient} --- 基于梯度的文档识别学习（LeNet-5）
+    \item \cite{krizhevsky2012imagenet} --- 使用深度CNN的ImageNet分类（AlexNet）
+    \item \cite{hinton2015distilling} --- 蒸馏神经网络中的知识
+    \item \cite{chen2016training} --- 以亚线性内存成本训练深度网络
+    \item \cite{han2015deep} --- 深度压缩：剪枝、量化和霍夫曼编码
+    \item \cite{he2016deep} --- 用于图像识别的深度残差学习
+    \item \cite{howard2017mobilenets} --- 移动视觉应用的高效CNN
+    \item \cite{micikevicius2018mixed} --- 混合精度训练
+    \item \cite{kaplan2020scaling} --- 神经语言模型的缩放定律
+\end{itemize}
+
+\section{练习题}
+
+\begin{enumerate}
+    \item \textbf{全连接层参数：}计算输入维度1024、输出维度256、批次大小32的全连接层的参数和FLOPs。
+
+    \item \textbf{卷积FLOPs：}推导输入通道64、输出通道128、输出特征图大小$28\times28$的$3\times3$卷积的FLOPs。
+
+    \item \textbf{ResNet-50分解：}使用本章中的阶段总计，估计ResNet-50参数中有多少比例位于最终分类层之外。
+
+    \item \textbf{Transformer缩放：}对于$L=24$、$d_{model}=1024$、词表大小$V=50{,}000$的Transformer，使用本章中的近似公式估算总参数数。
+
+    \item \textbf{激活内存：}对于批次大小16、激活张量形状$(16, 512, 28, 28)$以FP16存储，计算激活内存（MB）。
+
+    \item \textbf{压缩策略：}您需要在内存紧张但计算能力适中的边缘设备上部署模型。您会首先优先考虑剪枝、量化、蒸馏还是低秩分解？证明您的选择。
+\end{enumerate}

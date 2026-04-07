@@ -1,0 +1,227 @@
+% ------------------------------------------------------------------------------
+% pdfLaTeX 编译专用包管理文件
+% 替换原 XeLaTeX 的 pkgs.sty
+%
+% 迁移说明（XeLaTeX → pdfLaTeX）：
+%   ✗ fontspec         → 移除（pdfLaTeX 不需要）
+%   ✗ libertinus-otf  → 改用 libertinus-type1 + libertinust1math
+%   ✗ unicode-math    → 移除（由 libertinust1math 替代）
+%   ✗ xeCJK/ctex      → 使用 CJKfntef 替代
+%   ✓ plex-mono       → 保留（pdfLaTeX 版自动加载）
+%   ✓ bm              → 可用！pdfLaTeX + libertinust1math 下 \boldsymbol 正常工作
+%   ✓ mathtools       → 保留
+%   ✓ hyperref        → 保留
+%
+% 完整编译命令: pdflatex main → biber main → pdflatex main → pdflatex main
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% DEBUG
+\usepackage{lipsum}
+
+
+% ------------------------------------------------------------------------------
+% BASE
+\usepackage[english]{babel}
+
+
+% ------------------------------------------------------------------------------
+% 中文支持 (pdfLaTeX)
+\usepackage{CJKutf8}
+
+
+% ------------------------------------------------------------------------------
+% ENCODING (pdfLaTeX 专用)
+\usepackage[utf8]{inputenc}      % UTF-8 输入（XeLaTeX 不需要，pdfLaTeX 需要）
+\usepackage[T1]{fontenc}          % T1 字体编码（影响断行和特殊字符）
+
+
+% ------------------------------------------------------------------------------
+% TEXT AND FONTS
+%
+% pdfLaTeX 字体体系：
+%   • libertinus-type1   — Libertinus Serif/Sans/Mono 文本字体（Type1）
+%   • libertinust1math  — Libertinus 数学字体（pdfLaTeX 版）
+%   • bm                — 加粗数学符号（pdfLaTeX 下与 math 字体兼容！）
+%
+% Load order（必须遵守）：
+%   1. amsthm / mathtools   （数学环境，先于任何数学字体加载）
+%   2. libertinus-type1      （文本字体）
+%   3. libertinust1math      （数学字体，LOADS mathtools 内部）
+%   4. bm                    （加粗数学，必须在所有数学字体之后）
+%   5. siunitx               （单位，放在数学包之后）
+
+
+% ---- 1. Theorem environments (must precede math fonts) ----------------------
+\usepackage{amsthm}
+
+
+% ---- 2. Text fonts (Libertinus Type1) --------------------------------------
+\usepackage{libertinus-type1}
+
+% ---- 3. Math tools — loaded BEFORE libertinust1math -----------------------
+% mathtools must precede the math font; libertinust1math loads mathtools
+% internally but we load it first to control the order explicitly.
+\usepackage{mathtools}
+
+% ---- 4. Math fonts (Libertinus Math for pdfLaTeX) --------------------------
+% libertinust1math provides the Libertinus Math font family for pdfLaTeX.
+% It also sets up proper Greek/math alphabets.  bm is loaded AFTER this
+% so that \boldsymbol works correctly for all math symbols including Greek.
+\usepackage{libertinust1math}
+
+% ---- 4b. Bold math (bm — works correctly in pdfLaTeX!) --------------------
+% bm uses the font's bold variant via PostScript Type1 embolden, NOT Unicode
+% character substitution, so \boldsymbol{\Sigma} and \boldsymbol{\theta}
+% render correctly in pdfLaTeX.  This is the key difference from XeLaTeX
+% where bm conflicts with unicode-math.
+\usepackage{bm}
+\let\boldsym\boldsymbol          % convenience alias
+
+
+% ---- 5. Monospace ---------------------------------------------------------
+% plex-mono is loaded automatically by libertinus-type1 as the mono font,
+% but we set it explicitly for clarity.
+\usepackage[scale=0.85]{plex-mono}
+
+
+% ---- 6. Additional math tools ---------------------------------------------
+\usepackage[separate-uncertainty=true]{siunitx}
+
+
+% ---- 7. Misc text ---------------------------------------------------------
+\usepackage{eurosym}
+\usepackage{morespace}
+\usepackage[singlespacing]{setspace}
+
+
+% ------------------------------------------------------------------------------
+% GRAPHICS AND ICONS
+
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.pdf,.png,.jpg,.gif}
+
+\usepackage{fontawesome5}         % 注意：fontawesome5 需支持 XeLaTeX/LuaLaTeX，
+                                   % pdfLaTeX 下请改用 \usepackage{fontawesome}
+\usepackage{pdfpages}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes, backgrounds, arrows.meta, positioning, calc, patterns}
+\tikzset{x=1cm, y=1cm}
+
+
+% ------------------------------------------------------------------------------
+% PAGE GEOMETRY AND STYLE
+
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{changepage}
+\usepackage{pdflscape}
+
+
+% ------------------------------------------------------------------------------
+% TITLE FORMATTING
+
+\usepackage{titlesec}
+
+
+% ------------------------------------------------------------------------------
+% URL, REF AND HYPERREF
+
+\usepackage{hyperref}
+\usepackage{hyperxmp}
+\usepackage{xurl}
+\usepackage{nameref}
+
+
+% ------------------------------------------------------------------------------
+% LICENSE
+
+\usepackage[
+    type={CC},
+    modifier={by-nc-sa},
+    version={4.0},
+]{doclicense}
+
+
+% ------------------------------------------------------------------------------
+% APPENDIX
+
+\usepackage{appendix}
+
+
+% ------------------------------------------------------------------------------
+% TABLES
+
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{booktabs}
+
+
+% ------------------------------------------------------------------------------
+% FIGURES
+
+\usepackage{float}
+\usepackage[labelsep=endash, font={sf, small}, format=plain, labelfont={bf, up}]{caption}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+
+% ------------------------------------------------------------------------------
+% ALGORITHMS
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+
+% ------------------------------------------------------------------------------
+% PLOTS
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% Memory optimization for pgfplots (optional)
+% \usepgfplotslibrary{external}
+% \tikzexternalize
+
+
+% ------------------------------------------------------------------------------
+% CODE LISTINGS
+
+\usepackage{listings}
+\usepackage{newfloat}
+\DeclareFloatingEnvironment[fileext=lol, listname=代码清单, name=代码]{listing}
+
+
+% ------------------------------------------------------------------------------
+% LISTS
+
+\usepackage{enumitem}
+
+
+% ------------------------------------------------------------------------------
+% BIBLIOGRAPHY
+
+\usepackage{csquotes}
+\usepackage[
+    backend=biber,
+    citestyle=authoryear,
+    bibstyle=numeric,
+    sorting=ynt,
+    defernumbers=true
+]{biblatex}
+\let\mkbibparens\mkbibbrackets
+\let\cite\parencite
+
+
+
+% ------------------------------------------------------------------------------
+% GLOSSARIES AND ACRONYMS
+
+\usepackage[toc, style=mcoltreehypergroup, stylemods=mcols, nonumberlist, automake=immediate]{glossaries-extra}
+
+\makeglossaries

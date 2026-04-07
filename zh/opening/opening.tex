@@ -1,0 +1,74 @@
+% ------------------------------------------------------------------------------
+% 文件结构
+
+% 标题页
+\input{opening/titlepage}
+
+% 许可证
+\input{opening/license}
+
+% 关于本书
+\input{opening/about}
+
+% 摘要
+\input{opening/abstract}
+
+% 致谢
+\input{opening/acknowledgements}
+
+% 献词
+\input{opening/dedication}
+
+
+% ------------------------------------------------------------------------------
+% 目录
+
+\newpage
+\thispagestyle{empty}
+
+\clearpage
+\cleardoublepage
+\phantomsection
+
+\pagestyle{plain}
+
+
+\begingroup
+
+    % 压缩目录使用的空间
+    \renewcommand{\baselinestretch}{1.0}  % 减少间距
+    \small  % 较小的字体
+    \setlength{\parskip}{0mm}  % 段落间距 0mm
+
+
+    % 目录
+    {
+        \renewcommand{\baselinestretch}{1.0}
+        \tableofcontents
+        \singlespacing
+
+        \addcontentsline{toc}{chapter}{目录}
+    }
+
+    % 插图目录
+    {
+        \listoffigures
+        \addcontentsline{toc}{chapter}{插图目录}
+    }
+
+    % 表格目录
+    {
+        \listoftables
+        \addcontentsline{toc}{chapter}{表格目录}
+    }
+
+    % 代码清单目录
+    {
+        \lstlistoflistings
+        \addcontentsline{toc}{chapter}{代码清单目录}
+    }
+
+\endgroup
+
+% 致谢页结束
+% ------------------------------------------------------------------------------

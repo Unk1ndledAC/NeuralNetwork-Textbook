@@ -1,0 +1,637 @@
+\clearpage
+\cleardoublepage
+
+\chapter{损失函数}
+
+\section{引言}
+
+损失函数（也称为目标函数、成本函数或误差函数）是量化神经网络预测与真实目标匹配程度的数学度量。训练过程旨在通过基于梯度的优化调整网络参数来最小化此损失。
+
+损失函数的选择取决于：
+\begin{itemize}
+    \item 任务类型（分类、回归等）
+    \item 目标变量的分布
+    \item 对解决方案的期望属性（稀疏性、鲁棒性等）
+    \item 计算考虑
+\end{itemize}
+
+\section{损失函数的作用}
+
+给定数据集 $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{N}$ 和模型 $f(\mathbf{x}; \theta)$，经验风险为：
+\begin{equation}
+\mathcal{R}(\theta) = \frac{1}{N}\sum_{i=1}^{N} \ell(f(\mathbf{x}_i; \theta), \mathbf{y}_i)
+\end{equation}
+其中 $\ell(\cdot, \cdot)$ 是损失函数。
+
+训练寻求找到：
+\begin{equation}
+\theta^* = \arg\min_{\theta} \mathcal{R}(\theta)
+\end{equation}
+
+损失函数应该：
+\begin{enumerate}
+    \item 可微分（用于基于梯度的优化）
+    \item 适当惩罚较大误差
+    \item 鼓励特定任务的正确行为
+    \item 具有有用的统计解释
+\end{enumerate}
+
+\section{回归损失函数}
+
+回归任务预测连续值。损失函数的选择编码了关于噪声分布的假设，并决定了模型如何处理异常值。
+
+\subsection{均方误差（MSE）}
+
+均方误差（L2损失）是最常见的回归损失：
+\begin{equation}
+\mathcal{L}_{MSE} = \frac{1}{N}\sum_{i=1}^{N} (y_i - \hat{y}_i)^2 = \frac{1}{N}\sum_{i=1}^{N} e_i^2
+\end{equation}
+其中 $e_i = y_i - \hat{y}_i$ 是残差。
+
+\subsubsection{推导：MSE作为高斯噪声下的最大似然估计}
+
+MSE 的统计证明来自最大似然估计。假设数据由以下方式生成：
+\begin{equation}
+y_i = f(\mathbf{x}_i; \theta) + \epsilon_i, \quad \epsilon_i \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2)
+\end{equation}
+
+单个观测的似然为：
+\begin{equation}
+p(y_i \mid \mathbf{x}_i; \theta, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(y_i - \hat{y}_i)^2}{2\sigma^2}\right)
+\end{equation}
+
+完整数据集的负对数似然（NLL）：
+\begin{align}
+\mathcal{L}_{\text{NLL}} &= -\sum_{i=1}^{N} \log p(y_i \mid \mathbf{x}_i; \theta, \sigma^2) \\
+&= -\sum_{i=1}^{N}\left[-\frac{1}{2}\log(2\pi\sigma^2) - \frac{(y_i - \hat{y}_i)^2}{2\sigma^2}\right] \\
+&= \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\sum_{i=1}^{N}(y_i - \hat{y}_i)^2
+\end{align}
+
+由于 $\frac{N}{2}\log(2\pi\sigma^2)$ 是不依赖于 $\theta$ 的常数：
+\begin{equation}
+\boxed{\arg\min_\theta \mathcal{L}_{\text{NLL}} = \arg\min_\theta \sum_{i=1}^{N}(y_i - \hat{y}_i)^2 = \arg\min_\theta \mathcal{L}_{MSE}}
+\end{equation}
+
+\textbf{要点：}最小化 MSE 等同于在加性高斯噪声假设下拟合模型。这就是为什么当误差大致呈高斯分布时 MSE 效果良好，但当噪声分布具有重尾（例如拉普拉斯噪声）时失败的原因。
+
+\subsubsection{梯度分析}
+
+MSE 相对于预测的梯度：
+\begin{equation}
+\frac{\partial \mathcal{L}_{MSE}}{\partial \hat{y}_i} = -\frac{2}{N}(y_i - \hat{y}_i) = \frac{2}{N}e_i
+\end{equation}
+
+梯度\textbf{与误差呈线性关系}——这是一把双刃剑：
+\begin{itemize}
+    \item \textbf{接近最优}（$e_i \approx 0$）：梯度很小，实现精确收敛。
+    \item \textbf{远离最优}或\textbf{异常值}（$|e_i| \gg 0$）：梯度非常大，导致超调和对异常值的过度敏感。
+\end{itemize}
+
+\subsubsection{与方差和 \texorpdfstring{$R^2$}{R^2} 的联系}
+
+对于模型 $\hat{y}_i = f(\mathbf{x}_i)$，总方差分解成立：
+\begin{equation}
+\underbrace{\sum_i (y_i - \bar{y})^2}_{\text{总SS}} = \underbrace{\sum_i (\hat{y}_i - \bar{y})^2}_{\text{解释SS}} + \underbrace{\sum_i (y_i - \hat{y}_i)^2}_{\text{残差SS（MSE $\times N$）}}
+\end{equation}
+
+这给出了 $R^2$ 分数：$R^2 = 1 - \frac{\text{MSE}}{\text{Var}(y)}$。
+
+\subsection{平均绝对误差（MAE）}
+
+平均绝对误差（L1损失）：
+\begin{equation}
+\mathcal{L}_{MAE} = \frac{1}{N}\sum_{i=1}^{N} |y_i - \hat{y}_i|
+\end{equation}
+
+\subsubsection{推导：MAE作为拉普拉斯噪声下的MLE}
+
+如果噪声服从拉普拉斯（双指数）分布：
+\begin{equation}
+\epsilon_i \sim \text{Laplace}(0, b), \quad p(\epsilon) = \frac{1}{2b}\exp\left(-\frac{|\epsilon|}{b}\right)
+\end{equation}
+
+那么：
+\begin{align}
+-\log p(y_i \mid \mathbf{x}_i; \theta) &= \log(2b) + \frac{|y_i - \hat{y}_i|}{b} \\
+&\propto |y_i - \hat{y}_i|
+\end{align}
+因此 MAE 是拉普拉斯噪声下的 MLE 损失。拉普拉斯分布比高斯分布有更重的尾部，使 MAE 本质上对异常值更鲁棒。
+
+\subsubsection{比较：MSE vs MAE}
+
+\begin{table}[ht]
+    \centering
+    \caption{MSE vs MAE：综合比较}
+    \begin{tabular}{L{3cm} L{4cm} L{4.5cm}}
+        \toprule
+        \textbf{性质} & \textbf{MSE ($L_2$)} & \textbf{MAE ($L_1$)} \\
+        \midrule
+        噪声假设 & 高斯 $\mathcal{N}(0, \sigma^2)$ & 拉普拉斯 $\text{Laplace}(0, b)$ \\
+        异常值敏感性 & 高（二次惩罚） & 低（线性惩罚） \\
+        关于 $\hat{y}$ 的梯度 & $-2(y - \hat{y})/N$ & $-\text{sign}(y - \hat{y})/N$ \\
+        最优 $\hat{y}^*$ & 均值 $\bar{y}$ & 中位数 $\tilde{y}$ \\
+        光滑性 & 处处光滑 & 在0处不可微 \\
+        收敛速度 & 更快（二次近最优） & 更慢（常数梯度） \\
+        统计效率 & 更高（对于高斯数据） & 更低 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{关键洞察：}MSE 和 MAE 之间的差异最终归结为\textbf{关于噪声分布的信念}。如果你期望偶尔出现大的异常值，MAE 更合适。如果误差确实是高斯分布的，MSE 在统计上是最优的。
+
+\subsection{Huber损失：两全其美}
+
+Huber损失 \cite{huber1964robust} 在小误差时平滑地插值于 MSE，在大误差时插值于 MAE：
+
+\begin{equation}
+\mathcal{L}_{\text{Huber}}(y, \hat{y}) = 
+\begin{cases}
+\frac{1}{2}(y - \hat{y})^2 & \text{如果 } |y - \hat{y}| \leq \delta \\
+\delta \cdot |y - \hat{y}| - \frac{1}{2}\delta^2 & \text{否则}
+\end{cases}
+\end{equation}
+
+超参数 $\delta$（通常 $\delta = 1$）控制过渡点：
+\begin{itemize}
+    \item 对于 $|e| < \delta$：二次惩罚（像 MSE）——在最优附近高效优化。
+    \item 对于 $|e| \geq \delta$：线性惩罚（像 MAE）——对异常值鲁棒。
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[scale=0.9]
+        \begin{axis}[
+            xlabel={误差 $e = y - \hat{y}$},
+            ylabel=损失,
+            domain=-4:4,
+            samples=200,
+            width=11cm,
+            height=6cm,
+            legend pos=north west,
+            ymin=0,
+        ]
+            \addplot[thick, blue] {x^2};
+            \addlegendentry{MSE: $e^2$}
+            \addplot[thick, red] {abs(x)};
+            \addlegendentry{MAE: $|e|$}
+            \addplot[thick, green, domain=-4:-1] {-2*x - 2};
+            \addplot[thick, green, domain=-1:1] {x^2};
+            \addplot[thick, green, domain=1:4] {2*x - 2};
+            \addlegendentry{Huber: $\delta = 1$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption[回归损失函数比较]{MSE、MAE和Huber损失。Huber损失在零附近是二次的（快速收敛），对大误差是线性的（异常值鲁棒）。}
+    \label{fig:regression_losses}
+\end{figure}
+
+\begin{example}[Huber损失梯度]
+Huber损失的梯度是连续的：
+\begin{equation}
+\frac{\partial \mathcal{L}_{\text{Huber}}}{\partial \hat{y}} = 
+\begin{cases}
+\hat{y} - y & \text{如果 } |y - \hat{y}| \leq \delta \\
+\delta \cdot \text{sign}(\hat{y} - y) & \text{否则}
+\end{cases}
+\end{equation}
+对于大误差，梯度被限制在 $\pm \delta$，防止异常值导致梯度爆炸，同时在最优附近保持平滑的二次行为。
+\end{example}
+
+\section{分类损失函数}
+
+分类任务预测离散类别标签。损失函数必须鼓励模型为正确类别分配高概率。
+
+\subsection{从似然到交叉熵：完整推导链}
+
+要真正理解为什么交叉熵是标准分类损失，我们必须从头开始追踪完整推导。
+
+\subsubsection{第1步：生成模型}
+
+对于 $K$ 类分类问题，我们将输出建模为由网络参数化的分类分布：
+\begin{equation}
+p(y = k \mid \mathbf{x}; \theta) = \hat{y}_k, \quad k = 1, \ldots, K
+\end{equation}
+其中 $\hat{y}_k = \text{softmax}(\mathbf{z})_k$ 且 $\mathbf{z} = f(\mathbf{x}; \theta)$ 是 logits。
+
+\subsubsection{第2步：最大似然}
+
+给定 $N$ 个独立同分布样本，似然为：
+\begin{equation}
+\mathcal{L}(\theta) = \prod_{i=1}^{N} p(y_i \mid \mathbf{x}_i; \theta) = \prod_{i=1}^{N} \prod_{k=1}^{K} \hat{y}_{ik}^{y_{ik}}
+\end{equation}
+其中 $y_{ik} \in \{0, 1\}$ 是 one-hot 编码。
+
+\subsubsection{第3步：负对数似然 = 交叉熵}
+
+取负对数：
+\begin{align}
+-\log \mathcal{L}(\theta) &= -\sum_{i=1}^{N} \sum_{k=1}^{K} y_{ik} \log \hat{y}_{ik} \\
+&= -\sum_{i=1}^{N} \log \hat{y}_{i, c_i} \quad \text{（因为 } y_{ik} = \delta_{k, c_i}\text{）}
+\end{align}
+其中 $c_i$ 是样本 $i$ 的真实类别。这就是\textbf{分类交叉熵损失}。
+
+\subsubsection{第4步：与信息理论的联系}
+
+回忆第1章，真实分布 $p$（one-hot：$p_{c_i} = 1$，对于 $k \neq c_i$ 时 $p_k = 0$）和预测分布 $q = \hat{\mathbf{y}}$ 之间的交叉熵为：
+\begin{align}
+H(p, q) &= -\sum_{k=1}^{K} p_k \log q_k = -\log q_{c_i} \\
+H(p) &= 0 \quad \text{（真实分布是确定性的）}
+\end{align}
+因此：
+\begin{equation}
+D_{KL}(p \| q) = H(p, q) - H(p) = -\log \hat{y}_{c_i} = \mathcal{L}_{\text{CE}}
+\end{equation}
+最小化交叉熵 $\equiv$ 最小化KL散度 $\equiv$ 最大似然。
+
+\subsubsection{第5步：美丽的梯度}
+
+单个样本的 softmax-交叉熵梯度：
+\begin{align}
+\frac{\partial \mathcal{L}}{\partial z_j} &= \frac{\partial}{\partial z_j}\left(-\log \frac{e^{z_{c}}}{\sum_k e^{z_k}}\right) \\
+&= -\frac{\partial}{\partial z_j}\left(z_c - \log \sum_k e^{z_k}\right) \\
+&= \begin{cases}
+\hat{y}_j - 1 = \hat{y}_j - y_j & \text{如果 } j = c \\
+\hat{y}_j - 0 = \hat{y}_j - y_j & \text{如果 } j \neq c
+\end{cases} \\
+&= \boxed{\hat{y}_j - y_j}
+\end{align}
+
+梯度简单地是\textbf{预测减真实}。这个优雅的结果意味着：
+\begin{itemize}
+    \item 如果 $\hat{y}_c$（正确类别的预测概率）太低，梯度向上推。
+    \item 如果 $\hat{y}_j$（错误类别的预测概率）太高，梯度向下推。
+    \item 梯度自动按置信度缩放——非常错误的预测产生更大的梯度。
+\end{itemize}
+
+\subsection{二元交叉熵}
+
+对于 $y \in \{0, 1\}$ 的二分类，带有 sigmoid 输出 $\hat{y} = \sigma(z)$：
+\begin{equation}
+\mathcal{L}_{BCE} = -\frac{1}{N}\sum_{i=1}^{N}\left[y_i \log \hat{y}_i + (1-y_i) \log(1-\hat{y}_i)\right]
+\end{equation}
+
+这是 $K = 2$ 时分类交叉熵的特殊情况（数值上更稳定的实现）。关于 logit $z$ 的梯度同样优雅：
+\begin{equation}
+\frac{\partial \mathcal{L}_{BCE}}{\partial z} = \hat{y} - y = \sigma(z) - y
+\end{equation}
+
+\subsection{分类交叉熵}
+
+对于多分类（$K$ 个类别）：
+\begin{equation}
+\mathcal{L}_{CE} = -\frac{1}{N}\sum_{i=1}^{N}\sum_{k=1}^{K} y_{ik} \log \hat{y}_{ik}
+\end{equation}
+
+其中 $\hat{y}_{ik} = \text{softmax}(z_{ik})$。
+
+\textbf{数值稳定性：}在实践中，我们直接计算 log-softmax：
+\begin{equation}
+\log \hat{y}_k = z_k - \log \sum_{j=1}^{K} e^{z_j} = z_k - \text{logsumexp}(\mathbf{z})
+\end{equation}
+$\text{logsumexp}$ 函数使用 log-sum-exp 技巧实现：
+\begin{equation}
+\text{logsumexp}(\mathbf{z}) = m + \log \sum_{j} e^{z_j - m}, \quad m = \max(\mathbf{z})
+\end{equation}
+这防止了指数的下溢/上溢。
+
+\section{高级损失函数}
+
+\subsection{Focal损失}
+
+Focal损失 \cite{lin2017focal} 解决了单阶段检测器密集目标检测中\textbf{类别不平衡}的基本问题。在目标检测中，绝大多数提议的锚框是背景（简单负样本），因此标准交叉熵损失被容易分类的示例所主导，这些示例提供很少的学习信号。
+
+\subsubsection{动机：类别不平衡问题}
+
+考虑一个每张图像有 $N$ 个锚框的单阶段目标检测器，通常只有 $O(1)$ 个正（目标）锚框。交叉熵损失：
+\begin{equation}
+\mathcal{L}_{CE} = -\log p_t
+\end{equation}
+其中如果 $y = 1$（正样本）$p_t = p$，如果 $y = 0$（负样本）$p_t = 1 - p$。问题是：
+\begin{itemize}
+    \item \textbf{简单负样本}（$p_t \geq 0.9$）：尽管有数百万个，但每个贡献 $-\log(0.9) \approx 0.105$——个体很小但总体很大。
+    \item \textbf{困难正样本}（$p_t \leq 0.1$）：稀有但关键，每个贡献 $-\log(0.1) \approx 2.3$——大约是简单负样本的22倍。
+    \item 综合效果：困难示例的梯度信号被简单示例的数量所淹没。
+\end{itemize}
+
+\subsubsection{调制因子}
+
+Focal损失添加了一个调制因子 $(1 - p_t)^\gamma$，下放容易分类示例的损失：
+\begin{equation}
+\mathcal{L}_{\text{FL}} = -(1 - p_t)^\gamma \log p_t
+\end{equation}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[scale=0.9]
+        \begin{axis}[
+            xlabel={$p_t$（正确类别的概率）},
+            ylabel=损失,
+            domain=0.01:0.99,
+            samples=200,
+            width=10cm,
+            height=6cm,
+            legend pos=north east,
+            xmin=0, xmax=1,
+            ymin=0,
+        ]
+            \addplot[thick, blue] {-ln(x)};
+            \addlegendentry{CE ($\gamma=0$)}
+            \addplot[thick, red] {(1-x)^1 * (-ln(x))};
+            \addlegendentry{FL $\gamma=1$}
+            \addplot[thick, green!70!black] {(1-x)^2 * (-ln(x))};
+            \addlegendentry{FL $\gamma=2$}
+            \addplot[thick, purple] {(1-x)^5 * (-ln(x))};
+            \addlegendentry{FL $\gamma=5$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption[Focal损失调制]{不同 $\gamma$ 值的Focal损失。随着 $\gamma$ 增加，容易示例（$p_t \to 1$）的损失被越来越多地抑制。}
+    \label{fig:focal_loss}
+\end{figure}
+
+\subsubsection{调制因子分析}
+
+对于不同的 $p_t$ 和 $\gamma$ 值：
+
+\begin{table}[ht]
+    \centering
+    \caption[Focal损失调制因子]{Focal损失调制因子 $(1 - p_t)^\gamma$}
+    \begin{tabular}{L{2.5cm} c c c c}
+        \toprule
+        $p_t$ & $\gamma = 0$ & $\gamma = 1$ & $\gamma = 2$ & $\gamma = 5$ \\
+        \midrule
+        0.1（困难） & 1.000 & 0.900 & 0.810 & 0.590 \\
+        0.3（中等） & 1.000 & 0.700 & 0.490 & 0.168 \\
+        0.5（模糊） & 1.000 & 0.500 & 0.250 & 0.031 \\
+        0.9（容易） & 1.000 & 0.100 & 0.010 & $\sim$0 \\
+        0.99（非常容易） & 1.000 & 0.010 & 0.0001 & $\sim$0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+关键观察：
+\begin{itemize}
+    \item 当 $\gamma = 0$ 时，Focal损失退化为标准交叉熵。
+    \item 当 $\gamma = 2$ 时：$p_t = 0.9$ 的示例比 $p_t = 0.1$ 的示例贡献少100倍。
+    \item 当 $\gamma = 5$ 时：容易示例基本贡献零损失。
+\end{itemize}
+
+\subsubsection{Alpha平衡Focal损失}
+
+在实践中，Focal损失还包含类别平衡权重 $\alpha_t \in [0, 1]$：
+\begin{equation}
+\mathcal{L}_{\text{FL}} = -\alpha_t (1 - p_t)^\gamma \log p_t
+\end{equation}
+
+$\alpha$ 和 $\gamma$ 之间的相互作用很微妙。在Lin等人的实验中，$\alpha = 0.25$ 和 $\gamma = 2$ 取得了最佳性能。作者发现随着 $\gamma$ 增加，$\alpha$ 的重要性降低——因为调制因子已经有效地降低多数类的权重。
+
+\subsection{标签平滑}
+
+标签平滑 \cite{szegedy2016rethinking}，作为Inception-v2架构的一部分引入，用软标签替换硬 one-hot 标签。尽管简单，它已成为现代深度学习（尤其是大型语言模型 GPT、BERT）的标准技术。
+
+\subsubsection{机制}
+
+给定硬标签 $\mathbf{y} = [0, \ldots, 1, \ldots, 0]$（在位置 $c$ 的 one-hot），标签平滑构建：
+\begin{equation}
+y_k^{\text{LS}} = 
+\begin{cases}
+1 - \epsilon + \frac{\epsilon}{K} & \text{如果 } k = c \\
+\frac{\epsilon}{K} & \text{如果 } k \neq c
+\end{cases}
+\end{equation}
+其中 $\epsilon \in [0, 1)$ 是平滑参数（通常 $\epsilon = 0.1$）。例如，对于 $K = 10$ 个类别和 $\epsilon = 0.1$：
+\begin{equation}
+\mathbf{y}^{\text{LS}} = [0.01, 0.01, \ldots, 0.91, \ldots, 0.01]
+\end{equation}
+
+\subsubsection{为什么标签平滑有效？三个视角}
+
+\textbf{视角1：防止过度自信。}
+
+硬标签鼓励模型将 logits 推到极值（$z_c \to +\infty$，$z_{k \neq c} \to -\infty$）。这导致：
+\begin{itemize}
+    \item \textbf{大的logit幅度}，增加 softmax 输出差距。
+    \item \textbf{校准差：}模型的置信度与其准确性不匹配。
+    \item \textbf{泛化能力下降：} \cite{muller2019when} 表明，带有硬标签交叉熵的神经网络在 $\|\mathbf{w}_c\| \gg \|\mathbf{w}_{k \neq c}\|$ 处有最小值，即正确类别的权重向量比其他类别增长大得多。
+\end{itemize}
+
+标签平滑通过为所有类别分配非零概率来防止这种情况，将最大可实现置信度限制在 $1 - \epsilon + \epsilon/K$。
+
+\textbf{视角2：通过KL散度的正则化。}
+
+带平滑标签的交叉熵分解为：
+\begin{align}
+\mathcal{L}_{\text{LS}} &= -\sum_k y_k^{\text{LS}} \log \hat{y}_k \\
+&= -(1 - \epsilon)\underbrace{\log \hat{y}_c}_{\text{硬标签的CE}} - \frac{\epsilon}{K}\underbrace{\sum_{k=1}^{K}\log \hat{y}_k}_{\text{负熵}} \\
+&= (1 - \epsilon)\mathcal{L}_{CE} - \epsilon H(\hat{\mathbf{y}})
+\end{align}
+
+第二项 $H(\hat{\mathbf{y}})$ 是\textbf{预测分布的熵}。最大化熵鼓励预测更均匀——一种熵正则化形式。这防止模型崩溃到非常尖锐的分布。
+
+\textbf{视角3：贝叶斯解释。}
+
+标签平滑可以看作是对类别概率引入狄利克雷先验。如果 $p \sim \text{Dir}(\alpha \mathbf{1})$（对称狄利克雷），则：
+\begin{equation}
+\mathbb{E}[\log p_k] = \psi(\alpha) - \psi(K\alpha)
+\end{equation}
+其中 $\psi$ 是双伽玛函数。对于小的 $\alpha$，这近似于 $\log \frac{1}{K}$，对应于均匀标签平滑。
+
+\section{对比学习和自监督损失函数}
+
+自监督学习的最新进展（2020-2024）引入了一类新的损失函数，通过对比正样本对和负样本对来学习表示，无需人工标签。
+
+\subsection{对比损失}
+
+最简单的对比损失形式是为度量学习引入的（例如人脸验证、孪生网络）：
+
+\begin{equation}
+\mathcal{L}_{\text{contrastive}} = \frac{1}{2}\left[y \cdot d^2 + (1 - y) \cdot \max(0, m - d)^2\right]
+\end{equation}
+其中：
+\begin{itemize}
+    \item $d = \|f(\mathbf{x}_1) - f(\mathbf{x}_2)\|_2$ 是两个嵌入之间的距离
+    \item $y \in \{0, 1\}$：$y = 1$ 表示正样本对（同类别），$y = 0$ 表示负样本对
+    \item $m > 0$ 是边界超参数
+\end{itemize}
+
+\textbf{直觉：}正样本对被拉近（$d \to 0$），而负样本对被推远直到它们至少相距 $m$（超过则不再有惩罚）。
+
+\subsection{三元组损失}
+
+三元组损失通过同时比较\textbf{锚}、\textbf{正样本}和\textbf{负样本}来扩展对比学习：
+\begin{equation}
+\mathcal{L}_{\text{Triplet}} = \max\left(0, \underbrace{\|f_a - f_p\|_2^2}_{\text{正样本距离}} - \underbrace{\|f_a - f_n\|_2^2}_{\text{负样本距离}} + \alpha\right)
+\end{equation}
+
+\textbf{几何解释：}当正样本至少比负样本更接近锚 $\alpha$ 时损失为零。边界 $\alpha$ 控制强制执行的分离程度。
+
+\subsection{InfoNCE损失}
+
+InfoNCE \cite{oord2018representation}，现代对比学习（SimCLR \cite{chen2020simple}、MoCo、CLIP）的基础，将表示学习框定为\textbf{多选题}问题：
+
+\begin{definition}[InfoNCE损失]
+给定一个查询 $\mathbf{q}$，一个正样本键 $\mathbf{k}_+$，和 $N-1$ 个负样本键 $\{\mathbf{k}_-\}$：
+\begin{equation}
+\mathcal{L}_{\text{InfoNCE}} = -\log \frac{\exp(\mathbf{q}^\top \mathbf{k}_+ / \tau)}{\sum_{i=1}^{N} \exp(\mathbf{q}^\top \mathbf{k}_i / \tau)}
+\end{equation}
+其中 $\tau > 0$ 是温度超参数。
+\end{definition}
+
+\subsubsection{与互信息的联系}
+
+\cite{oord2018representation} 中的显著理论结果表明，InfoNCE 提供了互信息的下界：
+\begin{equation}
+I(\mathbf{x}; \mathbf{y}) \geq \log N - \mathcal{L}_{\text{InfoNCE}}
+\end{equation}
+
+这意味着最小化 InfoNCE 最大化查询和正样本键之间的互信息，鼓励编码器捕获同一图像增强视图之间的所有共享信息。
+
+\subsubsection{温度 \texorpdfstring{$\tau$}{tau} 的作用}
+
+温度参数 $\tau$ 控制分布的"锐度"：
+\begin{itemize}
+    \item \textbf{小的 $\tau$}（例如 CLIP 中的 0.07）：使分布尖锐，增加对太接近的负样本的惩罚。鼓励模型更"有区分力"。
+    \item \textbf{大的 $\tau$}（例如 0.5-1.0）：更软的分布，负样本之间更均匀的梯度。
+\end{itemize}
+
+对于相似度分数 $s = \mathbf{q}^\top \mathbf{k} / \tau$ 和从维度 $d$ 球体上的均匀分布绘制的 $N$ 个负样本：
+\begin{equation}
+\mathbb{E}[\mathcal{L}_{\text{InfoNCE}}] \approx -\log \sigma\!\left(\frac{s_{+} - \mathbb{E}[s_{-}]}{\sqrt{\text{Var}(s)}}\right) + \text{const}
+\end{equation}
+这表明损失有效地衡量了正样本相似度与预期负样本相似度的可分离性。
+
+\subsection{Dice损失}
+
+对于类别不平衡严重的分割任务（例如医学图像分割），Dice损失 \cite{milletari2016v} 直接优化 Dice 系数：
+\begin{equation}
+\mathcal{L}_{\text{Dice}} = 1 - \frac{2 \sum_{i} \hat{y}_i \cdot y_i + \epsilon}{\sum_{i} \hat{y}_i + \sum_{i} y_i + \epsilon}
+\end{equation}
+
+\subsubsection{推导：Dice系数和Jaccard指数}
+
+\textbf{S{\o}rensen--Dice系数}衡量预测和真实分割掩码之间的重叠：
+\begin{equation}
+\text{Dice} = \frac{2|A \cap B|}{|A| + |B|}
+\end{equation}
+
+\textbf{Jaccard指数}（并交比，IoU）与之相关：
+\begin{equation}
+\text{IoU} = \frac{|A \cap B|}{|A \cup B|} = \frac{\text{Dice}}{2 - \text{Dice}}, \quad \text{Dice} = \frac{2 \cdot \text{IoU}}{1 + \text{IoU}}
+\end{equation}
+
+\textbf{为什么Dice损失对类别不平衡有效：}与独立对待每个像素的交叉熵不同，Dice损失直接优化用于评估的重叠度量。这意味着：
+\begin{itemize}
+    \item 单个假正样本像素将分子减少1并将分母增加1——双重惩罚。
+    \item 损失固有地被预测和真实区域的大小归一化，使其具有尺度不变性。
+    \item 小物体比在交叉熵下贡献更大比例的损失。
+\end{itemize}
+
+\textbf{实践技巧：}Dice损失经常与交叉熵结合为 $\mathcal{L} = \mathcal{L}_{CE} + \lambda \mathcal{L}_{\text{Dice}}$，其中 $\lambda \in [0.5, 1.0]$。交叉熵提供稳定的像素级梯度，而Dice损失确保区域级重叠。
+
+\subsection{KL散度损失}
+
+当目标本身是一个概率分布（而不是 one-hot 标签）时使用 KL 散度损失：
+
+\begin{equation}
+\mathcal{L}_{KL}(p \| q) = \sum_{k} p_k \log \frac{p_k}{q_k}
+\end{equation}
+
+\textbf{应用：}
+\begin{itemize}
+    \item \textbf{知识蒸馏：}目标 $p$ 是教师的软输出分布（温度缩放后），$q$ 是学生的预测。
+    \item \textbf{变分推断}（VAE）：将近似后验 $q(\mathbf{z}|\mathbf{x})$ 匹配到先验 $p(\mathbf{z})$。
+    \item \textbf{域适应：}对齐源域和目标域的特征分布。
+\end{itemize}
+
+\textbf{重要：KL散度是非对称的。}$D_{KL}(p \| q) \neq D_{KL}(q \| p)$。在知识蒸馏中：
+\begin{itemize}
+    \item \textbf{正向KL} $D_{KL}(p_{\text{teacher}} \| q_{\text{student}})$："均值寻求"——学生覆盖教师的所有模态。用于蒸馏。
+    \item \textbf{反向KL} $D_{KL}(q_{\text{student}} \| p_{\text{teacher}})$："模态寻求"——学生对少数模态拟合良好但可能错过其他。在变分推断中使用。
+\end{itemize}
+
+\section{选择损失函数}
+
+\begin{table}[ht]
+    \centering
+    \caption{损失函数选择指南}
+    \begin{tabular}{L{2.5cm} L{4cm} L{4cm}}
+        \toprule
+        \textbf{任务} & \textbf{损失} & \textbf{注意事项} \\
+        \midrule
+        二分类 & BCE & 标准选择 \\
+        多分类 & 交叉熵 & 带标签平滑 \\
+        回归 & MSE & 对异常值敏感 \\
+        鲁棒回归 & MAE/Huber & 抗异常值 \\
+        不平衡分类 & Focal损失 & 关注困难示例 \\
+        分割 & Dice + CE & 处理类别不平衡 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{本章小结}
+
+损失函数是数学模型和学习目标之间的桥梁：
+
+\begin{enumerate}
+    \item \textbf{MSE = 高斯噪声下的MLE：}最小化 MSE 等同于在加性高斯噪声假设下拟合模型。二次惩罚使其对异常值敏感但在最优附近高效。
+
+    \item \textbf{MAE = 拉普拉斯噪声下的MLE：}线性惩罚提供对异常值的鲁棒性但收敛较慢。Huber损失结合了两者的优点。
+
+    \item \textbf{交叉熵 = 分类分布的MLE：}softmax-交叉熵组合产生优雅的梯度 $\hat{y}_k - y_k$，实现高效的分类训练。
+
+    \item \textbf{Focal损失：}通过调制因子 $(1 - p_t)^\gamma$ 动态降低简单示例的权重，解决类别不平衡。对于密集预测任务必不可少。
+
+    \item \textbf{标签平滑：}通过在类别间分布概率质量防止过度自信，与贝叶斯先验和熵正则化有联系。
+
+    \item \textbf{对比损失（InfoNCE）：}自监督学习的基础，绑定同一数据点视图之间的互信息。
+
+    \item \textbf{Dice损失：}直接优化分割的评估指标，自然处理类别不平衡。
+\end{enumerate}
+
+\begin{table}[ht]
+    \centering
+    \caption{完整损失函数决策框架}
+    \begin{tabular}{L{3cm} L{3cm} L{4cm} L{3cm}}
+        \toprule
+        \textbf{场景} & \textbf{损失} & \textbf{原因} & \textbf{关键参考} \\
+        \midrule
+        干净回归 & MSE & MLE，高斯噪声 & \\
+        回归+异常值 & Huber ($\delta=1$) & 鲁棒+高效 & \cite{huber1964robust} \\
+        二分类 & BCE & MLE，伯努利 & \\
+        多分类 & 交叉熵 & MLE，分类 & \\
+        不平衡检测 & Focal损失 ($\gamma=2$) & 降低简单负样本权重 & \cite{lin2017focal} \\
+        医学分割 & Dice + CE & 重叠优化 & \cite{milletari2016v} \\
+        自监督 & InfoNCE ($\tau=0.07$) & MI最大化 & \cite{chen2020simple} \\
+        知识蒸馏 & KL散度 & 分布匹配 & \\
+        NLP/大模型 & CE + 标签平滑 & 校准 & \cite{szegedy2016rethinking} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{扩展阅读}
+
+\begin{itemize}
+    \item \cite{huber1964robust} --- 位置参数的鲁棒估计（Huber损失）
+    \item \cite{bishop2006pattern} --- 第1-2章概率基础
+    \item \cite{goodfellow2016deep} --- 第5章（机器学习基础）和第6章（深度前馈网络）
+    \item \cite{milletari2016v} --- V-Net：分割的Dice损失
+    \item \cite{szegedy2016rethinking} --- 重新思考Inception架构（标签平滑）
+    \item \cite{lin2017focal} --- 密集目标检测的Focal损失
+    \item \cite{oord2018representation} --- 对比预测编码（InfoNCE）
+    \item \cite{chen2020simple} --- SimCLR：对比学习简单框架
+    \item \cite{he2020masked} --- 用于自监督视觉的掩码自编码器（MAE）
+\end{itemize}
+
+\section{习题}
+
+\begin{enumerate}
+    \item \textbf{Huber vs MSE：}对于残差 $r \in \{-3, -1, 0, 1, 3\}$ 和 Huber 阈值 $\delta = 1$，计算每个残差的 Huber 损失，并将其与 MSE 和 MAE 比较。哪种损失对大异常值的惩罚最强？
+
+    \item \textbf{Softmax-交叉熵梯度：}从 $\mathcal{L} = -\sum_k y_k \log \hat{y}_k$ 且 $\hat{y}_k = \text{softmax}(z_k)$ 开始，推导梯度 $\frac{\partial \mathcal{L}}{\partial z_k} = \hat{y}_k - y_k$。
+
+    \item \textbf{类别不平衡：}考虑一个95\%负样本和5\%正样本的二分类数据集。解释为什么标准 BCE 可能表现不佳。Focal损失如何在训练期间改变简单负样本的贡献？
+
+    \item \textbf{标签平滑：}对于带平滑参数 $\varepsilon = 0.1$ 的5类分类任务，写出正确类别的平滑目标分布，并解释为什么这可以改善校准。
+
+    \item \textbf{对比学习：}在批次大小 $N$ 的 InfoNCE 中，每个样本有一个正样本和 $2N-2$ 个负样本。增加批次大小如何影响目标分母和任务难度？
+
+    \item \textbf{分割损失：}展示Dice损失在预测掩码过度分割与分割不足时的变化。为什么Dice损失在实践中经常与交叉熵结合使用？
+\end{enumerate}

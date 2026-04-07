@@ -1,0 +1,55 @@
+\documentclass[twoside, openright, 12pt]{report}
+
+% Increase TeX memory capacity (if needed)
+\maxdeadcycles=1000
+
+\newcommand{\thesisTitle}{Neural Networks}
+
+\newcommand{\thesisTitleShort}{Neural Networks}
+
+%\newcommand{\thesisType}{Textbook}
+\newcommand{\thesisDegree}{Computer Science}
+\newcommand{\thesisArea}{Artificial Intelligence}
+
+\newcommand{\thesisAuthor}{G. Qu et al.} 
+
+
+\newcommand{\thesisYear}{2026}
+\newcommand{\thesisMonth}{March}
+\newcommand{\thesisDate}{{\thesisMonth} {\thesisYear}}
+\newcommand{\thesisAcademicCourse}{2025/2026}
+
+\newcommand{\thesisSchool}{Yunnan University}
+\newcommand{\thesisAddress}{Kunming, China}
+\newcommand{\thesisDepartment}{School Of Information Science And Engineering}
+
+\newcommand{\thesisDOI}{}
+
+\newcommand{\thesisKeywords}{Neural Networks, Deep Learning}  
+
+\usepackage{style/alcazar}
+
+\title{\thesisTitle}
+\author{\thesisAuthor}
+
+% biblatex is loaded in style/pkgs-pdflatex.sty; only register the bibliography database here.
+\addbibresource{bibliography/references.bib}  
+
+\begin{document}
+
+\renewcommand{\subsectionautorefname}{\sectionautorefname}
+\renewcommand{\subsubsectionautorefname}{\sectionautorefname}
+
+\include{opening/opening}
+
+\include{glossary/glossary}
+
+\include{text/chapters/chapters}
+
+\include{bibliography/bibliography}
+
+\include{text/appendix/appendix}
+
+\include{text/appendix/thanks}
+
+\end{document}

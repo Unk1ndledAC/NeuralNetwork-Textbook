@@ -7,14 +7,23 @@
       ]
     },
     {
-      "name": "pdflatex -> biber -> pdflatex -> pdflatex",
+      "name": "pdflatex -> biber -> pdflatex -> pdflatex (English)",
       "tools": [
         "pdflatex",
         "biber",
         "pdflatex",
         "pdflatex"
       ]
-    }
+    },
+    {
+        "name": "xelatex -> biber -> xelatex -> xelatex (Chinese)",
+        "tools": [
+            "xelatex",
+            "biber",
+            "xelatex",
+            "xelatex"
+        ]
+    },
   ],
   "latex-workshop.latex.tools": [
     {
@@ -34,11 +43,12 @@
       "name": "pdflatex",
       "command": "pdflatex",
       "args": [
-        "-synctex=1",
-        "-interaction=nonstopmode",
-        "-file-line-error",
-        "-output-directory=%DIR%",
-        "%DOC%"
+            "-halt-on-error",
+            "-interaction=batchmode",
+            "-shell-escape",
+            "-synctex=1",
+            "-jobname=%DOCFILE%",
+            "%DOC%"
       ],
       "env": {}
     },
@@ -51,9 +61,21 @@
         "%DOCFILE%"
       ],
       "env": {}
-    }
+    },
+    {
+            "name": "xelatex",
+            "command": "xelatex",
+            "args": [
+                "-halt-on-error",
+                "-interaction=batchmode",
+                "-shell-escape",
+                "-synctex=1",
+                "-jobname=%DOCFILE%",
+                "%DOC%"
+            ]
+        },
   ],
-  "latex-workshop.latex.autoBuild.run": "onFileChange",
+  "latex-workshop.latex.autoBuild.run": "never",
   "latex-workshop.latex.autoBuild.interval": 1000,
   "latex-workshop.latex.outDir": "%DIR%",
   "latex-workshop.synctex.afterBuild.enabled": true,
