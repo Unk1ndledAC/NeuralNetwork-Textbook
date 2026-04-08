@@ -116,9 +116,11 @@ This project is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/lic
 [![DOI](https://zenodo.org/badge/1196192990.svg)](https://doi.org/10.5281/zenodo.19466090)
 
 ```
-@misc{neural-network-textbook,
-  author = {Gabriel Qu, Celestino Wang, and Chiyo Yuki},
+@misc{qu2026text,
+  author = {Qu, Gabriel and Wang, Celestino and Yuki, Chiyo},
   title = {Neural Networks: A Comprehensive Guide for Artificial Intelligence Students},
+  year = {2026},
+  keywords = {Neural Networks, Deep Learning},
   url = {https://github.com/Unk1ndledAC/NeuralNetwork-Textbook},
   doi = {10.5281/zenodo.19466090}
 }
