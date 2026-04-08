@@ -111,6 +111,19 @@ make cleanall    # Remove auxiliary files + PDF
 
 This project is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
+## Citation
+
+[![DOI](https://zenodo.org/badge/1196192990.svg)](https://doi.org/10.5281/zenodo.19466090)
+
+```
+@misc{neural-network-textbook,
+  author = {G. Qu et al.},
+  title = {Neural Networks: A Comprehensive Guide for Artificial Intelligence Students},
+  url = {[https://github.com/dpmj/alcazar](https://github.com/Unk1ndledAC/NeuralNetwork-Textbook)},
+  doi = {10.5281/zenodo.19466090}
+}
+```
+
 ## Acknowledgements
 
 ### Template
